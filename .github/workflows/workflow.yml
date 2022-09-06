@@ -28,6 +28,8 @@ jobs:
           
       - name: Run integration tests
         run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=integration test
+        env:
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
         
       - name: Package
         run: mvn --batch-mode --update-snapshots package
