@@ -1,0 +1,35 @@
+name: 64-bit Corretto 8 CI
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up 64-bit Corretto 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'corretto'
+          architecture: x64
+          cache: maven
+          
+      - name: Run unit tests
+        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=unit test
+          
+      - name: Run component tests
+        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=component test
+          
+      - name: Run integration tests
+        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=integration test
+        env:
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        
+      - name: Package
+        run: mvn --batch-mode --update-snapshots package
