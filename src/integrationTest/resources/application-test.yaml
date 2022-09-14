@@ -1,0 +1,20 @@
+blinkpay:
+  debit:
+    url: https://sandbox.debit.blinkpay.co.nz
+  max:
+    connections: 50
+    idle:
+      time: PT20S
+    life:
+      time: PT60S
+  pending:
+    acquire:
+      timeout: PT10S
+  eviction:
+    interval: PT60S
+  client:
+    id: ${BLINKPAY_CLIENT_ID}
+    secret: ${BLINKPAY_CLIENT_SECRET}
+  bff:
+    shared:
+      secret: ${BLINKPAY_BFF_SHARED_SECRET}

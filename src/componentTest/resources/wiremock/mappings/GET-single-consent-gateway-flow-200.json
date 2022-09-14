@@ -1,0 +1,14 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "GET",
+    "url": "/payments/v1/single-consents/58ed876d-5419-405c-a416-f1d77177f93f"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "single-consent-gateway-flow-200.json"
+  }
+}

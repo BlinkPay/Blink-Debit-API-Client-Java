@@ -1,0 +1,14 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "GET",
+    "url": "/gateway/1.0/consents/d97a2df5-8b99-4c77-be3e-f996334937b7"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "gateway-single-consent-200.json"
+  }
+}

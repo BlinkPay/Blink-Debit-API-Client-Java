@@ -1,0 +1,79 @@
+{
+  "consent": {
+    "consent_id": "d97a2df5-8b99-4c77-be3e-f996334937b7",
+    "status": "GatewayAwaitingSubmission",
+    "creation_timestamp": "2022-09-14T17:12:29+12:00",
+    "detail": {
+      "type": "single",
+      "flow": {
+        "detail": {
+          "type": "gateway",
+          "redirect_uri": "https://www.blinkpay.co.nz/sample-merchant-return-page"
+        }
+      },
+      "pcr": {
+        "particulars": "particulars",
+        "code": "code",
+        "reference": "reference"
+      },
+      "amount": {
+        "total": "1.50",
+        "currency": "NZD"
+      }
+    },
+    "payments": []
+  },
+  "merchant_name": "ACME Incorporated",
+  "merchant_account_number": "02-1285-0026988-00",
+  "quick_payment": false,
+  "merchant_redirect_uri": "https://www.blinkpay.co.nz/sample-merchant-return-page?cid=d97a2df5-8b99-4c77-be3e-f996334937b7",
+  "gateway_redirect_uri": "https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=d97a2df5-8b99-4c77-be3e-f996334937b7",
+  "available_banks": [
+    {
+      "bank": "BNZ",
+      "available_flows": [
+        {
+          "flow": "redirect"
+        },
+        {
+          "flow": "decoupled",
+          "available_identifiers": [
+            {
+              "type": "consent_id",
+              "name": "Consent ID"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bank": "PNZ",
+      "available_flows": [
+        {
+          "flow": "redirect"
+        },
+        {
+          "flow": "decoupled",
+          "available_identifiers": [
+            {
+              "type": "phone_number",
+              "name": "Phone Number"
+            },
+            {
+              "type": "mobile_number",
+              "name": "Mobile Number"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "bank": "Westpac",
+      "available_flows": [
+        {
+          "flow": "redirect"
+        }
+      ]
+    }
+  ]
+}
