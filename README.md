@@ -1,4 +1,5 @@
 # Blink Debit API Client for Java
+![badge](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/actions/workflows/workflow.yml/badge.svg)
 
 This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
 
@@ -6,7 +7,7 @@ This SDK allows merchants with Java-based e-commerce site to integrate with Blin
 
 - Java 8
 - Spring Boot 2.7
-- Maven 3.8
+- Maven 3.8.1
 
 # Dependency
 
