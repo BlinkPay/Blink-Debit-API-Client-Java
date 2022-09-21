@@ -22,14 +22,27 @@ jobs:
           
       - name: Run unit tests
         run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=unit test
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           
       - name: Run component tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=component test
+        run: mvn -Dgroups=component test
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           
       - name: Run integration tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=integration test
+        run: mvn -Dgroups=integration test
         env:
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
         
       - name: Package
-        run: mvn --batch-mode --update-snapshots package
+        run: mvn clean package -DskipTests=true
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

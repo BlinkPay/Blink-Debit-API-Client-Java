@@ -1,0 +1,17 @@
+{
+  "refund_id": "87c203e9-00ff-40d8-ad90-7bdd67895731",
+  "status": "completed",
+  "creation_timestamp": "2022-09-14T11:46:58+12:00",
+  "status_updated_timestamp": "2022-09-14T11:46:58+12:00",
+  "account_number": "99-6121-3292712-00",
+  "detail": {
+    "payment_id": "5de1b67f-0214-462e-aab5-1d8397b2fe67",
+    "type": "full_refund",
+    "consent_redirect": "http://localhost:8888/callback",
+    "pcr": {
+      "particulars": "particulars",
+      "code": "code",
+      "reference": "reference"
+    }
+  }
+}

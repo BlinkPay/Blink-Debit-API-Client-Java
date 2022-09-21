@@ -1,0 +1,11 @@
+{
+  "payment_id": "76ac9fa3-4793-45fe-8682-c7876fc5262e",
+  "type": "single",
+  "status": "AcceptedSettlementCompleted",
+  "creation_timestamp": "2022-09-14T15:56:24+12:00",
+  "status_updated_timestamp": "2022-09-14T15:56:32.873231772+12:00",
+  "detail": {
+    "consent_id": "c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"
+  },
+  "refunds": []
+}

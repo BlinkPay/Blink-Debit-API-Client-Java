@@ -1,0 +1,22 @@
+{
+  "consent_id": "44b7169f-90a0-4b8d-b723-056363a3fe53",
+  "status": "GatewayAwaitingSubmission",
+  "creation_timestamp": "2022-09-13T14:55:17+12:00",
+  "detail": {
+    "type": "enduring",
+    "flow": {
+      "detail": {
+        "type": "gateway",
+        "redirect_uri": "https://www.blinkpay.co.nz/sample-merchant-return-page"
+      }
+    },
+    "expiry_timestamp": "2022-04-28T16:21:00+12:00",
+    "from_timestamp": "2021-04-28T16:21:00+12:00",
+    "maximum_amount_period": {
+      "total": "50.00",
+      "currency": "NZD"
+    },
+    "period": "fortnightly"
+  },
+  "payments": []
+}
