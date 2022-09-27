@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
@@ -34,9 +33,7 @@ import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Period;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -60,8 +57,8 @@ import static org.assertj.core.api.Assertions.fail;
 /**
  * The integration test for {@link PaymentsApiClient}.
  */
-@SpringBootTest(classes = {OAuthApiClient.class, PaymentsApiClient.class, SingleConsentsApiClient.class,
-        EnduringConsentsApiClient.class})
+@SpringBootTest(classes = {AccessTokenHandler.class, OAuthApiClient.class, PaymentsApiClient.class,
+        SingleConsentsApiClient.class, EnduringConsentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @ActiveProfiles("test")
 @Tag("integration")
@@ -73,9 +70,6 @@ class PaymentsApiClientIntegrationTest {
     private static final ZoneId ZONE_ID = ZoneId.of("Pacific/Auckland");
 
     @Autowired
-    private OAuthApiClient oAuthApiClient;
-
-    @Autowired
     private EnduringConsentsApiClient enduringConsentsApiClient;
 
     @Autowired
@@ -84,35 +78,18 @@ class PaymentsApiClientIntegrationTest {
     @Autowired
     private PaymentsApiClient client;
 
-    private static String accessToken;
-
     private static UUID consentId;
 
     private static UUID paymentId;
 
-    @BeforeEach
-    void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
-    }
-
     @Test
     @DisplayName("Verify that payment for single consent with decoupled flow is created")
     @Order(1)
-    void createPaymentForSingleConsentWithDecoupledFlow() throws ExpiredAccessTokenException, InterruptedException {
-        Mono<CreateConsentResponse> createConsentResponseMono = singleConsentsApiClient.createSingleConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+    void createPaymentForSingleConsentWithDecoupledFlow() throws InterruptedException {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                singleConsentsApiClient.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
+                        "particulars", "code", "reference", "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
+                        "https://eout2fipbfh7o93.m.pipedream.net");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -124,8 +101,7 @@ class PaymentsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = client.createPayment(UUID.randomUUID().toString(),
-                        accessToken, consentId);
+                Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -148,12 +124,12 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for single consent with decoupled flow is retrieved")
     @Order(2)
-    void getPaymentForSingleConsentWithDecoupledFlow() throws ExpiredAccessTokenException {
+    void getPaymentForSingleConsentWithDecoupledFlow() {
         if (paymentId == null) {
             fail("Payment ID from single consent with decoupled flow is null");
         }
 
-        Mono<Payment> paymentMono = client.getPayment(UUID.randomUUID().toString(), accessToken, paymentId);
+        Mono<Payment> paymentMono = client.getPayment(paymentId);
 
         assertThat(paymentMono).isNotNull();
         Payment actual = paymentMono.block();
@@ -175,11 +151,11 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for enduring consent with decoupled flow is created")
     @Order(3)
-    void createPaymentForEnduringConsentWithDecoupledFlow() throws ExpiredAccessTokenException, InterruptedException {
-        Mono<CreateConsentResponse> createConsentResponseMono = enduringConsentsApiClient.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                "https://eout2fipbfh7o93.m.pipedream.net");
+    void createPaymentForEnduringConsentWithDecoupledFlow() throws InterruptedException {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                enduringConsentsApiClient.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", null,
+                        IdentifierType.PHONE_NUMBER, "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -191,8 +167,8 @@ class PaymentsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = client.createPayment(UUID.randomUUID().toString(),
-                        accessToken, consentId, null, "particulars", "code", "reference", "45.00");
+                Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId, "particulars", "code",
+                        "reference", "45.00");
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -215,12 +191,12 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for enduring consent with decoupled flow is retrieved")
     @Order(4)
-    void getPaymentForEnduringConsentWithDecoupledFlow() throws ExpiredAccessTokenException {
+    void getPaymentForEnduringConsentWithDecoupledFlow() {
         if (paymentId == null) {
             fail("Payment ID from enduring consent with decoupled flow is null");
         }
 
-        Mono<Payment> paymentMono = client.getPayment(UUID.randomUUID().toString(), accessToken, paymentId);
+        Mono<Payment> paymentMono = client.getPayment(paymentId);
 
         assertThat(paymentMono).isNotNull();
         Payment actual = paymentMono.block();

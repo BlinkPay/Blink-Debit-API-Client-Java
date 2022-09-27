@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
@@ -31,8 +30,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -58,7 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"spring.profiles.active=component"},
-        classes = {OAuthApiClient.class, RefundsApiClient.class})
+        classes = {AccessTokenHandler.class, OAuthApiClient.class, RefundsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @AutoConfigureWireMock(port = 8888,
         stubs = "file:src/componentTest/resources/wiremock/mappings",
@@ -74,32 +72,19 @@ class RefundsApiClientComponentTest {
     @Autowired
     private RefundsApiClient client;
 
-    private static String accessToken;
-
     @BeforeEach
     void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            ReflectionTestUtils.setField(oAuthApiClient, "webClient", WebClient.create("https://staging.debit.blinkpay.co.nz"));
-
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
+        // use real host to generate valid access token
+        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
+                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
     }
 
     @Test
     @DisplayName("Verify that account number refund is created")
     @Order(1)
-    void createAccountNumberRefund() throws ExpiredAccessTokenException {
-        Mono<RefundResponse> refundResponseMono = client.createRefund(UUID.randomUUID().toString(), accessToken,
-                RefundDetail.TypeEnum.ACCOUNT_NUMBER, UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
+    void createAccountNumberRefund() {
+        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.ACCOUNT_NUMBER,
+                UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -112,9 +97,9 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that account number refund is retrieved")
     @Order(2)
-    void getAccountNumberRefund() throws ExpiredAccessTokenException {
+    void getAccountNumberRefund() {
         UUID refundId = UUID.fromString("e9cc86bf-3030-4019-a0f5-1d73882051ea");
-        Mono<Refund> refundMono = client.getRefund(UUID.randomUUID().toString(), accessToken, refundId);
+        Mono<Refund> refundMono = client.getRefund(refundId);
 
         assertThat(refundMono).isNotNull();
         Refund actual = refundMono.block();
@@ -136,10 +121,10 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that full refund is created")
     @Order(3)
-    void createFullRefund() throws ExpiredAccessTokenException {
-        Mono<RefundResponse> refundResponseMono = client.createRefund(UUID.randomUUID().toString(), accessToken,
-                RefundDetail.TypeEnum.FULL_REFUND, UUID.fromString("5de1b67f-0214-462e-aab5-1d8397b2fe67"),
-                "redirectUri", "particulars", "code", "reference");
+    void createFullRefund() {
+        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.FULL_REFUND,
+                UUID.fromString("5de1b67f-0214-462e-aab5-1d8397b2fe67"), "redirectUri", "particulars", "code",
+                "reference");
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -152,9 +137,9 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that full refund is retrieved")
     @Order(4)
-    void getFullRefund() throws ExpiredAccessTokenException {
+    void getFullRefund() {
         UUID refundId = UUID.fromString("87c203e9-00ff-40d8-ad90-7bdd67895731");
-        Mono<Refund> refundMono = client.getRefund(UUID.randomUUID().toString(), accessToken, refundId);
+        Mono<Refund> refundMono = client.getRefund(refundId);
 
         assertThat(refundMono).isNotNull();
         Refund actual = refundMono.block();
@@ -181,10 +166,10 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that partial refund is created")
     @Order(5)
-    void createPartialRefund() throws ExpiredAccessTokenException {
-        Mono<RefundResponse> refundResponseMono = client.createRefund(UUID.randomUUID().toString(), accessToken,
-                RefundDetail.TypeEnum.PARTIAL_REFUND, UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436"),
-                "redirectUri", "particulars", "code", "reference", "25.00");
+    void createPartialRefund() {
+        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.PARTIAL_REFUND,
+                UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436"), "redirectUri", "particulars", "code",
+                "reference", "25.00", null);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -197,9 +182,9 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that partial refund is retrieved")
     @Order(6)
-    void getPartialRefund() throws ExpiredAccessTokenException {
+    void getPartialRefund() {
         UUID refundId = UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436");
-        Mono<Refund> refundMono = client.getRefund(UUID.randomUUID().toString(), accessToken, refundId);
+        Mono<Refund> refundMono = client.getRefund(refundId);
 
         assertThat(refundMono).isNotNull();
         Refund actual = refundMono.block();

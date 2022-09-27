@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
@@ -40,23 +38,20 @@ import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.BEARER;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.ENDURING_CONSENTS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
@@ -67,23 +62,26 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class EnduringConsentsApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+
+    private final AccessTokenHandler accessTokenHandler;
 
     /**
      * Default constructor.
      *
-     * @param webClient the {@link WebClient}
+     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public EnduringConsentsApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public EnduringConsentsApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                                     AccessTokenHandler accessTokenHandler) {
+        this.webClientBuilder = webClientBuilder;
+        this.accessTokenHandler = accessTokenHandler;
     }
 
     /**
      * Creates an enduring payment consent request with redirect flow.
      *
-     * @param requestId       the correlation ID
-     * @param accessToken     the OAuth2 access token
      * @param type            the {@link AuthFlowDetail.TypeEnum}
      * @param bank            the {@link Bank}
      * @param redirectUri     the redirect URI
@@ -92,16 +90,34 @@ public class EnduringConsentsApiClient {
      * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
      * @param total           the total
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<CreateConsentResponse> createEnduringConsent(final String requestId, final String accessToken,
-                                                             AuthFlowDetail.TypeEnum type, Bank bank,
+    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
                                                              final String redirectUri, Period period,
                                                              OffsetDateTime fromTimestamp,
-                                                             OffsetDateTime expiryTimestamp, final String total)
-            throws ExpiredAccessTokenException {
-        return createEnduringConsent(requestId, accessToken, type, bank, redirectUri, period, fromTimestamp,
-                expiryTimestamp, total, null, null, null, null);
+                                                             OffsetDateTime expiryTimestamp, final String total) {
+        return createEnduringConsent(type, bank, redirectUri, period, fromTimestamp, expiryTimestamp, total, null);
+    }
+
+    /**
+     * Creates an enduring payment consent request with redirect flow.
+     *
+     * @param type            the {@link AuthFlowDetail.TypeEnum}
+     * @param bank            the {@link Bank}
+     * @param redirectUri     the redirect URI
+     * @param period          the {@link Period}
+     * @param fromTimestamp   the ISO 8601 start date to calculate the periods for which to calculate the consent period.
+     * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
+     * @param total           the total
+     * @param requestId       the optional correlation ID
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
+                                                             final String redirectUri, Period period,
+                                                             OffsetDateTime fromTimestamp,
+                                                             OffsetDateTime expiryTimestamp, final String total,
+                                                             final String requestId) {
+        return createEnduringConsent(type, bank, redirectUri, period, fromTimestamp, expiryTimestamp, total, null, null,
+                null, null, requestId);
     }
 
     /**
@@ -109,8 +125,6 @@ public class EnduringConsentsApiClient {
      * A successful response does not indicate a completed consent.
      * The status of the consent can be subsequently checked with the consent ID.
      *
-     * @param requestId       the correlation ID
-     * @param accessToken     the OAuth2 access token
      * @param type            the {@link AuthFlowDetail.TypeEnum}
      * @param bank            the {@link Bank}
      * @param redirectUri     the redirect URI
@@ -123,21 +137,45 @@ public class EnduringConsentsApiClient {
      * @param identifierValue the identifier value for decoupled flow
      * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<CreateConsentResponse> createEnduringConsent(final String requestId, final String accessToken,
-                                                             AuthFlowDetail.TypeEnum type, Bank bank,
+    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
                                                              final String redirectUri, Period period,
                                                              OffsetDateTime fromTimestamp,
                                                              OffsetDateTime expiryTimestamp, final String total,
                                                              FlowHint.TypeEnum flowHintType,
-                                                             IdentifierType identifierType, final String identifierValue,
-                                                             final String callbackUrl)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+                                                             IdentifierType identifierType,
+                                                             final String identifierValue, final String callbackUrl) {
+        return createEnduringConsent(type, bank, redirectUri, period, fromTimestamp, expiryTimestamp, total,
+                flowHintType, identifierType, identifierValue, callbackUrl, null);
+    }
 
+    /**
+     * Creates an enduring payment consent request with the bank that will go to the customer for approval.
+     * A successful response does not indicate a completed consent.
+     * The status of the consent can be subsequently checked with the consent ID.
+     *
+     * @param type            the {@link AuthFlowDetail.TypeEnum}
+     * @param bank            the {@link Bank}
+     * @param redirectUri     the redirect URI
+     * @param period          the {@link Period}
+     * @param fromTimestamp   the ISO 8601 start date to calculate the periods for which to calculate the consent period.
+     * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
+     * @param total           the total
+     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
+     * @param identifierType  the {@link IdentifierType} for decoupled flow
+     * @param identifierValue the identifier value for decoupled flow
+     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
+     * @param requestId       the optional correlation ID
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
+                                                             final String redirectUri, Period period,
+                                                             OffsetDateTime fromTimestamp,
+                                                             OffsetDateTime expiryTimestamp, final String total,
+                                                             FlowHint.TypeEnum flowHintType,
+                                                             IdentifierType identifierType,
+                                                             final String identifierValue, final String callbackUrl,
+                                                             final String requestId) {
         if (AuthFlowDetail.TypeEnum.GATEWAY == type && flowHintType == null) {
             throw new IllegalArgumentException("Gateway flow type requires redirect or decoupled flow hint type");
         }
@@ -232,25 +270,18 @@ public class EnduringConsentsApiClient {
                 .expiryTimestamp(expiryTimestamp)
                 .type(ConsentDetail.TypeEnum.ENDURING);
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .post()
                 .uri(ENDURING_CONSENTS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(CreateConsentResponse.class));
@@ -259,42 +290,38 @@ public class EnduringConsentsApiClient {
     /**
      * Retrieves an existing consent by ID.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param consentId   the consent ID
+     * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<Consent> getEnduringConsent(final String requestId, final String accessToken, UUID consentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Consent> getEnduringConsent(UUID consentId) {
+        return getEnduringConsent(consentId, null);
+    }
 
+    /**
+     * Retrieves an existing consent by ID.
+     *
+     * @param consentId the consent ID
+     * @param requestId the optional correlation ID
+     * @return the {@link Consent} {@link Mono}
+     */
+    public Mono<Consent> getEnduringConsent(UUID consentId, final String requestId) {
         if (consentId == null) {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(ENDURING_CONSENTS_PATH.getValue() + "/{consentId}")
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(Consent.class));
     }
@@ -302,41 +329,36 @@ public class EnduringConsentsApiClient {
     /**
      * Revokes an existing consent by ID.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param consentId   the consent ID
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
+     * @param consentId the consent ID
      */
-    public Mono<Void> revokeEnduringConsent(final String requestId, final String accessToken, UUID consentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Void> revokeEnduringConsent(UUID consentId) {
+        return revokeEnduringConsent(consentId, null);
+    }
 
+    /**
+     * Revokes an existing consent by ID.
+     *
+     * @param consentId the consent ID
+     * @param requestId the optional correlation ID
+     */
+    public Mono<Void> revokeEnduringConsent(UUID consentId, final String requestId) {
         if (consentId == null) {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .delete()
                 .uri(uriBuilder -> uriBuilder
                         .path(ENDURING_CONSENTS_PATH.getValue() + "/{consentId}")
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(Void.class));
     }

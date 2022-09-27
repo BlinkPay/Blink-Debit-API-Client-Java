@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
@@ -38,9 +37,7 @@ import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -64,7 +61,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 /**
  * The integration test for {@link EnduringConsentsApiClient}.
  */
-@SpringBootTest(classes = {OAuthApiClient.class, EnduringConsentsApiClient.class})
+@SpringBootTest(classes = {AccessTokenHandler.class, OAuthApiClient.class, EnduringConsentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @ActiveProfiles("test")
 @Tag("integration")
@@ -76,38 +73,17 @@ class EnduringConsentsApiClientIntegrationTest {
     private static final ZoneId ZONE_ID = ZoneId.of("Pacific/Auckland");
 
     @Autowired
-    private OAuthApiClient oAuthApiClient;
-
-    @Autowired
     private EnduringConsentsApiClient client;
 
-    private static String accessToken;
-
     private static UUID consentId;
-
-    @BeforeEach
-    void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
-    }
 
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created in PNZ")
     @Order(1)
-    void createEnduringConsentWithRedirectFlowInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00");
+    void createEnduringConsentWithRedirectFlowInPnz() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -127,9 +103,8 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is retrieved from PNZ")
     @Order(2)
-    void getEnduringConsentWithRedirectFlowFromPnz() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+    void getEnduringConsentWithRedirectFlowFromPnz() {
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();
@@ -164,12 +139,10 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is revoked in PNZ")
     @Order(3)
-    void revokeEnduringConsentWithRedirectFlowInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId).block());
+    void revokeEnduringConsentWithRedirectFlowInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
         assertThat(actual).isNotNull();
@@ -204,9 +177,8 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that rejected/timed out enduring consent with redirect flow is retrieved from PNZ")
     @Order(4)
-    void getRejectedEnduringConsentWithRedirectFlowFromPnz() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("f0b5fc9e-afa2-441f-a9e7-e2131952b835"));
+    void getRejectedEnduringConsentWithRedirectFlowFromPnz() {
+        Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("f0b5fc9e-afa2-441f-a9e7-e2131952b835"));
 
         Consent actual = consentMono.block();
         assertThat(actual)
@@ -240,10 +212,11 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created in PNZ")
     @Order(5)
-    void createEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.REDIRECT, null, null, null);
+    void createEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.REDIRECT,
+                        null, null, null);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -260,9 +233,8 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is retrieved from PNZ")
     @Order(6)
-    void getEnduringConsentWithGatewayFlowAndRedirectFlowHintFromPnz() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+    void getEnduringConsentWithGatewayFlowAndRedirectFlowHintFromPnz() {
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
         assertThat(actual)
@@ -304,12 +276,10 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is revoked in PNZ")
     @Order(7)
-    void revokeEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId).block());
+    void revokeEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
         assertThat(actual)
@@ -351,11 +321,11 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created in PNZ")
     @Order(8)
-    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER,
-                "+6449144425", null);
+    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.DECOUPLED,
+                        IdentifierType.PHONE_NUMBER, "+6449144425", null);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -372,9 +342,8 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is retrieved from PNZ")
     @Order(9)
-    void getEnduringConsentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+    void getEnduringConsentWithGatewayFlowAndDecoupledFlowHintFromPnz() {
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
         assertThat(actual)
@@ -418,12 +387,10 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(10)
-    void revokeEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId).block());
+    void revokeEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
         assertThat(actual)
@@ -467,11 +434,11 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created in PNZ")
     @Order(11)
-    void createEnduringConsentWithDecoupledFlowInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                "https://eout2fipbfh7o93.m.pipedream.net");
+    void createEnduringConsentWithDecoupledFlowInPnz() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, Period.FORTNIGHTLY,
+                        OffsetDateTime.now(ZONE_ID), null, "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
+                        "https://eout2fipbfh7o93.m.pipedream.net");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -484,9 +451,8 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved from PNZ")
     @Order(12)
-    void getEnduringConsentWithDecoupledFlowFromPnz() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+    void getEnduringConsentWithDecoupledFlowFromPnz() {
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();
@@ -523,12 +489,10 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is revoked in PNZ")
     @Order(13)
-    void revokeEnduringConsentWithDecoupledFlowInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId).block());
+    void revokeEnduringConsentWithDecoupledFlowInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                consentId);
+        Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
         assertThat(actual).isNotNull();

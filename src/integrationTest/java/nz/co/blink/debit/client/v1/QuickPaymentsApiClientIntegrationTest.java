@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
@@ -39,9 +38,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -63,7 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 /**
  * The integration test for {@link QuickPaymentsApiClient}.
  */
-@SpringBootTest(classes = {OAuthApiClient.class, QuickPaymentsApiClient.class})
+@SpringBootTest(classes = {AccessTokenHandler.class, OAuthApiClient.class, QuickPaymentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @ActiveProfiles("test")
 @Tag("integration")
@@ -73,38 +70,17 @@ class QuickPaymentsApiClientIntegrationTest {
     private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
 
     @Autowired
-    private OAuthApiClient oAuthApiClient;
-
-    @Autowired
     private QuickPaymentsApiClient client;
 
-    private static String accessToken;
-
     private static UUID quickPaymentId;
-
-    @BeforeEach
-    void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
-    }
 
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created in PNZ")
     @Order(1)
-    void createQuickPaymentWithRedirectFlowInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25", null);
+    void createQuickPaymentWithRedirectFlowInPnz() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.25", null);
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -124,10 +100,10 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is retrieved from PNZ")
     @Order(2)
-    void getQuickPaymentWithRedirectFlowFromPnz() throws ExpiredAccessTokenException {
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(),
-                accessToken, quickPaymentId);
+    void getQuickPaymentWithRedirectFlowFromPnz() {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -166,13 +142,12 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is revoked in PNZ")
     @Order(3)
-    void revokeQuickPaymentWithRedirectFlowInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId).block());
+    void revokeQuickPaymentWithRedirectFlowInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -211,10 +186,11 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that rejected/timed out quick payment with redirect flow is retrieved from PNZ")
     @Order(4)
-    void getRejectedQuickPaymentWithRedirectFlowFromPnz() throws ExpiredAccessTokenException {
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("057a08f7-4ee1-499d-8726-e4fe802d64fc"));
+    void getRejectedQuickPaymentWithRedirectFlowFromPnz() {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono =
+                client.getQuickPayment(UUID.fromString("057a08f7-4ee1-499d-8726-e4fe802d64fc"));
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -253,10 +229,11 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created in PNZ")
     @Order(5)
-    void createQuickPaymentWithDecoupledFlowInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code", "reference",
-                "1.25", null, IdentifierType.PHONE_NUMBER, "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+    void createQuickPaymentWithDecoupledFlowInPnz() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code",
+                        "reference", "1.25", null, IdentifierType.PHONE_NUMBER, "+6449144425",
+                        "https://eout2fipbfh7o93.m.pipedream.net");
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -270,10 +247,10 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved from PNZ")
     @Order(6)
-    void getQuickPaymentWithDecoupledFlowFromPnz() throws ExpiredAccessTokenException {
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+    void getQuickPaymentWithDecoupledFlowFromPnz() {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -315,13 +292,12 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(7)
-    void revokeQuickPaymentWithDecoupledFlowInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId).block());
+    void revokeQuickPaymentWithDecoupledFlowInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -363,10 +339,10 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created in PNZ")
     @Order(8)
-    void createQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25", FlowHint.TypeEnum.REDIRECT);
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.25", FlowHint.TypeEnum.REDIRECT);
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -383,10 +359,10 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is retrieved from PNZ")
     @Order(9)
-    void getQuickPaymentWithGatewayFlowAndRedirectFlowHintFromPnz() throws ExpiredAccessTokenException {
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+    void getQuickPaymentWithGatewayFlowAndRedirectFlowHintFromPnz() {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -433,13 +409,12 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is revoked in PNZ")
     @Order(10)
-    void revokeQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId).block());
+    void revokeQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -486,11 +461,11 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created in PNZ")
     @Order(11)
-    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER,
-                "+6449144425", null);
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER,
+                        "+6449144425", null);
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -507,10 +482,10 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is retrieved from PNZ")
     @Order(12)
-    void getQuickPaymentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws ExpiredAccessTokenException {
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+    void getQuickPaymentWithGatewayFlowAndDecoupledFlowHintFromPnz() {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
@@ -559,13 +534,12 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(13)
-    void revokeQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() throws ExpiredAccessTokenException {
-        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId).block());
+    void revokeQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() {
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
-        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
+        assertThat(quickPaymentResponseMono).isNotNull();
         QuickPaymentResponse actual = quickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()

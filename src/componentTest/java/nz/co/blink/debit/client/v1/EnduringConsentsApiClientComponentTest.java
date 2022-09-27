@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
@@ -36,8 +35,7 @@ import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -67,7 +65,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"spring.profiles.active=component"},
-        classes = {OAuthApiClient.class, EnduringConsentsApiClient.class})
+        classes = {AccessTokenHandler.class, OAuthApiClient.class, EnduringConsentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @AutoConfigureWireMock(port = 8888,
         stubs = "file:src/componentTest/resources/wiremock/mappings",
@@ -87,33 +85,20 @@ class EnduringConsentsApiClientComponentTest {
     @Autowired
     private EnduringConsentsApiClient client;
 
-    private static String accessToken;
-
     @BeforeEach
     void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            ReflectionTestUtils.setField(oAuthApiClient, "webClient", WebClient.create("https://staging.debit.blinkpay.co.nz"));
-
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
+        // use real host to generate valid access token
+        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
+                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
     }
 
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created")
     @Order(1)
-    void createEnduringConsentWithRedirectFlow() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00");
+    void createEnduringConsentWithRedirectFlow() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -127,9 +112,8 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is retrieved")
     @Order(2)
-    void getEnduringConsentWithRedirectFlow() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458"));
+    void getEnduringConsentWithRedirectFlow() {
+        Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458"));
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();
@@ -151,8 +135,7 @@ class EnduringConsentsApiClientComponentTest {
         RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
         assertThat(flow)
                 .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
-                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ,
-                        "https://www.blinkpay.co.nz/sample-merchant-return-page");
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
         assertThat(detail.getPeriod()).isEqualTo(Period.FORTNIGHTLY);
         assertThat(detail.getFromTimestamp()).isNotNull();
         assertThat(detail.getExpiryTimestamp()).isNotNull();
@@ -166,18 +149,18 @@ class EnduringConsentsApiClientComponentTest {
     @DisplayName("Verify that enduring consent is revoked")
     @Order(3)
     void revokeEnduringConsent() {
-        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("0d48f138-2681-4af1-afeb-3351407b9daa")).block());
+        assertThatNoException().isThrownBy(() ->
+                client.revokeEnduringConsent(UUID.fromString("0d48f138-2681-4af1-afeb-3351407b9daa")).block());
     }
 
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created")
     @Order(4)
-    void createEnduringConsentWithDecoupledFlow() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                "callbackUrl");
+    void createEnduringConsentWithDecoupledFlow() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", null,
+                        IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -190,9 +173,8 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved")
     @Order(5)
-    void getEnduringConsentWithDecoupledFlow() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("294dda40-0357-4970-a86f-5b4974b880aa"));
+    void getEnduringConsentWithDecoupledFlow() {
+        Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("294dda40-0357-4970-a86f-5b4974b880aa"));
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();
@@ -230,11 +212,11 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow is created")
     @Order(6)
-    void createEnduringConsentWithGatewayFlow() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, Period.FORTNIGHTLY,
-                OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER,
-                "+6449144425", "callbackUrl");
+    void createEnduringConsentWithGatewayFlow() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI,
+                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.DECOUPLED,
+                        IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -248,9 +230,8 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow is retrieved")
     @Order(7)
-    void getEnduringConsentWithGatewayFlow() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getEnduringConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("44b7169f-90a0-4b8d-b723-056363a3fe53"));
+    void getEnduringConsentWithGatewayFlow() {
+        Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("44b7169f-90a0-4b8d-b723-056363a3fe53"));
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();

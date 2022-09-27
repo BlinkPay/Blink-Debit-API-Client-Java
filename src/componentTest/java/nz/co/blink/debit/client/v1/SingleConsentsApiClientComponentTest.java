@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
@@ -36,8 +35,7 @@ import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -65,7 +63,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"spring.profiles.active=component"},
-        classes = {OAuthApiClient.class, SingleConsentsApiClient.class})
+        classes = {AccessTokenHandler.class, OAuthApiClient.class, SingleConsentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @AutoConfigureWireMock(port = 8888,
         stubs = "file:src/componentTest/resources/wiremock/mappings",
@@ -83,33 +81,20 @@ class SingleConsentsApiClientComponentTest {
     @Autowired
     private SingleConsentsApiClient client;
 
-    private static String accessToken;
-
     @BeforeEach
     void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            ReflectionTestUtils.setField(oAuthApiClient, "webClient", WebClient.create("https://staging.debit.blinkpay.co.nz"));
-
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
+        // use real host to generate valid access token
+        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
+                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
     }
 
     @Test
     @DisplayName("Verify that single consent with redirect flow is created")
     @Order(1)
-    void createSingleConsentWithRedirectFlow() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.REDIRECT, Bank.BNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25");
+    void createSingleConsentWithRedirectFlow() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.BNZ, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.25");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -123,9 +108,9 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with redirect flow is retrieved")
     @Order(2)
-    void getSingleConsentWithRedirectFlow() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getSingleConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("5ccf243a-af8a-4c75-99b7-671c02cf8566"));
+    void getSingleConsentWithRedirectFlow() {
+        Mono<Consent> consentMono = client.getSingleConsent(
+                UUID.fromString("5ccf243a-af8a-4c75-99b7-671c02cf8566"), UUID.randomUUID().toString());
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();
@@ -163,17 +148,18 @@ class SingleConsentsApiClientComponentTest {
     @DisplayName("Verify that single consent is revoked")
     @Order(3)
     void revokeSingleConsent() {
-        assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("0d48f138-2681-4af1-afeb-3351407b9daa")).block());
+        assertThatNoException().isThrownBy(() ->
+                client.revokeSingleConsent(UUID.fromString("0d48f138-2681-4af1-afeb-3351407b9daa")).block());
     }
 
     @Test
     @DisplayName("Verify that single consent with decoupled flow is created")
     @Order(4)
-    void createSingleConsentWithDecoupledFlow() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.BNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25", null, IdentifierType.CONSENT_ID, UUID.randomUUID().toString(), "callbackUrl");
+    void createSingleConsentWithDecoupledFlow() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.BNZ, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.25", null, IdentifierType.CONSENT_ID, UUID.randomUUID().toString(),
+                        "callbackUrl");
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -186,9 +172,9 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is retrieved")
     @Order(5)
-    void getSingleConsentWithDecoupledFlow() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getSingleConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("b4a0de42-6c9a-4ec6-898d-dee18280a7b5"));
+    void getSingleConsentWithDecoupledFlow() {
+        Mono<Consent> consentMono = client.getSingleConsent(
+                UUID.fromString("b4a0de42-6c9a-4ec6-898d-dee18280a7b5"), UUID.randomUUID().toString());
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();
@@ -227,10 +213,10 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow is created")
     @Order(6)
-    void createSingleConsentWithGatewayFlow() throws ExpiredAccessTokenException {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.WESTPAC, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25", FlowHint.TypeEnum.REDIRECT, null, null, null);
+    void createSingleConsentWithGatewayFlow() {
+        Mono<CreateConsentResponse> createConsentResponseMono =
+                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.WESTPAC, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.25", FlowHint.TypeEnum.REDIRECT, null, null, null);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -244,9 +230,9 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow is retrieved")
     @Order(7)
-    void getSingleConsentWithGatewayFlow() throws ExpiredAccessTokenException {
-        Mono<Consent> consentMono = client.getSingleConsent(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("58ed876d-5419-405c-a416-f1d77177f93f"));
+    void getSingleConsentWithGatewayFlow() {
+        Mono<Consent> consentMono = client.getSingleConsent(
+                UUID.fromString("58ed876d-5419-405c-a416-f1d77177f93f"), UUID.randomUUID().toString());
 
         assertThat(consentMono).isNotNull();
         Consent actual = consentMono.block();

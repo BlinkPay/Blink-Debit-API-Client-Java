@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
@@ -40,8 +39,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -69,7 +67,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"spring.profiles.active=component"},
-        classes = {OAuthApiClient.class, QuickPaymentsApiClient.class})
+        classes = {AccessTokenHandler.class, OAuthApiClient.class, QuickPaymentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @AutoConfigureWireMock(port = 8888,
         stubs = "file:src/componentTest/resources/wiremock/mappings",
@@ -87,33 +85,20 @@ class QuickPaymentsApiClientComponentTest {
     @Autowired
     private QuickPaymentsApiClient client;
 
-    private static String accessToken;
-
     @BeforeEach
     void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            ReflectionTestUtils.setField(oAuthApiClient, "webClient", WebClient.create("https://staging.debit.blinkpay.co.nz"));
-
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
+        // use real host to generate valid access token
+        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
+                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
     }
 
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created")
     @Order(1)
-    void createQuickPaymentWithRedirectFlow() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.REDIRECT, Bank.BNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.50", null);
+    void createQuickPaymentWithRedirectFlow() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.BNZ, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.50", null);
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -127,10 +112,9 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is retrieved")
     @Order(2)
-    void getQuickPaymentWithRedirectFlow() throws ExpiredAccessTokenException {
+    void getQuickPaymentWithRedirectFlow() {
         UUID quickPaymentId = UUID.fromString("2ea80e7a-ef5e-4431-8b47-cbae9c246414");
-        Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
 
         QuickPaymentResponse actual = consentMono.block();
         assertThat(actual)
@@ -171,17 +155,17 @@ class QuickPaymentsApiClientComponentTest {
     @DisplayName("Verify that quick payment with redirect flow is revoked")
     @Order(3)
     void revokeQuickPaymentWithRedirectFlow() {
-        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(UUID.randomUUID().toString(), accessToken,
-                UUID.fromString("2ea80e7a-ef5e-4431-8b47-cbae9c246414")).block());
+        assertThatNoException().isThrownBy(() ->
+                client.revokeQuickPayment(UUID.fromString("2ea80e7a-ef5e-4431-8b47-cbae9c246414")).block());
     }
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
     @Order(4)
-    void createQuickPaymentWithGatewayFlow() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.GATEWAY, Bank.WESTPAC, REDIRECT_URI, "particulars", "code",
-                "reference", "1.50", FlowHint.TypeEnum.REDIRECT);
+    void createQuickPaymentWithGatewayFlow() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.WESTPAC, REDIRECT_URI, "particulars",
+                        "code", "reference", "1.50", FlowHint.TypeEnum.REDIRECT);
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -195,10 +179,9 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is retrieved")
     @Order(5)
-    void getQuickPaymentWithGatewayFlow() throws ExpiredAccessTokenException {
+    void getQuickPaymentWithGatewayFlow() {
         UUID quickPaymentId = UUID.fromString("04157088-47ed-46ea-820e-6f726365b092");
-        Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
 
         QuickPaymentResponse actual = consentMono.block();
         assertThat(actual)
@@ -246,10 +229,10 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created")
     @Order(6)
-    void createQuickPaymentWithDecoupledFlow() throws ExpiredAccessTokenException {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono = client.createQuickPayment(UUID.randomUUID().toString(),
-                accessToken, AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code",
-                "reference", "1.50", null, IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
+    void createQuickPaymentWithDecoupledFlow() {
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+                client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code",
+                        "reference", "1.50", null, IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
 
         assertThat(createQuickPaymentResponseResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
@@ -262,10 +245,9 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
     @Order(7)
-    void getQuickPaymentWithDecoupledFlow() throws ExpiredAccessTokenException {
+    void getQuickPaymentWithDecoupledFlow() {
         UUID quickPaymentId = UUID.fromString("b9d04c2f-eea2-44cb-bf9f-72c834a3250b");
-        Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(UUID.randomUUID().toString(), accessToken,
-                quickPaymentId);
+        Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
 
         QuickPaymentResponse actual = consentMono.block();
         assertThat(actual)

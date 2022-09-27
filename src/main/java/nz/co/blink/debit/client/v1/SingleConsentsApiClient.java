@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
@@ -40,22 +38,19 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.BEARER;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.SINGLE_CONSENTS_PATH;
@@ -66,23 +61,26 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.SINGLE_CONSENTS_PATH;
 @Component
 public class SingleConsentsApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+
+    private final AccessTokenHandler accessTokenHandler;
 
     /**
      * Default constructor.
      *
-     * @param webClient the {@link WebClient}
+     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public SingleConsentsApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public SingleConsentsApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                                   AccessTokenHandler accessTokenHandler) {
+        this.webClientBuilder = webClientBuilder;
+        this.accessTokenHandler = accessTokenHandler;
     }
 
     /**
      * Creates a single payment consent request with redirect flow.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
      * @param type        the {@link AuthFlowDetail.TypeEnum}
      * @param bank        the {@link Bank}
      * @param redirectUri the redirect URI
@@ -91,15 +89,34 @@ public class SingleConsentsApiClient {
      * @param reference   the reference
      * @param total       the total
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<CreateConsentResponse> createSingleConsent(final String requestId, final String accessToken,
-                                                           AuthFlowDetail.TypeEnum type, Bank bank,
+    public Mono<CreateConsentResponse> createSingleConsent(AuthFlowDetail.TypeEnum type, Bank bank,
                                                            final String redirectUri, final String particulars,
-                                                           final String code, final String reference, final String total)
-            throws ExpiredAccessTokenException {
-        return createSingleConsent(requestId, accessToken, type, bank, redirectUri, particulars, code, reference, total,
-                null, null, null, null);
+                                                           final String code, final String reference,
+                                                           final String total) {
+        return createSingleConsent(type, bank, redirectUri, particulars, code, reference, total, null, null, null, null,
+                null);
+    }
+
+    /**
+     * Creates a single payment consent request with redirect flow.
+     *
+     * @param type        the {@link AuthFlowDetail.TypeEnum}
+     * @param bank        the {@link Bank}
+     * @param redirectUri the redirect URI
+     * @param particulars the particulars
+     * @param code        the code
+     * @param reference   the reference
+     * @param total       the total
+     * @param requestId       the optional correlation ID
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createSingleConsent(AuthFlowDetail.TypeEnum type, Bank bank,
+                                                           final String redirectUri, final String particulars,
+                                                           final String code, final String reference,
+                                                           final String total, final String requestId) {
+        return createSingleConsent(type, bank, redirectUri, particulars, code, reference, total, null, null, null, null,
+                requestId);
     }
 
     /**
@@ -107,8 +124,6 @@ public class SingleConsentsApiClient {
      * A successful response does not indicate a completed consent.
      * The status of the consent can be subsequently checked with the consent ID.
      *
-     * @param requestId       the correlation ID
-     * @param accessToken     the OAuth2 access token
      * @param type            the {@link AuthFlowDetail.TypeEnum}
      * @param bank            the {@link Bank}
      * @param redirectUri     the redirect URI
@@ -121,19 +136,41 @@ public class SingleConsentsApiClient {
      * @param identifierValue the identifier value for decoupled flow
      * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<CreateConsentResponse> createSingleConsent(final String requestId, final String accessToken,
-                                                           AuthFlowDetail.TypeEnum type, Bank bank,
+    public Mono<CreateConsentResponse> createSingleConsent(AuthFlowDetail.TypeEnum type, Bank bank,
                                                            final String redirectUri, final String particulars,
                                                            final String code, final String reference, final String total,
                                                            FlowHint.TypeEnum flowHintType, IdentifierType identifierType,
-                                                           final String identifierValue, final String callbackUrl)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+                                                           final String identifierValue, final String callbackUrl) {
+        return createSingleConsent(type, bank, redirectUri, particulars, code, reference, total, flowHintType,
+                identifierType, identifierValue, callbackUrl, null);
+    }
 
+    /**
+     * Creates a single payment consent request with the bank that will go to the customer for approval.
+     * A successful response does not indicate a completed consent.
+     * The status of the consent can be subsequently checked with the consent ID.
+     *
+     * @param type            the {@link AuthFlowDetail.TypeEnum}
+     * @param bank            the {@link Bank}
+     * @param redirectUri     the redirect URI
+     * @param particulars     the particulars
+     * @param code            the code
+     * @param reference       the reference
+     * @param total           the total
+     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
+     * @param identifierType  the {@link IdentifierType} for decoupled flow
+     * @param identifierValue the identifier value for decoupled flow
+     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
+     * @param requestId       the optional correlation ID
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createSingleConsent(AuthFlowDetail.TypeEnum type, Bank bank,
+                                                           final String redirectUri, final String particulars,
+                                                           final String code, final String reference, final String total,
+                                                           FlowHint.TypeEnum flowHintType, IdentifierType identifierType,
+                                                           final String identifierValue, final String callbackUrl,
+                                                           final String requestId) {
         if (AuthFlowDetail.TypeEnum.GATEWAY == type && flowHintType == null) {
             throw new IllegalArgumentException("Gateway flow type requires redirect or decoupled flow hint type");
         }
@@ -217,33 +254,26 @@ public class SingleConsentsApiClient {
                 .flow(new AuthFlow()
                         .detail(detail))
                 .pcr(new Pcr()
-                        .particulars(StringUtils.truncate(particulars, 20))
-                        .code(StringUtils.truncate(code, 20))
-                        .reference(StringUtils.truncate(reference, 20)))
+                        .particulars(StringUtils.truncate(particulars, 12))
+                        .code(StringUtils.truncate(code, 12))
+                        .reference(StringUtils.truncate(reference, 12)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total(total))
                 .type(ConsentDetail.TypeEnum.SINGLE);
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .post()
                 .uri(SINGLE_CONSENTS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(CreateConsentResponse.class));
@@ -252,42 +282,38 @@ public class SingleConsentsApiClient {
     /**
      * Retrieves an existing consent by ID.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param consentId   the consent ID
+     * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<Consent> getSingleConsent(final String requestId, final String accessToken, UUID consentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Consent> getSingleConsent(UUID consentId) {
+        return getSingleConsent(consentId, null);
+    }
 
+    /**
+     * Retrieves an existing consent by ID.
+     *
+     * @param consentId the consent ID
+     * @param requestId the optional correlation ID
+     * @return the {@link Consent} {@link Mono}
+     */
+    public Mono<Consent> getSingleConsent(UUID consentId, String requestId) {
         if (consentId == null) {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(SINGLE_CONSENTS_PATH.getValue() + "/{consentId}")
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(Consent.class));
     }
@@ -295,41 +321,36 @@ public class SingleConsentsApiClient {
     /**
      * Revokes an existing consent by ID.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param consentId   the consent ID
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
+     * @param consentId the consent ID
      */
-    public Mono<Void> revokeSingleConsent(final String requestId, final String accessToken, UUID consentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Void> revokeSingleConsent(UUID consentId) {
+        return revokeSingleConsent(consentId, null);
+    }
 
+    /**
+     * Revokes an existing consent by ID.
+     *
+     * @param consentId the consent ID
+     * @param requestId the optional correlation ID
+     */
+    public Mono<Void> revokeSingleConsent(UUID consentId, final String requestId) {
         if (consentId == null) {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .delete()
                 .uri(uriBuilder -> uriBuilder
                         .path(SINGLE_CONSENTS_PATH.getValue() + "/{consentId}")
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(Void.class));
     }

@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.dto.v1.BankmetadataFeatures;
@@ -31,8 +30,7 @@ import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlowAvailableIdenti
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesEnduringConsent;
 import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -45,13 +43,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,7 +58,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"spring.profiles.active=component"},
-        classes = {OAuthApiClient.class, MetaApiClient.class})
+        classes = {AccessTokenHandler.class, OAuthApiClient.class, MetaApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @AutoConfigureWireMock(port = 8888,
         stubs = "file:src/componentTest/resources/wiremock/mappings",
@@ -77,29 +73,16 @@ class MetaApiClientComponentTest {
     @Autowired
     private MetaApiClient client;
 
-    private static String accessToken;
-
     @BeforeEach
     void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            ReflectionTestUtils.setField(oAuthApiClient, "webClient", WebClient.create("https://staging.debit.blinkpay.co.nz"));
-
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
+        // use real host to generate valid access token
+        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
+                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
     }
 
     @Test
     @DisplayName("Verify that bank metadata is retrieved")
-    void getMeta() throws ExpiredAccessTokenException {
+    void getMeta() {
         BankMetadata bnz = new BankMetadata()
                 .name(Bank.BNZ)
                 .features(new BankmetadataFeatures()
@@ -142,7 +125,7 @@ class MetaApiClientComponentTest {
                         .enabled(true)
                         .requestTimeout("PT10M"));
 
-        Flux<BankMetadata> actual = client.getMeta(UUID.randomUUID().toString(), accessToken);
+        Flux<BankMetadata> actual = client.getMeta();
 
         assertThat(actual).isNotNull();
         Set<BankMetadata> set = new HashSet<>();

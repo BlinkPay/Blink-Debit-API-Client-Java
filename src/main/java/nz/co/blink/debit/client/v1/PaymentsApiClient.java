@@ -21,30 +21,25 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.BEARER;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.PAYMENTS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
@@ -55,57 +50,105 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class PaymentsApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+
+    private final AccessTokenHandler accessTokenHandler;
 
     /**
      * Default constructor.
      *
-     * @param webClient the {@link WebClient}
+     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public PaymentsApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public PaymentsApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                             AccessTokenHandler accessTokenHandler) {
+        this.webClientBuilder = webClientBuilder;
+        this.accessTokenHandler = accessTokenHandler;
     }
 
     /**
      * Creates a payment for a single consent.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param consentId   the required consent ID
+     * @param consentId the required consent ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<PaymentResponse> createPayment(final String requestId, final String accessToken, UUID consentId)
-            throws ExpiredAccessTokenException {
-        return createPayment(requestId, accessToken, consentId, null, null, null, null, null);
+    public Mono<PaymentResponse> createPayment(UUID consentId) {
+        return createPayment(consentId, (String) null);
+    }
+
+    /**
+     * Creates a payment for a single consent.
+     *
+     * @param consentId the required consent ID
+     * @param requestId the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createPayment(UUID consentId, final String requestId) {
+        return createPayment(consentId, null, null, null, null, null, requestId);
+    }
+
+    /**
+     * Creates a payment for an enduring consent.
+     *
+     * @param consentId          the required consent ID
+     * @param particulars        the optional particulars of the enduring payment request
+     * @param code               the optional code of the enduring payment request
+     * @param reference          the optional reference of the enduring payment request
+     * @param total              the total of the enduring payment request
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createPayment(UUID consentId, final String particulars, final String code,
+                                               final String reference, final String total) {
+        return createPayment(consentId, particulars, code, reference, total, null);
+    }
+
+    /**
+     * Creates a payment for an enduring consent.
+     *
+     * @param consentId          the required consent ID
+     * @param particulars        the optional particulars of the enduring payment request
+     * @param code               the optional code of the enduring payment request
+     * @param reference          the optional reference of the enduring payment request
+     * @param total              the total of the enduring payment request
+     * @param requestId          the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createPayment(UUID consentId, final String particulars, final String code,
+                                               final String reference, final String total, final String requestId) {
+        return createPayment(consentId, null, particulars, code, reference, total, requestId);
     }
 
     /**
      * Creates a Westpac payment.
      *
-     * @param requestId          the correlation ID
-     * @param accessToken        the OAuth2 access token
      * @param consentId          the required consent ID
      * @param accountReferenceId the Westpac account reference ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<PaymentResponse> createPayment(final String requestId, final String accessToken, UUID consentId,
-                                               UUID accountReferenceId)
-            throws ExpiredAccessTokenException {
+    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId) {
+        return createPayment(consentId, accountReferenceId, null);
+    }
+
+    /**
+     * Creates a Westpac payment.
+     *
+     * @param consentId          the required consent ID
+     * @param accountReferenceId the Westpac account reference ID
+     * @param requestId          the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId, final String requestId) {
         if (accountReferenceId == null) {
             throw new IllegalArgumentException("Account reference ID must not be null");
         }
 
-        return createPayment(requestId, accessToken, consentId, accountReferenceId, null, null, null, null);
+        return createPayment(consentId, accountReferenceId, null, null, null, null, requestId);
     }
 
     /**
      * Creates a payment for single or enduring consent.
      *
-     * @param requestId          the correlation ID
-     * @param accessToken        the OAuth2 access token
      * @param consentId          the required consent ID
      * @param accountReferenceId the optional Westpac account reference ID
      * @param particulars        the optional particulars of the enduring payment request
@@ -113,16 +156,27 @@ public class PaymentsApiClient {
      * @param reference          the optional reference of the enduring payment request
      * @param total              the total of the enduring payment request
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<PaymentResponse> createPayment(final String requestId, final String accessToken,
-                                               UUID consentId, UUID accountReferenceId, final String particulars,
-                                               final String code, final String reference, final String total)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId, final String particulars,
+                                               final String code, final String reference, final String total) {
+        return createPayment(consentId, accountReferenceId, particulars, code, reference, total, null);
+    }
 
+    /**
+     * Creates a payment for single or enduring consent.
+     *
+     * @param consentId          the required consent ID
+     * @param accountReferenceId the optional Westpac account reference ID
+     * @param particulars        the optional particulars of the enduring payment request
+     * @param code               the optional code of the enduring payment request
+     * @param reference          the optional reference of the enduring payment request
+     * @param total              the total of the enduring payment request
+     * @param requestId          the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId, final String particulars,
+                                               final String code, final String reference, final String total,
+                                               final String requestId) {
         if (consentId == null) {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
@@ -134,9 +188,9 @@ public class PaymentsApiClient {
             }
             enduringPaymentRequest = new EnduringPaymentRequest()
                     .pcr(new Pcr()
-                            .particulars(StringUtils.truncate(particulars, 20))
-                            .code(StringUtils.truncate(code, 20))
-                            .reference(StringUtils.truncate(reference, 20)))
+                            .particulars(StringUtils.truncate(particulars, 12))
+                            .code(StringUtils.truncate(code, 12))
+                            .reference(StringUtils.truncate(reference, 12)))
                     .amount(new Amount()
                             .currency(Amount.CurrencyEnum.NZD)
                             .total(total));
@@ -147,25 +201,18 @@ public class PaymentsApiClient {
                 .accountReferenceId(accountReferenceId)
                 .enduringPayment(enduringPaymentRequest);
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .post()
                 .uri(PAYMENTS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(PaymentResponse.class));
@@ -174,42 +221,38 @@ public class PaymentsApiClient {
     /**
      * Retrieves an existing payment by ID.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param paymentId   the payment ID
+     * @param paymentId the payment ID
      * @return the {@link Payment} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<Payment> getPayment(final String requestId, final String accessToken, UUID paymentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Payment> getPayment(UUID paymentId) {
+        return getPayment(paymentId, null);
+    }
 
+    /**
+     * Retrieves an existing payment by ID.
+     *
+     * @param paymentId the payment ID
+     * @param requestId the optional correlation ID
+     * @return the {@link Payment} {@link Mono}
+     */
+    public Mono<Payment> getPayment(UUID paymentId, final String requestId) {
         if (paymentId == null) {
             throw new IllegalArgumentException("Payment ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(PAYMENTS_PATH.getValue() + "/{paymentId}")
                         .build(paymentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(Payment.class));
     }

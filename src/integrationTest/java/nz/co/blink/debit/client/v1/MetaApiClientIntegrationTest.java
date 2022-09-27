@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.dto.v1.BankmetadataFeatures;
@@ -31,7 +30,7 @@ import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlowAvailableIdenti
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesEnduringConsent;
 import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -40,13 +39,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,30 +52,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * The integration test for {@link MetaApiClient}.
  */
-@SpringBootTest(classes = {OAuthApiClient.class, MetaApiClient.class})
+@SpringBootTest(classes = {AccessTokenHandler.class, OAuthApiClient.class, MetaApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @ActiveProfiles("test")
 @Tag("integration")
 class MetaApiClientIntegrationTest {
 
     @Autowired
-    private OAuthApiClient oAuthApiClient;
-
-    @Autowired
     private MetaApiClient client;
 
     @Test
     @DisplayName("Verify that bank metadata is retrieved")
-    void getMeta() throws ExpiredAccessTokenException {
-        Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-        assertThat(accessTokenResponseMono).isNotNull();
-        AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-        assertThat(accessTokenResponse).isNotNull();
-        assertThat(accessTokenResponse.getAccessToken())
-                .isNotBlank()
-                .startsWith("ey");
-
+    void getMeta() {
         BankMetadata bnz = new BankMetadata()
                 .name(Bank.BNZ)
                 .features(new BankmetadataFeatures()
@@ -121,7 +106,7 @@ class MetaApiClientIntegrationTest {
                         .enabled(true)
                         .requestTimeout("PT10M"));
 
-        Flux<BankMetadata> actual = client.getMeta(UUID.randomUUID().toString(), accessTokenResponse.getAccessToken());
+        Flux<BankMetadata> actual = client.getMeta();
 
         assertThat(actual).isNotNull();
         Set<BankMetadata> set = new HashSet<>();

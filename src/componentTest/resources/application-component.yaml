@@ -15,3 +15,5 @@ blinkpay:
   client:
     id: ${BLINKPAY_CLIENT_ID}
     secret: ${BLINKPAY_CLIENT_SECRET}
+  access:
+    token: ${BLINKPAY_ACCESS_TOKEN}

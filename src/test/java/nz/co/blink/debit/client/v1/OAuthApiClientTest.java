@@ -55,6 +55,9 @@ import static org.mockito.Mockito.when;
 class OAuthApiClientTest {
 
     @Mock
+    private WebClient.Builder webClientBuilder;
+
+    @Mock
     private WebClient webClient;
 
     @Mock
@@ -82,6 +85,7 @@ class OAuthApiClientTest {
         response.setExpiresIn(86400);
         response.setScope("create:payment view:payment create:single_consent view:single_consent view:metadata create:enduring_consent view:enduring_consent revoke:enduring_consent view:transaction create:quick_payment view:quick_payment create:refund view:refund revoke:single_consent");
 
+        when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(TOKEN_PATH.getValue())).thenReturn(requestBodySpec);
         when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
@@ -138,20 +142,5 @@ class OAuthApiClientTest {
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Client ID and client secret must not be blank");
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @DisplayName("Verify that blank request ID is handled")
-    void generateAccessTokenWithBlankRequestId(String requestId) {
-        ReflectionTestUtils.setField(client, "clientId", "BLINKPAY_CLIENT_ID");
-        ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(requestId).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Request ID must not be blank");
     }
 }

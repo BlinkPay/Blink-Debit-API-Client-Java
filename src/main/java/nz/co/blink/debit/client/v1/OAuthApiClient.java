@@ -33,6 +33,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.TOKEN_PATH;
 
@@ -42,36 +44,46 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.TOKEN_PATH;
 @Component
 public class OAuthApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
 
-    @Value("${blinkpay.client.id:}")
-    private String clientId;
+    private final String clientId;
 
-    @Value("${blinkpay.client.secret:}")
-    private String clientSecret;
+    private final String clientSecret;
 
     /**
      * Default constructor.
-     * @param webClient the {@link WebClient}
+     *
+     * @param webClientBuilder the {@link WebClient.Builder}
+     * @param clientId         the client ID
+     * @param clientSecret     the client secret
      */
     @Autowired
-    public OAuthApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public OAuthApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                          @Value("${blinkpay.client.id:}") final String clientId,
+                          @Value("${blinkpay.client.secret:}") final String clientSecret) {
+        this.webClientBuilder = webClientBuilder;
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
     }
 
     /**
      * Generates an access token valid for 1 day.
      *
-     * @param requestId the correlation ID
+     * @return the {@link AccessTokenResponse} {@link Mono}
+     */
+    public Mono<AccessTokenResponse> generateAccessToken() {
+        return generateAccessToken(null);
+    }
+
+    /**
+     * Generates an access token valid for 1 day.
+     *
+     * @param requestId the optional correlation ID
      * @return the {@link AccessTokenResponse} {@link Mono}
      */
     public Mono<AccessTokenResponse> generateAccessToken(final String requestId) {
         if (StringUtils.isBlank(clientId) || StringUtils.isBlank(clientSecret)) {
             throw new IllegalArgumentException("Client ID and client secret must not be blank");
-        }
-
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
         }
 
         AccessTokenRequest request = AccessTokenRequest.builder()
@@ -80,12 +92,15 @@ public class OAuthApiClient {
                 .grantType("client_credentials")
                 .build();
 
-        return webClient
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+
+        return webClientBuilder
+                .build()
                 .post()
                 .uri(TOKEN_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestId))
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(AccessTokenResponse.class));
     }

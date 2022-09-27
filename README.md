@@ -4,9 +4,10 @@
 This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
 
 # Minimum Requirements
-- Java 8
-- Spring Boot 2
 - Maven 3
+- Java 8
+
+This SDK uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
 
 # Dependency
 ## Maven
@@ -23,176 +24,198 @@ implementation 'nz.co.blinkpay:blink-debit-api-client-java:1.0.0
 ```
 
 # Configuration
-- Customise/supply the required properties in your `application.yaml`. Sandbox debit URL is `https://sandbox.debit.blinkpay.co.nz` and production debit URL is `https://debit.blinkpay.co.nz`.
+- Customise/supply the required properties in your `application.yaml` or `application.properties`. Sandbox debit URL is `https://sandbox.debit.blinkpay.co.nz` and production debit URL is `https://debit.blinkpay.co.nz`. The client credentials will be provided to you as part of the on-boarding process.
 ```yaml
 blinkpay:
   debit:
-    url: ${BLINKPAY_DEBIT_URL:https://sandbox.debit.blinkpay.co.nz}
+    url: <BLINKPAY_DEBIT_URL>
   max:
-    connections: ${BLINKPAY_MAX_CONNECTIONS:10}
+    connections: 10
     idle:
-      time: ${BLINKPAY_MAX_IDLE_TIME:PT20S}
+      time: PT20S
     life:
-      time: ${BLINKPAY_MAX_LIFE_TIME:PT60S}
+      time: PT60S
   pending:
     acquire:
-      timeout: ${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
+      timeout: PT10S
   eviction:
-    interval: ${BLINKPAY_EVICTION_INTERVAL:PT60S}
+    interval: PT60S
   client:
-    id: ${BLINKPAY_CLIENT_ID:}
-    secret: ${BLINKPAY_CLIENT_SECRET:}
+    id: <BLINKPAY_CLIENT_ID>
+    secret: <BLINKPAY_CLIENT_SECRET>
+```
+```properties
+blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
+blinkpay.max.connections=10
+blinkpay.max.idle.time=PT20S
+blinkpay.max.life.time=PT60S
+blinkpay.pending.acquire.timeout=PT10S
+blinkpay.eviction.interval=PT60S
+blinkpay.client.id=<BLINKPAY_CLIENT_ID>
+blinkpay.client.secret=<BLINKPAY_CLIENT_SECRET>
 ```
 
 # Integration
-
-## Authorisation
-Request for an access token once a day or when the current one is about to expire and store in memory to be used throughout the client code.
+WebClient builder and access token handler must be injected when instantiating the API clients. Alternatively, Spring-based client code can simply autowire the API clients. Optional correlation ID can be added as the last argument.
+## Access Token Handler
 ```java
-AccessTokenResponse accessTokenResponse = client.generateAccessToken(correlationId).block();
-String accessToken = accessTokenResponse.getAccessToken();
+private OAuthApiClient oauthApiClient = new OAuthApiClient(webClientBuilder, clientId, clientSecret);
+private AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
 ```
 
 ## Bank Metadata
 ```java
-Flux<BankMetadata> bankMetadataFlux = client.getMeta(correlationId, accessToken);
+private MetaApiClient client = new MetaApiClient(webClientBuilder, accessTokenHandler);
+```
+```java
+Flux<BankMetadata> bankMetadataFlux = client.getMeta();
 ```
 
 ## Single Consents
+```java
+private SingleConsentsApiClient client = new SingleConsentsApiClient(webClientBuilder, accessTokenHandler);
+```
 ### Redirect Flow
 ```java
-CreateConsentResponse createConsentResponse = client.createSingleConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.REDIRECT, bank, redirectUri, particulars, code, reference, total).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT,
+        bank, redirectUri, particulars, code, reference, total);
 ```
 ### Decoupled Flow
 ```java
-CreateConsentResponse createConsentResponse = client.createSingleConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.DECOUPLED, bank, null, particulars, code, reference, total, null, identifierType,
-        identifierValue, callbackUrl).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED,
+        bank, null, particulars, code, reference, total, null, identifierType, identifierValue, callbackUrl);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
-CreateConsentResponse createConsentResponse = client.createSingleConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference, total,
-        FlowHint.TypeEnum.REDIRECT, null, null, null).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY,
+        bank, redirectUri, particulars, code, reference, total, FlowHint.TypeEnum.REDIRECT, null, null, null);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
-CreateConsentResponse createConsentResponse = client.createSingleConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference, total,
-        FlowHint.TypeEnum.DECOUPLED, identifierType, identifierValue, null).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY,
+        bank, redirectUri, particulars, code, reference, total, FlowHint.TypeEnum.DECOUPLED, identifierType,
+        identifierValue, null);
 ```
 ### Retrieval
 ```java
-Consent consent = client.getSingleConsent(correlationId, accessToken, consentId).block();
+Mono<Consent> consentMono = client.getSingleConsent(consentId);
 ```
 ### Revocation
 ```java
-client.revokeSingleConsent(correlationId, accessToken, consentId).block();
+Mono<Void> voidMono = client.revokeSingleConsent(consentId);
 ```
 
 ## Enduring Consents
+```java
+private EnduringConsentsApiClient client = new EnduringConsentsApiClient(webClientBuilder, accessTokenHandler);
+```
 ### Redirect Flow
 ```java
-CreateConsentResponse createConsentResponse = client.createEnduringConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.REDIRECT, bank, redirectUri, period, startDate, endDate, maximumAmount).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.REDIRECT,
+        bank, redirectUri, period, startDate, endDate, maximumAmount);
 ```
 ### Decoupled Flow
 ```java
-CreateConsentResponse createConsentResponse = client.createEnduringConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.DECOUPLED, bank, null, period, startDate, endDate, maximumAmount, null, identifierType,
-        identifierValue, callbackUrl).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED,
+        bank, null, period, startDate, endDate, maximumAmount, null, identifierType,identifierValue, callbackUrl);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
-CreateConsentResponse createConsentResponse = client.createEnduringConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, period, startDate, endDate, maximumAmount,
-        FlowHint.TypeEnum.REDIRECT, null, null, null).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY,
+        bank, redirectUri, period, startDate, endDate, maximumAmount, FlowHint.TypeEnum.REDIRECT, null, null, null);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
-CreateConsentResponse createConsentResponse = client.createEnduringConsent(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, period, startDate, endDate, maximumAmount,
-        FlowHint.TypeEnum.DECOUPLED, identifierType, identifierValue, null).block();
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY,
+        bank, redirectUri, period, startDate, endDate, maximumAmount, FlowHint.TypeEnum.DECOUPLED, identifierType,
+        identifierValue, null);
 ```
 ### Retrieval
 ```java
-Consent consent = client.getEnduringConsent(correlationId, accessToken, consentId).block();
+Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 ```
 ### Revocation
 ```java
-client.revokeEnduringConsent(correlationId, accessToken, consentId).block();
+Mono<Void> voidMono = client.revokeEnduringConsent(consentId);
 ```
 
 ## Payments
+```java
+private PaymentsApiClient client = new PaymentsApiClient(webClientBuilder, accessTokenHandler);
+```
 ### Single Consent
 ```java
-PaymentResponse paymentResponse = client.createPayment(correlationId, accessToken, consentId).block();
+Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId);
 ```
 ### Enduring Consent
 ```java
-PaymentResponse paymentResponse = client.createPayment(correlationId, accessToken, consentId, null, particulars, code,
-        reference, total).block();
+Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId, particulars, code, reference, total);
 ```
 ### Westpac
 ```java
-PaymentResponse paymentResponse = client.createPayment(correlationId, accessToken, consentId, accountReferenceId).block();
+Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId, accountReferenceId);
 ```
 ### Retrieval
 ```java
-Payment payment = client.getPayment(correlationId, accessToken, paymentId).block();
+Mono<Payment> paymentMono = client.getPayment(paymentId);
 ```
 
 ## Quick Payments
+```java
+private QuickPaymentsApiClient client = new QuickPaymentsApiClient((webClientBuilder, accessTokenHandler);
+```
 ### Redirect Flow
 ```java
-CreateQuickPaymentResponse createQuickPaymentResponseResponse = client.createQuickPayment(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.REDIRECT, bank, redirectUri, particulars, code, reference, total, null).block();
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+        client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, bank, redirectUri, particulars, code, reference,
+        total, null);
 ```
 ### Decoupled Flow
 ```java
-CreateQuickPaymentResponse createQuickPaymentResponseResponse = client.createQuickPayment(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.DECOUPLED, bank, null, particulars, code, reference, total, null, identifierType,
-        identifierValue, callbackUrl).block();
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+        client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, bank, null, particulars, code, reference, total,
+        null, identifierType, identifierValue, callbackUrl);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
-CreateQuickPaymentResponse createQuickPaymentResponseResponse = client.createQuickPayment(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference, total,
-        FlowHint.TypeEnum.REDIRECT).block();
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+        client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference,
+        total, FlowHint.TypeEnum.REDIRECT);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
-CreateQuickPaymentResponse createQuickPaymentResponseResponse = client.createQuickPayment(correlationId, accessToken,
-        AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference, total,
-        FlowHint.TypeEnum.DECOUPLED, identifierType, identifierValue, null).block();
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
+        client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference,
+        total, FlowHint.TypeEnum.DECOUPLED, identifierType, identifierValue, null);
 ```
 ### Retrieval
 ```java
-QuickPaymentResponse quickPaymentResponse = client.getQuickPayment(correlationId, accessToken, quickPaymentId).block();
+Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 ```
 ### Revocation
 ```java
-client.revokeQuickPayment(correlationId, accessToken, quickPaymentId).block();
+Mono<Void> voidMono = client.revokeQuickPayment(quickPaymentId);
 ```
 
 ## Refunds
+```java
+private RefundsApiClient client = new RefundsApiClient(webClientBuilder, accessTokenHandler);
+```
 ### Account Number Refund
 ```java
-RefundResponse refundResponse = client.createRefund(correlationId, accessToken, RefundDetail.TypeEnum.ACCOUNT_NUMBER,
-        paymentId).block();
+Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.ACCOUNT_NUMBER, paymentId);
 ```
 ### Full Refund
 ```java
-RefundResponse refundResponse = client.createRefund(correlationId, accessToken, RefundDetail.TypeEnum.FULL_REFUND,
-        paymentId, redirectUri, particulars, code, reference, total).block();
+Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.FULL_REFUND, paymentId,
+        redirectUri, particulars, code, reference);
 ```
 ### Partial Refund (Not yet implemented)
 ```java
-RefundResponse refundResponse = client.createRefund(correlationId, accessToken, RefundDetail.TypeEnum.PARTIAL_REFUND,
-        paymentId, redirectUri, particulars, code, reference, total).block();
+Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.PARTIAL_REFUND, paymentId,
+        redirectUri, particulars, code, reference, total, correlationId);
 ```
 ### Retrieval
 ```java
-Refund refund = client.getRefund(correlationId, accessToken, refundId).block();
+Mono<Refund> refundMono = client.getRefund(refundId);
 ```

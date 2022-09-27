@@ -62,12 +62,12 @@ public class BlinkDebitConfiguration {
     private String activeProfile;
 
     /**
-     * Returns the Blink Debit {@link WebClient}.
+     * Returns the Blink Debit {@link WebClient.Builder}.
      *
-     * @return the {@link WebClient}
+     * @return the {@link WebClient.Builder}
      */
     @Bean
-    public WebClient blinkDebitWebClient() {
+    public WebClient.Builder blinkDebitWebClientBuilder() {
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
                 .maxConnections(maxConnections)
                 .maxIdleTime(maxIdleTime)
@@ -88,7 +88,6 @@ public class BlinkDebitConfiguration {
 
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(client))
-                .baseUrl(debitUrl)
-                .build();
+                .baseUrl(debitUrl);
     }
 }

@@ -25,18 +25,12 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           
-      - name: Run component tests
-        run: mvn -Dgroups=component test
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          
       - name: Run integration tests
         run: mvn -Dgroups=integration test
         env:
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         
       - name: Package
         run: mvn clean package -DskipTests=true

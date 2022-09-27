@@ -21,21 +21,18 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.dto.v1.BankMetadata;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
-import java.util.Date;
+import java.util.UUID;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.METADATA_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
@@ -46,50 +43,48 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class MetaApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+
+    private final AccessTokenHandler accessTokenHandler;
 
     /**
      * Default constructor.
      *
-     * @param webClient the {@link WebClient}
+     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public MetaApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public MetaApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                         AccessTokenHandler accessTokenHandler) {
+        this.webClientBuilder = webClientBuilder;
+        this.accessTokenHandler = accessTokenHandler;
     }
 
     /**
      * Returns the {@link BankMetadata} {@link Flux}.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
      * @return the {@link BankMetadata} {@link Flux}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Flux<BankMetadata> getMeta(final String requestId, final String accessToken)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Flux<BankMetadata> getMeta() {
+        return getMeta(null);
+    }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+    /**
+     * Returns the {@link BankMetadata} {@link Flux}.
+     *
+     * @param requestId the optional correlation ID
+     * @return the {@link BankMetadata} {@link Flux}
+     */
+    public Flux<BankMetadata> getMeta(final String requestId) {
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = "Bearer " + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .get()
                 .uri(METADATA_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .exchangeToFlux(ResponseHandler.getResponseFlux(BankMetadata.class));
     }
 }

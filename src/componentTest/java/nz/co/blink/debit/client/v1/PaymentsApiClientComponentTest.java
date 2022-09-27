@@ -22,15 +22,13 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
-import org.apache.commons.lang3.StringUtils;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -57,7 +55,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         properties = {"spring.profiles.active=component"},
-        classes = {OAuthApiClient.class, PaymentsApiClient.class})
+        classes = {AccessTokenHandler.class, OAuthApiClient.class, PaymentsApiClient.class})
 @Import(BlinkDebitConfiguration.class)
 @AutoConfigureWireMock(port = 8888,
         stubs = "file:src/componentTest/resources/wiremock/mappings",
@@ -73,32 +71,19 @@ class PaymentsApiClientComponentTest {
     @Autowired
     private PaymentsApiClient client;
 
-    private static String accessToken;
-
     @BeforeEach
     void setUp() {
-        if (StringUtils.isBlank(accessToken)) {
-            ReflectionTestUtils.setField(oAuthApiClient, "webClient", WebClient.create("https://staging.debit.blinkpay.co.nz"));
-
-            Mono<AccessTokenResponse> accessTokenResponseMono = oAuthApiClient.generateAccessToken(UUID.randomUUID().toString());
-
-            assertThat(accessTokenResponseMono).isNotNull();
-            AccessTokenResponse accessTokenResponse = accessTokenResponseMono.block();
-            assertThat(accessTokenResponse).isNotNull();
-
-            accessToken = accessTokenResponse.getAccessToken();
-            assertThat(accessToken)
-                    .isNotBlank()
-                    .startsWith("ey");
-        }
+        // use real host to generate valid access token
+        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
+                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
     }
 
     @Test
     @DisplayName("Verify that payment for single consent is created")
     @Order(1)
-    void createPaymentForSingleConsent() throws ExpiredAccessTokenException {
-        Mono<PaymentResponse> paymentResponseMono = client.createPayment(UUID.randomUUID().toString(),
-                accessToken, UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"));
+    void createPaymentForSingleConsent() {
+        Mono<PaymentResponse> paymentResponseMono =
+                client.createPayment(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"));
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -111,9 +96,9 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for single consent is retrieved")
     @Order(2)
-    void getPaymentForSingleConsent() throws ExpiredAccessTokenException {
+    void getPaymentForSingleConsent() {
         UUID paymentId = UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e");
-        Mono<Payment> paymentMono = client.getPayment(UUID.randomUUID().toString(), accessToken, paymentId);
+        Mono<Payment> paymentMono = client.getPayment(paymentId);
 
         assertThat(paymentMono).isNotNull();
         Payment actual = paymentMono.block();
@@ -135,10 +120,10 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for enduring consent is created")
     @Order(3)
-    void createPaymentForEnduringConsent() throws ExpiredAccessTokenException {
-        Mono<PaymentResponse> paymentResponseMono = client.createPayment(UUID.randomUUID().toString(),
-                accessToken, UUID.fromString("0500c560-c156-439f-9aed-753d82884323"), null, "particulars", "code",
-                "reference", "45.00");
+    void createPaymentForEnduringConsent() {
+        Mono<PaymentResponse> paymentResponseMono =
+                client.createPayment(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"), "particulars", "code",
+                        "reference", "45.00");
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -151,9 +136,9 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for enduring consent is retrieved")
     @Order(4)
-    void getPaymentForEnduringConsent() throws ExpiredAccessTokenException {
+    void getPaymentForEnduringConsent() {
         UUID paymentId = UUID.fromString("12fd4aa2-629f-463d-9114-15b095448a79");
-        Mono<Payment> paymentMono = client.getPayment(UUID.randomUUID().toString(), accessToken, paymentId);
+        Mono<Payment> paymentMono = client.getPayment(paymentId);
 
         assertThat(paymentMono).isNotNull();
         Payment actual = paymentMono.block();

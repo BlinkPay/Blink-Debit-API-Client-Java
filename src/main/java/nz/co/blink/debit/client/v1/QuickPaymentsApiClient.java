@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
@@ -40,22 +38,19 @@ import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.BEARER;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.QUICK_PAYMENTS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
@@ -66,49 +61,69 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class QuickPaymentsApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+
+    private final AccessTokenHandler accessTokenHandler;
 
     /**
      * Default constructor.
      *
-     * @param webClient the {@link WebClient}
+     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public QuickPaymentsApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public QuickPaymentsApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                                  AccessTokenHandler accessTokenHandler) {
+        this.webClientBuilder = webClientBuilder;
+        this.accessTokenHandler = accessTokenHandler;
     }
 
     /**
      * Creates a quick payment with redirect flow.
      *
-     * @param requestId       the correlation ID
-     * @param accessToken     the OAuth2 access token
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI or decoupled flow callback URI
-     * @param particulars     the particulars
-     * @param code            the code
-     * @param reference       the reference
-     * @param total           the total
-     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
+     * @param type         the {@link AuthFlowDetail.TypeEnum}
+     * @param bank         the {@link Bank}
+     * @param redirectUri  the redirect URI or decoupled flow callback URI
+     * @param particulars  the particulars
+     * @param code         the code
+     * @param reference    the reference
+     * @param total        the total
+     * @param flowHintType the {@link FlowHint.TypeEnum} for gateway flow
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<CreateQuickPaymentResponse> createQuickPayment(final String requestId, final String accessToken,
-                                                               AuthFlowDetail.TypeEnum type, Bank bank,
+    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
                                                                final String redirectUri, final String particulars,
                                                                final String code, final String reference,
-                                                               final String total, FlowHint.TypeEnum flowHintType)
-            throws ExpiredAccessTokenException {
-        return createQuickPayment(requestId, accessToken, type, bank, redirectUri, particulars, code, reference, total,
-                flowHintType, null, null, null);
+                                                               final String total, FlowHint.TypeEnum flowHintType) {
+        return createQuickPayment(type, bank, redirectUri, particulars, code, reference, total, flowHintType, null);
+    }
+
+    /**
+     * Creates a quick payment with redirect flow.
+     *
+     * @param type         the {@link AuthFlowDetail.TypeEnum}
+     * @param bank         the {@link Bank}
+     * @param redirectUri  the redirect URI or decoupled flow callback URI
+     * @param particulars  the particulars
+     * @param code         the code
+     * @param reference    the reference
+     * @param total        the total
+     * @param flowHintType the {@link FlowHint.TypeEnum} for gateway flow
+     * @param requestId    the optional correlation ID
+     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
+     */
+    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
+                                                               final String redirectUri, final String particulars,
+                                                               final String code, final String reference,
+                                                               final String total, FlowHint.TypeEnum flowHintType,
+                                                               final String requestId) {
+        return createQuickPayment(type, bank, redirectUri, particulars, code, reference, total, flowHintType, null,
+                null, null, requestId);
     }
 
     /**
      * Creates a quick payment.
      *
-     * @param requestId       the correlation ID
-     * @param accessToken     the OAuth2 access token
      * @param type            the {@link AuthFlowDetail.TypeEnum}
      * @param bank            the {@link Bank}
      * @param redirectUri     the redirect URI or decoupled flow callback URI
@@ -121,20 +136,41 @@ public class QuickPaymentsApiClient {
      * @param identifierValue the identifier value for decoupled flow
      * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<CreateQuickPaymentResponse> createQuickPayment(final String requestId, final String accessToken,
-                                                               AuthFlowDetail.TypeEnum type, Bank bank,
+    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
                                                                final String redirectUri, final String particulars,
                                                                final String code, final String reference,
                                                                final String total, FlowHint.TypeEnum flowHintType,
                                                                IdentifierType identifierType,
-                                                               final String identifierValue, final String callbackUrl)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+                                                               final String identifierValue, final String callbackUrl) {
+        return createQuickPayment(type, bank, redirectUri, particulars, code, reference, total, flowHintType,
+                identifierType, identifierValue, callbackUrl, null);
+    }
 
+    /**
+     * Creates a quick payment.
+     *
+     * @param type            the {@link AuthFlowDetail.TypeEnum}
+     * @param bank            the {@link Bank}
+     * @param redirectUri     the redirect URI or decoupled flow callback URI
+     * @param particulars     the particulars
+     * @param code            the code
+     * @param reference       the reference
+     * @param total           the total
+     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
+     * @param identifierType  the {@link IdentifierType} for decoupled flow
+     * @param identifierValue the identifier value for decoupled flow
+     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
+     * @param requestId       the optional correlation ID
+     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
+     */
+    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
+                                                               final String redirectUri, final String particulars,
+                                                               final String code, final String reference,
+                                                               final String total, FlowHint.TypeEnum flowHintType,
+                                                               IdentifierType identifierType,
+                                                               final String identifierValue, final String callbackUrl,
+                                                               final String requestId) {
         if (AuthFlowDetail.TypeEnum.GATEWAY == type && flowHintType == null) {
             throw new IllegalArgumentException("Gateway flow type requires redirect or decoupled flow hint type");
         }
@@ -218,33 +254,26 @@ public class QuickPaymentsApiClient {
                 .flow(new AuthFlow()
                         .detail(detail))
                 .pcr(new Pcr()
-                        .particulars(StringUtils.truncate(particulars, 20))
-                        .code(StringUtils.truncate(code, 20))
-                        .reference(StringUtils.truncate(reference, 20)))
+                        .particulars(StringUtils.truncate(particulars, 12))
+                        .code(StringUtils.truncate(code, 12))
+                        .reference(StringUtils.truncate(reference, 12)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total(total))
                 .type(ConsentDetail.TypeEnum.SINGLE);
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .post()
                 .uri(QUICK_PAYMENTS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(CreateQuickPaymentResponse.class));
@@ -253,43 +282,38 @@ public class QuickPaymentsApiClient {
     /**
      * Retrieves an existing quick payment by ID.
      *
-     * @param requestId      the correlation ID
-     * @param accessToken    the OAuth2 access token
      * @param quickPaymentId the quick payment ID
      * @return the {@link QuickPaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<QuickPaymentResponse> getQuickPayment(final String requestId, final String accessToken,
-                                                      UUID quickPaymentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<QuickPaymentResponse> getQuickPayment(UUID quickPaymentId) {
+        return getQuickPayment(quickPaymentId, null);
+    }
 
+    /**
+     * Retrieves an existing quick payment by ID.
+     *
+     * @param quickPaymentId the quick payment ID
+     * @param requestId      the optional correlation ID
+     * @return the {@link QuickPaymentResponse} {@link Mono}
+     */
+    public Mono<QuickPaymentResponse> getQuickPayment(UUID quickPaymentId, final String requestId) {
         if (quickPaymentId == null) {
             throw new IllegalArgumentException("Quick payment ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(QUICK_PAYMENTS_PATH.getValue() + "/{quickPaymentId}")
                         .build(quickPaymentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(QuickPaymentResponse.class));
     }
@@ -297,41 +321,36 @@ public class QuickPaymentsApiClient {
     /**
      * Revokes an existing quick payment by ID.
      *
-     * @param requestId      the correlation ID
-     * @param accessToken    the OAuth2 access token
      * @param quickPaymentId the quick payment ID
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<Void> revokeQuickPayment(final String requestId, final String accessToken, UUID quickPaymentId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Void> revokeQuickPayment(UUID quickPaymentId) {
+        return revokeQuickPayment(quickPaymentId, null);
+    }
 
+    /**
+     * Revokes an existing quick payment by ID.
+     *
+     * @param quickPaymentId the quick payment ID
+     * @param requestId      the optional correlation ID
+     */
+    public Mono<Void> revokeQuickPayment(UUID quickPaymentId, final String requestId) {
         if (quickPaymentId == null) {
             throw new IllegalArgumentException("Quick payment ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .delete()
                 .uri(uriBuilder -> uriBuilder
                         .path(QUICK_PAYMENTS_PATH.getValue() + "/{quickPaymentId}")
                         .build(quickPaymentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                    httpHeaders.add(INTERACTION_ID.getValue(), requestId);
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.getResponseMono(Void.class));
     }

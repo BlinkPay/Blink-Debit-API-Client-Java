@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
@@ -33,22 +31,19 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
-import nz.co.blink.debit.exception.ExpiredAccessTokenException;
+import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.Date;
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.BEARER;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REFUNDS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -58,39 +53,49 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class RefundsApiClient {
 
-    private final WebClient webClient;
+    private final WebClient.Builder webClientBuilder;
+
+    private final AccessTokenHandler accessTokenHandler;
 
     /**
      * Default constructor.
      *
-     * @param webClient the {@link WebClient}
+     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public RefundsApiClient(@Qualifier("blinkDebitWebClient") WebClient webClient) {
-        this.webClient = webClient;
+    public RefundsApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+                            AccessTokenHandler accessTokenHandler) {
+        this.webClientBuilder = webClientBuilder;
+        this.accessTokenHandler = accessTokenHandler;
     }
 
     /**
      * Creates an account number refund.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param type        the {@link RefundDetail.TypeEnum}
-     * @param paymentId   the payment ID
+     * @param type      the {@link RefundDetail.TypeEnum}
+     * @param paymentId the payment ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<RefundResponse> createRefund(final String requestId, final String accessToken,
-                                             RefundDetail.TypeEnum type, UUID paymentId)
-            throws ExpiredAccessTokenException {
-        return createRefund(requestId, accessToken, type, paymentId, null, null, null, null, null);
+    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId) {
+        return createRefund(type, paymentId, null);
+    }
+
+    /**
+     * Creates an account number refund.
+     *
+     * @param type      the {@link RefundDetail.TypeEnum}
+     * @param paymentId the payment ID
+     * @param requestId the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String requestId) {
+        return createRefund(type, paymentId, null, null, null, null, null, requestId);
     }
 
     /**
      * Creates a full refund.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
      * @param type        the {@link RefundDetail.TypeEnum}
      * @param paymentId   the payment ID
      * @param redirectUri the redirect URI
@@ -98,20 +103,33 @@ public class RefundsApiClient {
      * @param code        the code
      * @param reference   the reference
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<RefundResponse> createRefund(final String requestId, final String accessToken,
-                                             RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
-                                             final String particulars, final String code, final String reference)
-            throws ExpiredAccessTokenException {
-        return createRefund(requestId, accessToken, type, paymentId, redirectUri, particulars, code, reference, null);
+    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
+                                             final String particulars, final String code, final String reference) {
+        return createRefund(type, paymentId, redirectUri, particulars, code, reference, null);
+    }
+
+    /**
+     * Creates a full refund.
+     *
+     * @param type        the {@link RefundDetail.TypeEnum}
+     * @param paymentId   the payment ID
+     * @param redirectUri the redirect URI
+     * @param particulars the particulars
+     * @param code        the code
+     * @param reference   the reference
+     * @param requestId   the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
+                                             final String particulars, final String code, final String reference,
+                                             final String requestId) {
+        return createRefund(type, paymentId, redirectUri, particulars, code, reference, null, requestId);
     }
 
     /**
      * Creates a refund.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
      * @param type        the {@link RefundDetail.TypeEnum}
      * @param paymentId   the payment ID
      * @param redirectUri the redirect URI
@@ -119,18 +137,12 @@ public class RefundsApiClient {
      * @param code        the code
      * @param reference   the reference
      * @param total       the total for partial refund
+     * @param requestId   the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<RefundResponse> createRefund(final String requestId, final String accessToken,
-                                             RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
+    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
                                              final String particulars, final String code, final String reference,
-                                             final String total)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
-
+                                             final String total, final String requestId) {
         if (paymentId == null) {
             throw new IllegalArgumentException("Payment ID must not be null");
         }
@@ -149,9 +161,9 @@ public class RefundsApiClient {
                 }
                 request = new FullRefundRequest()
                         .pcr(new Pcr()
-                                .particulars(StringUtils.truncate(particulars, 20))
-                                .code(StringUtils.truncate(code, 20))
-                                .reference(StringUtils.truncate(reference, 20)))
+                                .particulars(StringUtils.truncate(particulars, 12))
+                                .code(StringUtils.truncate(code, 12))
+                                .reference(StringUtils.truncate(reference, 12)))
                         .consentRedirect(redirectUri)
                         .paymentId(paymentId)
                         .type(type);
@@ -168,9 +180,9 @@ public class RefundsApiClient {
                 }
                 request = new PartialRefundRequest()
                         .pcr(new Pcr()
-                                .particulars(StringUtils.truncate(particulars, 20))
-                                .code(StringUtils.truncate(code, 20))
-                                .reference(StringUtils.truncate(reference, 20)))
+                                .particulars(StringUtils.truncate(particulars, 12))
+                                .code(StringUtils.truncate(code, 12))
+                                .reference(StringUtils.truncate(reference, 12)))
                         .consentRedirect(redirectUri)
                         .amount(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
@@ -185,25 +197,16 @@ public class RefundsApiClient {
                 break;
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .post()
                 .uri(REFUNDS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(RefundResponse.class));
     }
@@ -211,42 +214,36 @@ public class RefundsApiClient {
     /**
      * Retrieves an existing refund by ID.
      *
-     * @param requestId   the correlation ID
-     * @param accessToken the OAuth2 access token
-     * @param refundId    the refund ID
+     * @param refundId the refund ID
      * @return the {@link Payment} {@link Mono}
-     * @throws ExpiredAccessTokenException thrown when the access token has expired after 1 day
      */
-    public Mono<Refund> getRefund(final String requestId, final String accessToken, UUID refundId)
-            throws ExpiredAccessTokenException {
-        if (StringUtils.isBlank(requestId)) {
-            throw new IllegalArgumentException("Request ID must not be blank");
-        }
+    public Mono<Refund> getRefund(UUID refundId) {
+        return getRefund(refundId, null);
+    }
 
+    /**
+     * Retrieves an existing refund by ID.
+     *
+     * @param refundId  the refund ID
+     * @param requestId the optional correlation ID
+     * @return the {@link Payment} {@link Mono}
+     */
+    public Mono<Refund> getRefund(UUID refundId, final String requestId) {
         if (refundId == null) {
             throw new IllegalArgumentException("Refund ID must not be null");
         }
 
-        if (StringUtils.isBlank(accessToken)) {
-            throw new IllegalArgumentException("Access token must not be blank");
-        }
-        DecodedJWT jwt = JWT.decode(accessToken);
-        if (jwt.getExpiresAt().before(new Date())) {
-            throw new ExpiredAccessTokenException();
-        }
+        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
 
-        String authorization = BEARER.getValue() + accessToken;
-
-        return webClient
+        return webClientBuilder
+                .filter(accessTokenHandler.setAccessToken(correlationId))
+                .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(REFUNDS_PATH.getValue() + "/{refundId}")
                         .build(refundId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestId);
-                    httpHeaders.add(HttpHeaders.AUTHORIZATION, authorization);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .exchangeToMono(ResponseHandler.getResponseMono(Refund.class));
     }
 }
