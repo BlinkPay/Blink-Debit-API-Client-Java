@@ -43,6 +43,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -106,6 +107,30 @@ class MetaApiClientIntegrationTest {
                         .enabled(true)
                         .requestTimeout("PT10M"));
 
+        BankMetadata asb = new BankMetadata()
+                .name(Bank.ASB)
+                .features(new BankmetadataFeatures())
+                .redirectFlow(new BankmetadataRedirectFlow()
+                        .enabled(true)
+                        .requestTimeout("PT10M"));
+
+        BankMetadata anz = new BankMetadata()
+                .name(Bank.ANZ)
+                .features(new BankmetadataFeatures()
+                        .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                                .enabled(true)
+                                .availableIdentifiers(Stream.of(
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.PHONE_NUMBER)
+                                                        .name("Phone Number"),
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.MOBILE_NUMBER)
+                                                        .name("Mobile Number"))
+                                        .collect(Collectors.toList()))
+                                .requestTimeout("PT7M")))
+                .redirectFlow(new BankmetadataRedirectFlow()
+                        .enabled(false));
+
         Flux<BankMetadata> actual = client.getMeta();
 
         assertThat(actual).isNotNull();
@@ -115,9 +140,11 @@ class MetaApiClientIntegrationTest {
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
                 .verifyComplete();
         assertThat(set)
-                .hasSize(3)
-                .containsExactlyInAnyOrder(bnz, pnz, westpac);
+                .hasSize(5)
+                .containsExactlyInAnyOrder(bnz, pnz, westpac, asb, anz);
     }
 }

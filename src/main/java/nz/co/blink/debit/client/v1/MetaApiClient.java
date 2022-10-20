@@ -76,7 +76,7 @@ public class MetaApiClient {
      * @return the {@link BankMetadata} {@link Flux}
      */
     public Flux<BankMetadata> getMeta(final String requestId) {
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))

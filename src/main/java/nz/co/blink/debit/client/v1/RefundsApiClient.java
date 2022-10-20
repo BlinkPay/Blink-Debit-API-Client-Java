@@ -197,7 +197,7 @@ public class RefundsApiClient {
                 break;
         }
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))
@@ -233,7 +233,7 @@ public class RefundsApiClient {
             throw new IllegalArgumentException("Refund ID must not be null");
         }
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))

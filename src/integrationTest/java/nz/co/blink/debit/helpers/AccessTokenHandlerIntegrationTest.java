@@ -21,14 +21,11 @@
  */
 package nz.co.blink.debit.helpers;
 
-import nz.co.blink.debit.client.v1.EnduringConsentsApiClient;
 import nz.co.blink.debit.client.v1.OAuthApiClient;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +38,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The integration test for {@link EnduringConsentsApiClient}.
+ * The integration test for {@link AccessTokenHandler}.
  */
 @SpringBootTest(classes = {AccessTokenHandler.class, OAuthApiClient.class})
 @Import(BlinkDebitConfiguration.class)

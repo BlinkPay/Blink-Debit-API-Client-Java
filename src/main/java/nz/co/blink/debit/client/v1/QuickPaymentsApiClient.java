@@ -262,7 +262,7 @@ public class QuickPaymentsApiClient {
                         .total(total))
                 .type(ConsentDetail.TypeEnum.SINGLE);
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))
@@ -301,7 +301,7 @@ public class QuickPaymentsApiClient {
             throw new IllegalArgumentException("Quick payment ID must not be null");
         }
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))
@@ -338,7 +338,7 @@ public class QuickPaymentsApiClient {
             throw new IllegalArgumentException("Quick payment ID must not be null");
         }
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))

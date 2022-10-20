@@ -108,7 +108,7 @@ public class SingleConsentsApiClient {
      * @param code        the code
      * @param reference   the reference
      * @param total       the total
-     * @param requestId       the optional correlation ID
+     * @param requestId   the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
      */
     public Mono<CreateConsentResponse> createSingleConsent(AuthFlowDetail.TypeEnum type, Bank bank,
@@ -262,7 +262,7 @@ public class SingleConsentsApiClient {
                         .total(total))
                 .type(ConsentDetail.TypeEnum.SINGLE);
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))
@@ -301,7 +301,7 @@ public class SingleConsentsApiClient {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))
@@ -338,7 +338,7 @@ public class SingleConsentsApiClient {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .filter(accessTokenHandler.setAccessToken(correlationId))

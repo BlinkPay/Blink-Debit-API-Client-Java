@@ -92,7 +92,7 @@ public class OAuthApiClient {
                 .grantType("client_credentials")
                 .build();
 
-        String correlationId = StringUtils.isNotBlank(requestId) ? requestId : UUID.randomUUID().toString();
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return webClientBuilder
                 .build()

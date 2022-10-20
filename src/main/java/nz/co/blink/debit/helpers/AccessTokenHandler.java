@@ -72,7 +72,8 @@ public class AccessTokenHandler {
     }
 
     /**
-     * Sets the Authorization request header by
+     * Sets the Authorization request header by reusing the access token or by replacing it with a new one
+     * if it has expired.
      *
      * @param requestId the correlation ID
      * @return the {@link ExchangeFilterFunction}
@@ -83,6 +84,7 @@ public class AccessTokenHandler {
             DecodedJWT jwt = JWT.decode(currentAccessToken);
             if (!jwt.getExpiresAt().before(new Date())) {
                 return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+
                     String authorization = "Bearer " + currentAccessToken;
                     ClientRequest authorizedRequest = ClientRequest.from(clientRequest)
                             .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
