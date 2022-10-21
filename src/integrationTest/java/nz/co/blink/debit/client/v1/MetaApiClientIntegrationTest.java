@@ -43,7 +43,6 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -141,10 +140,9 @@ class MetaApiClientIntegrationTest {
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
-                .consumeNextWith(set::add)
                 .verifyComplete();
         assertThat(set)
-                .hasSize(5)
-                .containsExactlyInAnyOrder(bnz, pnz, westpac, asb, anz);
+                .hasSize(4)
+                .containsExactlyInAnyOrder(bnz, pnz, westpac, anz);
     }
 }

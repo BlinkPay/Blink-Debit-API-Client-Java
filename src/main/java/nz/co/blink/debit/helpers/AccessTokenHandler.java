@@ -22,6 +22,7 @@
 package nz.co.blink.debit.helpers;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.client.v1.OAuthApiClient;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
@@ -81,16 +82,19 @@ public class AccessTokenHandler {
     public ExchangeFilterFunction setAccessToken(final String requestId) {
         String currentAccessToken = accessTokenAtomicReference.get();
         if (StringUtils.isNotBlank(currentAccessToken)) {
-            DecodedJWT jwt = JWT.decode(currentAccessToken);
-            if (!jwt.getExpiresAt().before(new Date())) {
-                return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-
-                    String authorization = "Bearer " + currentAccessToken;
-                    ClientRequest authorizedRequest = ClientRequest.from(clientRequest)
-                            .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
-                            .build();
-                    return Mono.just(authorizedRequest);
-                });
+            try {
+                DecodedJWT jwt = JWT.decode(currentAccessToken);
+                if (!jwt.getExpiresAt().before(new Date())) {
+                    return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
+                        String authorization = "Bearer " + currentAccessToken;
+                        ClientRequest authorizedRequest = ClientRequest.from(clientRequest)
+                                .headers(headers -> headers.set(HttpHeaders.AUTHORIZATION, authorization))
+                                .build();
+                        return Mono.just(authorizedRequest);
+                    });
+                }
+            } catch (JWTDecodeException ignored) {
+                // fetch a new access token
             }
         }
 

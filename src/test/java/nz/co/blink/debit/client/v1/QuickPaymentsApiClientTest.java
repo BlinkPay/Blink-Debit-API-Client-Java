@@ -49,7 +49,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -61,7 +62,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.QUICK_PAYMENTS_PATH;
-import static nz.co.blink.debit.enums.BlinkDebitConstant.SINGLE_CONSENTS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
@@ -94,6 +94,9 @@ class QuickPaymentsApiClientTest {
 
     @Mock
     private WebClient.RequestHeadersSpec requestHeadersSpec;
+
+    @Mock
+    private ReactorClientHttpConnector connector;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
@@ -262,12 +265,14 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that quick payment is created")
     void createQuickPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
 
-        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
@@ -304,6 +309,9 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that quick payment is retrieved")
     void getQuickPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
         UUID quickPaymentId = UUID.randomUUID();
 
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -330,7 +338,6 @@ class QuickPaymentsApiClientTest {
                                 .type(ConsentDetail.TypeEnum.SINGLE))
                         .payments(Collections.emptySet()));
 
-        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
@@ -390,9 +397,10 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that quick payment is revoked")
     void revokeQuickPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
         UUID quickPaymentId = UUID.randomUUID();
-        when(webClientBuilder.filter(accessTokenHandler.setAccessToken(any(String.class))))
-                .thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.delete()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);

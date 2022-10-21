@@ -33,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -69,6 +70,9 @@ class OAuthApiClientTest {
     @Mock
     private WebClient.RequestHeadersSpec requestHeadersSpec;
 
+    @Mock
+    private ReactorClientHttpConnector connector;
+
     @InjectMocks
     private OAuthApiClient client;
 
@@ -76,6 +80,8 @@ class OAuthApiClientTest {
     @DisplayName("Verify that access token is generated")
     void generateAccessToken() {
         // GIVEN
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
         ReflectionTestUtils.setField(client, "clientId", "BLINKPAY_CLIENT_ID");
         ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
 

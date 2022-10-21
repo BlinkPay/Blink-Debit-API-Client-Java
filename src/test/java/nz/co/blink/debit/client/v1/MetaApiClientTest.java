@@ -39,6 +39,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -76,6 +78,9 @@ class MetaApiClientTest {
     @Mock
     private WebClient.RequestHeadersSpec requestHeadersSpec;
 
+    @Mock
+    private ReactorClientHttpConnector connector;
+
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
 
@@ -85,6 +90,9 @@ class MetaApiClientTest {
     @Test
     @DisplayName("Verify that bank metadata is retrieved")
     void getMeta() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
         BankMetadata bnz = new BankMetadata()
                 .name(Bank.BNZ)
                 .features(new BankmetadataFeatures()
@@ -127,7 +135,6 @@ class MetaApiClientTest {
                         .enabled(true)
                         .requestTimeout("PT10M"));
 
-        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(METADATA_PATH.getValue())).thenReturn(requestHeadersSpec);

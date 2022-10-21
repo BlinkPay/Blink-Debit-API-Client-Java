@@ -1,6 +1,6 @@
 blinkpay:
   debit:
-    url: http://localhost:8080
+    url: https://sandbox.debit.blinkpay.co.nz
   max:
     connections: 50
     idle:
@@ -15,5 +15,3 @@ blinkpay:
   client:
     id: ${BLINKPAY_CLIENT_ID}
     secret: ${BLINKPAY_CLIENT_SECRET}
-  access:
-    token: ${BLINKPAY_ACCESS_TOKEN}

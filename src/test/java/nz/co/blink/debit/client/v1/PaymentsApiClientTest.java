@@ -37,7 +37,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -78,6 +79,9 @@ class PaymentsApiClientTest {
 
     @Mock
     private WebClient.RequestHeadersSpec requestHeadersSpec;
+
+    @Mock
+    private ReactorClientHttpConnector connector;
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
@@ -123,11 +127,13 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that payment is created")
     void createPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
 
-        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
@@ -161,6 +167,9 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that payment is retrieved")
     void getPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
         UUID consentId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -174,7 +183,6 @@ class PaymentsApiClientTest {
                 .detail(new PaymentRequest()
                         .consentId(consentId));
 
-        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);

@@ -37,7 +37,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -53,20 +55,27 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class RefundsApiClient {
 
-    private final WebClient.Builder webClientBuilder;
+    private final ReactorClientHttpConnector connector;
+
+    private final String debitUrl;
 
     private final AccessTokenHandler accessTokenHandler;
+
+    private WebClient.Builder webClientBuilder;
 
     /**
      * Default constructor.
      *
-     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param connector          the {@link ReactorClientHttpConnector}
+     * @param debitUrl           the Blink Debit URL
      * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public RefundsApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+    public RefundsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+                            @Value("${blinkpay.debit.url:}") final String debitUrl,
                             AccessTokenHandler accessTokenHandler) {
-        this.webClientBuilder = webClientBuilder;
+        this.connector = connector;
+        this.debitUrl = debitUrl;
         this.accessTokenHandler = accessTokenHandler;
     }
 
@@ -199,8 +208,7 @@ public class RefundsApiClient {
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return webClientBuilder
-                .filter(accessTokenHandler.setAccessToken(correlationId))
+        return getWebClientBuilder(correlationId)
                 .build()
                 .post()
                 .uri(REFUNDS_PATH.getValue())
@@ -235,8 +243,7 @@ public class RefundsApiClient {
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return webClientBuilder
-                .filter(accessTokenHandler.setAccessToken(correlationId))
+        return getWebClientBuilder(correlationId)
                 .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
@@ -245,5 +252,16 @@ public class RefundsApiClient {
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .exchangeToMono(ResponseHandler.getResponseMono(Refund.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String correlationId) {
+        if (webClientBuilder != null) {
+            return webClientBuilder;
+        }
+
+        return WebClient.builder()
+                .clientConnector(connector)
+                .baseUrl(debitUrl)
+                .filter(accessTokenHandler.setAccessToken(correlationId));
     }
 }

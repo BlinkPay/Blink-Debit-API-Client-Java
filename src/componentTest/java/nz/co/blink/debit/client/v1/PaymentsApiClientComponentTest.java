@@ -37,12 +37,12 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -66,16 +66,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PaymentsApiClientComponentTest {
 
     @Autowired
-    private OAuthApiClient oAuthApiClient;
+    private ReactorClientHttpConnector connector;
 
-    @Autowired
+    @Value("${blinkpay.debit.url}")
+    private String debitUrl;
+
     private PaymentsApiClient client;
 
     @BeforeEach
     void setUp() {
         // use real host to generate valid access token
-        ReflectionTestUtils.setField(oAuthApiClient, "webClientBuilder",
-                WebClient.builder().baseUrl("https://dev.debit.blinkpay.co.nz"));
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
+                System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"));
+
+        client = new PaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient));
     }
 
     @Test

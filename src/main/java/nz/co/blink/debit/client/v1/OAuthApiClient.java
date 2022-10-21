@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -44,24 +45,31 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.TOKEN_PATH;
 @Component
 public class OAuthApiClient {
 
-    private final WebClient.Builder webClientBuilder;
+    private final ReactorClientHttpConnector connector;
+
+    private final String debitUrl;
 
     private final String clientId;
 
     private final String clientSecret;
 
+    private WebClient.Builder webClientBuilder;
+
     /**
      * Default constructor.
      *
-     * @param webClientBuilder the {@link WebClient.Builder}
-     * @param clientId         the client ID
-     * @param clientSecret     the client secret
+     * @param connector    the {@link ReactorClientHttpConnector}
+     * @param debitUrl     the Blink Debit URL
+     * @param clientId     the client ID
+     * @param clientSecret the client secret
      */
     @Autowired
-    public OAuthApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+    public OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+                          @Value("${blinkpay.debit.url:}") final String debitUrl,
                           @Value("${blinkpay.client.id:}") final String clientId,
                           @Value("${blinkpay.client.secret:}") final String clientSecret) {
-        this.webClientBuilder = webClientBuilder;
+        this.connector = connector;
+        this.debitUrl = debitUrl;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
     }
@@ -94,7 +102,7 @@ public class OAuthApiClient {
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return webClientBuilder
+        return getWebClientBuilder(correlationId)
                 .build()
                 .post()
                 .uri(TOKEN_PATH.getValue())
@@ -103,5 +111,15 @@ public class OAuthApiClient {
                 .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.getResponseMono(AccessTokenResponse.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String correlationId) {
+        if (webClientBuilder != null) {
+            return webClientBuilder;
+        }
+
+        return WebClient.builder()
+                .clientConnector(connector)
+                .baseUrl(debitUrl);
     }
 }

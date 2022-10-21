@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
@@ -62,12 +61,12 @@ public class BlinkDebitConfiguration {
     private String activeProfile;
 
     /**
-     * Returns the Blink Debit {@link WebClient.Builder}.
+     * Returns the {@link ReactorClientHttpConnector}.
      *
-     * @return the {@link WebClient.Builder}
+     * @return the {@link ReactorClientHttpConnector}
      */
     @Bean
-    public WebClient.Builder blinkDebitWebClientBuilder() {
+    public ReactorClientHttpConnector blinkDebitClientHttpConnector() {
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
                 .maxConnections(maxConnections)
                 .maxIdleTime(maxIdleTime)
@@ -86,8 +85,6 @@ public class BlinkDebitConfiguration {
         }
         client.warmup().subscribe();
 
-        return WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(client))
-                .baseUrl(debitUrl);
+        return new ReactorClientHttpConnector(client);
     }
 }

@@ -23,6 +23,7 @@ package nz.co.blink.debit.helpers;
 
 import nz.co.blink.debit.client.v1.OAuthApiClient;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -37,6 +40,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,32 +65,45 @@ class AccessTokenHandlerTest {
         when(client.generateAccessToken(any(String.class)))
                 .thenReturn(Mono.just(accessTokenResponse));
 
-        WebClient webClient = WebClient.builder()
+        String body = WebClient.builder()
                 .filter(handler.setAccessToken(UUID.randomUUID().toString()))
-                .build();
-        String body = webClient
+                .exchangeFunction(clientRequest ->
+                        Mono.just(ClientResponse.create(HttpStatus.OK)
+                                .header("Content-Type", "plain/text")
+                                .body("Bearer header.payload.signature")
+                                .build()))
+                .build()
                 .get()
-                .uri("https://eo7mwezdiddjlbo.m.pipedream.net/?accessTokenTest=" + UUID.randomUUID())
+                .uri("http://localhost:8080/index.html")
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+
         assertThat(body).isEqualTo("Bearer " + accessTokenResponse.getAccessToken());
+        verify(client).generateAccessToken(any(String.class));
     }
 
     @Test
     @DisplayName("Verify that existing access token is reused")
+    @Disabled("Replace ACCESS_TOKEN environment variable value before running")
     void setAccessTokenWhenAccessTokenExists() {
+        // ACCESS_TOKEN environment variable value must not be expired
         handler.setAccessTokenAtomicReference(System.getenv("ACCESS_TOKEN"));
 
-        WebClient webClient = WebClient.builder()
+        WebClient.builder()
                 .filter(handler.setAccessToken(UUID.randomUUID().toString()))
-                .build();
-        String body = webClient
+                .exchangeFunction(clientRequest ->
+                        Mono.just(ClientResponse.create(HttpStatus.OK)
+                                .header("Content-Type", "plain/text")
+                                .body("Bearer header.payload.signature")
+                                .build()))
+                .build()
                 .get()
-                .uri("https://eo7mwezdiddjlbo.m.pipedream.net/?accessTokenTest=" + UUID.randomUUID())
+                .uri("http://localhost:8080/index.html")
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-        assertThat(body).isEqualTo("Bearer " + System.getenv("ACCESS_TOKEN"));
+
+        verify(client, never()).generateAccessToken(any(String.class));
     }
 }

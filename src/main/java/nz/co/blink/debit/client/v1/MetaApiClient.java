@@ -27,7 +27,9 @@ import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -43,20 +45,27 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Component
 public class MetaApiClient {
 
-    private final WebClient.Builder webClientBuilder;
+    private final ReactorClientHttpConnector connector;
+
+    private final String debitUrl;
 
     private final AccessTokenHandler accessTokenHandler;
+
+    private WebClient.Builder webClientBuilder;
 
     /**
      * Default constructor.
      *
-     * @param webClientBuilder   the {@link WebClient.Builder}
+     * @param connector          the {@link ReactorClientHttpConnector}
+     * @param debitUrl           the Blink Debit URL
      * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public MetaApiClient(@Qualifier("blinkDebitWebClientBuilder") WebClient.Builder webClientBuilder,
+    public MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+                         @Value("${blinkpay.debit.url:}") final String debitUrl,
                          AccessTokenHandler accessTokenHandler) {
-        this.webClientBuilder = webClientBuilder;
+        this.connector = connector;
+        this.debitUrl = debitUrl;
         this.accessTokenHandler = accessTokenHandler;
     }
 
@@ -78,13 +87,23 @@ public class MetaApiClient {
     public Flux<BankMetadata> getMeta(final String requestId) {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return webClientBuilder
-                .filter(accessTokenHandler.setAccessToken(correlationId))
+        return getWebClientBuilder(correlationId)
                 .build()
                 .get()
                 .uri(METADATA_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .exchangeToFlux(ResponseHandler.getResponseFlux(BankMetadata.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String correlationId) {
+        if (webClientBuilder != null) {
+            return webClientBuilder;
+        }
+
+        return WebClient.builder()
+                .clientConnector(connector)
+                .baseUrl(debitUrl)
+                .filter(accessTokenHandler.setAccessToken(correlationId));
     }
 }
