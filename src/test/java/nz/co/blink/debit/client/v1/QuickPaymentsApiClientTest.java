@@ -348,6 +348,30 @@ class QuickPaymentsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createQuickPaymentWithRedirectFlowAndLongPcrValues() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
+    }
+
+    @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithDecoupledFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
@@ -569,6 +593,32 @@ class QuickPaymentsApiClientTest {
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createQuickPaymentWithDecoupledFlowAndLongPcrValues() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
     }
 
     @Test
@@ -870,6 +920,31 @@ class QuickPaymentsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHintAndLongPcrValues() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
+    }
+
+    @Test
     @DisplayName("Verify that null authorisation flow hint is handled")
     void createQuickPaymentWithGatewayFlowAndNullFlowHint() {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1001,12 +1076,15 @@ class QuickPaymentsApiClientTest {
     @NullAndEmptySource
     @ValueSource(strings = {" "})
     @DisplayName("Verify that blank particulars is handled")
-    void createQuickPaymentWithBlankParticulars(String particulars) {
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintAndBlankParticulars(String particulars) {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
-                        .detail(new RedirectFlow()
-                                .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
@@ -1016,11 +1094,38 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintAndLongPcrValues() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
     }
 
     @ParameterizedTest

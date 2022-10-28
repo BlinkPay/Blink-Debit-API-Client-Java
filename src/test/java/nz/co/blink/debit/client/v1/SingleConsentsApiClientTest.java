@@ -347,6 +347,30 @@ class SingleConsentsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createSingleConsentWithRedirectFlowAndLongPcrValues() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
+    }
+
+    @Test
     @DisplayName("Verify that null request is handled")
     void createSingleConsentWithDecoupledFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
@@ -569,6 +593,32 @@ class SingleConsentsApiClientTest {
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createSingleConsentWithDecoupledFlowAndLongPcrValues() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
     }
 
     @Test
@@ -867,6 +917,31 @@ class SingleConsentsApiClientTest {
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createSingleConsentWithGatewayFlowAndLongPcrValues() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
     }
 
     @Test

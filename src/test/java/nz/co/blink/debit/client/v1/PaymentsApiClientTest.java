@@ -197,6 +197,28 @@ class PaymentsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createEnduringPaymentWithLongPcrValues() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.50"))
+                        .pcr(new Pcr()
+                                .particulars("merchant particulars")
+                                .code("merchant code")
+                                .reference("merchant reference")));
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
+    }
+
+    @Test
     @DisplayName("Verify that null amount is handled")
     void createEnduringPaymentWithNullAmount() {
         PaymentRequest request = new PaymentRequest()

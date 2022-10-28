@@ -25,6 +25,7 @@ import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
 import nz.co.blink.debit.dto.v1.PartialRefundRequest;
 import nz.co.blink.debit.dto.v1.Payment;
+import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
@@ -102,12 +103,19 @@ public class RefundsApiClient {
             throw new IllegalArgumentException("Payment ID must not be null");
         }
 
-        if (request.getPcr() == null) {
+        Pcr pcr = request.getPcr();
+        if (pcr == null) {
             throw new IllegalArgumentException("PCR must not be null");
         }
 
-        if (StringUtils.isBlank(request.getPcr().getParticulars())) {
+        if (StringUtils.isBlank(pcr.getParticulars())) {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        if (StringUtils.length(pcr.getParticulars()) > 12
+                || StringUtils.length(pcr.getCode()) > 12
+                || StringUtils.length(pcr.getReference()) > 12) {
+            throw new IllegalArgumentException("PCR must not exceed 12 characters");
         }
 
         return createRefund(request, requestId);
@@ -139,12 +147,19 @@ public class RefundsApiClient {
             throw new IllegalArgumentException("Payment ID must not be null");
         }
 
-        if (request.getPcr() == null) {
+        Pcr pcr = request.getPcr();
+        if (pcr == null) {
             throw new IllegalArgumentException("PCR must not be null");
         }
 
-        if (StringUtils.isBlank(request.getPcr().getParticulars())) {
+        if (StringUtils.isBlank(pcr.getParticulars())) {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        if (StringUtils.length(pcr.getParticulars()) > 12
+                || StringUtils.length(pcr.getCode()) > 12
+                || StringUtils.length(pcr.getReference()) > 12) {
+            throw new IllegalArgumentException("PCR must not exceed 12 characters");
         }
 
         if (request.getAmount() == null) {

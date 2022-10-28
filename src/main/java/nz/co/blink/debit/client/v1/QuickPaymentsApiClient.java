@@ -137,6 +137,12 @@ public class QuickPaymentsApiClient {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
         }
 
+        if (StringUtils.length(pcr.getParticulars()) > 12
+                || StringUtils.length(pcr.getCode()) > 12
+                || StringUtils.length(pcr.getReference()) > 12) {
+            throw new IllegalArgumentException("PCR must not exceed 12 characters");
+        }
+
         Amount amount = request.getAmount();
         if (amount == null) {
             throw new IllegalArgumentException("Amount must not be null");
@@ -215,6 +221,12 @@ public class QuickPaymentsApiClient {
 
         if (StringUtils.isBlank(pcr.getParticulars())) {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        if (StringUtils.length(pcr.getParticulars()) > 12
+                || StringUtils.length(pcr.getCode()) > 12
+                || StringUtils.length(pcr.getReference()) > 12) {
+            throw new IllegalArgumentException("PCR must not exceed 12 characters");
         }
 
         Amount amount = request.getAmount();
@@ -308,6 +320,12 @@ public class QuickPaymentsApiClient {
 
         if (StringUtils.isBlank(pcr.getParticulars())) {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        if (StringUtils.length(pcr.getParticulars()) > 12
+                || StringUtils.length(pcr.getCode()) > 12
+                || StringUtils.length(pcr.getReference()) > 12) {
+            throw new IllegalArgumentException("PCR must not exceed 12 characters");
         }
 
         Amount amount = request.getAmount();

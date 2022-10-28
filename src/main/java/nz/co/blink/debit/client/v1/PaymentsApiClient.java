@@ -21,9 +21,11 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
+import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -128,27 +130,35 @@ public class PaymentsApiClient {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        if (request.getEnduringPayment() == null) {
+        EnduringPaymentRequest enduringPayment = request.getEnduringPayment();
+        if (enduringPayment == null) {
             throw new IllegalArgumentException("Enduring payment must not be null");
         }
 
-        if (request.getEnduringPayment().getPcr() == null) {
+        Pcr pcr = enduringPayment.getPcr();
+        if (pcr == null) {
             throw new IllegalArgumentException("PCR must not be null");
         }
 
-        if (StringUtils.isBlank(request.getEnduringPayment().getPcr().getParticulars())) {
+        if (StringUtils.isBlank(pcr.getParticulars())) {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
         }
 
-        if (request.getEnduringPayment().getAmount() == null) {
+        if (StringUtils.length(pcr.getParticulars()) > 12
+                || StringUtils.length(pcr.getCode()) > 12
+                || StringUtils.length(pcr.getReference()) > 12) {
+            throw new IllegalArgumentException("PCR must not exceed 12 characters");
+        }
+
+        if (enduringPayment.getAmount() == null) {
             throw new IllegalArgumentException("Amount must not be null");
         }
 
-        if (request.getEnduringPayment().getAmount().getCurrency() == null) {
+        if (enduringPayment.getAmount().getCurrency() == null) {
             throw new IllegalArgumentException("Currency must not be null");
         }
 
-        String total = request.getEnduringPayment().getAmount().getTotal();
+        String total = enduringPayment.getAmount().getTotal();
         if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
             throw new IllegalArgumentException("Total is not a valid amount");
         }

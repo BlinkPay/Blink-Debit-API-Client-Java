@@ -179,6 +179,25 @@ class RefundsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that long PCR values are handled")
+    void createFullRefundWithLongPcrValues() {
+        FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"))
+                .paymentId(UUID.randomUUID());
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createFullRefund(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not exceed 12 characters");
+    }
+
+    @Test
     @DisplayName("Verify that null request is handled")
     void createPartialRefundWithNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(null).block(),
