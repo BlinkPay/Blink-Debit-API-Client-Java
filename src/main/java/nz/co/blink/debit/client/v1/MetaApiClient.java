@@ -96,7 +96,7 @@ public class MetaApiClient {
                 .exchangeToFlux(ResponseHandler.getResponseFlux(BankMetadata.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String correlationId) {
+    private WebClient.Builder getWebClientBuilder(String requestId) {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -104,6 +104,6 @@ public class MetaApiClient {
         return WebClient.builder()
                 .clientConnector(connector)
                 .baseUrl(debitUrl)
-                .filter(accessTokenHandler.setAccessToken(correlationId));
+                .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }

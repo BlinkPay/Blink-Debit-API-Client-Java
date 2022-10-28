@@ -39,9 +39,6 @@ import java.util.regex.Pattern;
 @Configuration
 public class BlinkDebitConfiguration {
 
-    @Value("${blinkpay.debit.url:}")
-    private String debitUrl;
-
     @Value("${blinkpay.max.connections:50}")
     private int maxConnections;
 

@@ -21,9 +21,12 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
+import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -90,9 +93,190 @@ class PaymentsApiClientTest {
     private PaymentsApiClient client;
 
     @Test
+    @DisplayName("Verify that null request is handled")
+    void createSinglePaymentWithNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSinglePayment(null).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Payment request must not be null");
+    }
+
+    @Test
     @DisplayName("Verify that null consent ID is handled")
-    void createPaymentWithNullConsentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
+    void createSinglePaymentWithNullConsentId() {
+        PaymentRequest request = new PaymentRequest();
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSinglePayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Consent ID must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null request is handled")
+    void createEnduringPaymentWithNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(null).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Payment request must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null consent ID is handled")
+    void createEnduringPaymentWithNullConsentId() {
+        PaymentRequest request = new PaymentRequest();
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Consent ID must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null enduring payment detail is handled")
+    void createEnduringPaymentWithNullDetail() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Enduring payment must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createEnduringPaymentWithNullPcr() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.50")));
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createEnduringPaymentWithBlankParticulars(String particulars) {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.50"))
+                        .pcr(new Pcr()
+                                .particulars(particulars)
+                                .code("code")
+                                .reference("reference")));
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that null amount is handled")
+    void createEnduringPaymentWithNullAmount() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createEnduringPaymentWithNullCurrency() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .total("25.50"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createEnduringPaymentWithInvalidTotal(String total) {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total(total))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null request is handled")
+    void createWestpacPaymentWithNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createWestpacPayment(null).block(),
+                IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Payment request must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null consent ID is handled")
+    void createWestpacPaymentWithNullConsentId() {
+        PaymentRequest request = new PaymentRequest();
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createWestpacPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -102,55 +286,16 @@ class PaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null account reference ID is handled")
-    void createPaymentWithNullAccountReferenceId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(UUID.randomUUID(),
-                (UUID) null).block(), IllegalArgumentException.class);
+    void createWestpacPaymentWithNullAccountReferenceId() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createWestpacPayment(request).block(),
+                IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Account reference ID must not be null");
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
-    @DisplayName("Verify that invalid total is handled")
-    void createEnduringPaymentWithInvalidTotal(String total) {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(UUID.randomUUID(),
-                "particulars", "code", "reference", total).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Total is not a valid amount");
-    }
-
-    @Test
-    @DisplayName("Verify that payment is created")
-    void createPayment() {
-        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
-        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
-
-        UUID paymentId = UUID.randomUUID();
-        PaymentResponse response = new PaymentResponse()
-                .paymentId(paymentId);
-
-        when(webClientBuilder.build()).thenReturn(webClient);
-        when(webClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
-        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(any(PaymentRequest.class))).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
-
-        Mono<PaymentResponse> paymentResponseMono = client.createPayment(UUID.randomUUID());
-
-        assertThat(paymentResponseMono).isNotNull();
-        PaymentResponse actual = paymentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId)
-                .isEqualTo(paymentId);
     }
 
     @Test
@@ -207,5 +352,110 @@ class PaymentsApiClientTest {
                 .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
                         PaymentRequest::getEnduringPayment)
                 .containsExactly(consentId, null, null);
+    }
+
+    @Test
+    @DisplayName("Verify that single payment is created")
+    void createSinglePayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(PaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    @DisplayName("Verify that enduring payment is created")
+    void createEnduringPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(PaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.75"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    @DisplayName("Verify that single payment is created")
+    void createWestpacPayment() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(PaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .accountReferenceId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPayment(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
     }
 }

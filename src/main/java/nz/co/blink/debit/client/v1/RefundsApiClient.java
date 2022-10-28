@@ -22,12 +22,9 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
-import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
 import nz.co.blink.debit.dto.v1.PartialRefundRequest;
 import nz.co.blink.debit.dto.v1.Payment;
-import nz.co.blink.debit.dto.v1.PaymentResponse;
-import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
@@ -80,143 +77,119 @@ public class RefundsApiClient {
     }
 
     /**
-     * Creates an account number refund.
+     * Creates a full refund.
      *
-     * @param type      the {@link RefundDetail.TypeEnum}
-     * @param paymentId the payment ID
-     * @return the {@link PaymentResponse} {@link Mono}
+     * @param request the {@link FullRefundRequest}
+     * @return the {@link RefundResponse} {@link Mono}
      */
-    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId) {
-        return createRefund(type, paymentId, null);
+    public Mono<RefundResponse> createFullRefund(FullRefundRequest request) {
+        return createFullRefund(request, null);
     }
 
     /**
-     * Creates an account number refund.
+     * Creates a full refund.
      *
-     * @param type      the {@link RefundDetail.TypeEnum}
-     * @param paymentId the payment ID
+     * @param request   the {@link FullRefundRequest}
      * @param requestId the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
+     * @return the {@link RefundResponse} {@link Mono}
      */
-    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String requestId) {
-        return createRefund(type, paymentId, null, null, null, null, null, requestId);
-    }
+    public Mono<RefundResponse> createFullRefund(FullRefundRequest request, final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Full refund request must not be null");
+        }
 
-    /**
-     * Creates a full refund.
-     *
-     * @param type        the {@link RefundDetail.TypeEnum}
-     * @param paymentId   the payment ID
-     * @param redirectUri the redirect URI
-     * @param particulars the particulars
-     * @param code        the code
-     * @param reference   the reference
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
-                                             final String particulars, final String code, final String reference) {
-        return createRefund(type, paymentId, redirectUri, particulars, code, reference, null);
-    }
-
-    /**
-     * Creates a full refund.
-     *
-     * @param type        the {@link RefundDetail.TypeEnum}
-     * @param paymentId   the payment ID
-     * @param redirectUri the redirect URI
-     * @param particulars the particulars
-     * @param code        the code
-     * @param reference   the reference
-     * @param requestId   the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
-                                             final String particulars, final String code, final String reference,
-                                             final String requestId) {
-        return createRefund(type, paymentId, redirectUri, particulars, code, reference, null, requestId);
-    }
-
-    /**
-     * Creates a refund.
-     *
-     * @param type        the {@link RefundDetail.TypeEnum}
-     * @param paymentId   the payment ID
-     * @param redirectUri the redirect URI
-     * @param particulars the particulars
-     * @param code        the code
-     * @param reference   the reference
-     * @param total       the total for partial refund
-     * @param requestId   the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createRefund(RefundDetail.TypeEnum type, UUID paymentId, final String redirectUri,
-                                             final String particulars, final String code, final String reference,
-                                             final String total, final String requestId) {
-        if (paymentId == null) {
+        if (request.getPaymentId() == null) {
             throw new IllegalArgumentException("Payment ID must not be null");
         }
 
-        if (type == null) {
-            throw new IllegalArgumentException("Refund type must not be null");
-        }
-        RefundDetail request = null;
-        switch (type) {
-            case FULL_REFUND:
-                if (StringUtils.isEmpty(particulars)) {
-                    throw new IllegalArgumentException("Particulars must have at least 1 character");
-                }
-                if (StringUtils.isBlank(redirectUri)) {
-                    throw new IllegalArgumentException("Redirect URI must not be blank");
-                }
-                request = new FullRefundRequest()
-                        .pcr(new Pcr()
-                                .particulars(StringUtils.truncate(particulars, 12))
-                                .code(StringUtils.truncate(code, 12))
-                                .reference(StringUtils.truncate(reference, 12)))
-                        .consentRedirect(redirectUri)
-                        .paymentId(paymentId)
-                        .type(type);
-                break;
-            case PARTIAL_REFUND:
-                if (StringUtils.isEmpty(particulars)) {
-                    throw new IllegalArgumentException("Particulars must have at least 1 character");
-                }
-                if (StringUtils.isBlank(redirectUri)) {
-                    throw new IllegalArgumentException("Redirect URI must not be blank");
-                }
-                if (!NumberUtils.isParsable(total)) {
-                    throw new IllegalArgumentException("Total is not a valid amount");
-                }
-                request = new PartialRefundRequest()
-                        .pcr(new Pcr()
-                                .particulars(StringUtils.truncate(particulars, 12))
-                                .code(StringUtils.truncate(code, 12))
-                                .reference(StringUtils.truncate(reference, 12)))
-                        .consentRedirect(redirectUri)
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total(total))
-                        .paymentId(paymentId)
-                        .type(type);
-                break;
-            case ACCOUNT_NUMBER:
-                request = new AccountNumberRefundRequest()
-                        .paymentId(paymentId)
-                        .type(type);
-                break;
+        if (request.getPcr() == null) {
+            throw new IllegalArgumentException("PCR must not be null");
         }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        if (StringUtils.isBlank(request.getPcr().getParticulars())) {
+            throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
 
-        return getWebClientBuilder(correlationId)
-                .build()
-                .post()
-                .uri(REFUNDS_PATH.getValue())
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
-                .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(RefundResponse.class));
+        return createRefund(request, requestId);
+    }
+
+    /**
+     * Creates a partial refund.
+     *
+     * @param request the {@link PartialRefundRequest}
+     * @return the {@link RefundResponse} {@link Mono}
+     */
+    public Mono<RefundResponse> createPartialRefund(PartialRefundRequest request) {
+        return createPartialRefund(request, null);
+    }
+
+    /**
+     * Creates a partial refund.
+     *
+     * @param request   the {@link PartialRefundRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link RefundResponse} {@link Mono}
+     */
+    public Mono<RefundResponse> createPartialRefund(PartialRefundRequest request, final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Partial refund request must not be null");
+        }
+
+        if (request.getPaymentId() == null) {
+            throw new IllegalArgumentException("Payment ID must not be null");
+        }
+
+        if (request.getPcr() == null) {
+            throw new IllegalArgumentException("PCR must not be null");
+        }
+
+        if (StringUtils.isBlank(request.getPcr().getParticulars())) {
+            throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        if (request.getAmount() == null) {
+            throw new IllegalArgumentException("Amount must not be null");
+        }
+
+        String total = request.getAmount().getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
+            throw new IllegalArgumentException("Total is not a valid amount");
+        }
+
+        if (request.getAmount().getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        return createRefund(request, requestId);
+    }
+
+    /**
+     * Creates an account number refund.
+     *
+     * @param request the {@link AccountNumberRefundRequest}
+     * @return the {@link RefundResponse} {@link Mono}
+     */
+    public Mono<RefundResponse> createAccountNumberRefund(AccountNumberRefundRequest request) {
+        return createAccountNumberRefund(request, null);
+    }
+
+    /**
+     * Creates an account number refund.
+     *
+     * @param request   the {@link AccountNumberRefundRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link RefundResponse} {@link Mono}
+     */
+    public Mono<RefundResponse> createAccountNumberRefund(AccountNumberRefundRequest request, final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Account number refund request must not be null");
+        }
+
+        if (request.getPaymentId() == null) {
+            throw new IllegalArgumentException("Payment ID must not be null");
+        }
+
+        return createRefund(request, requestId);
     }
 
     /**
@@ -254,7 +227,21 @@ public class RefundsApiClient {
                 .exchangeToMono(ResponseHandler.getResponseMono(Refund.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String correlationId) {
+    private Mono<RefundResponse> createRefund(RefundDetail request, String requestId) {
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+
+        return getWebClientBuilder(correlationId)
+                .build()
+                .post()
+                .uri(REFUNDS_PATH.getValue())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
+                .bodyValue(request)
+                .exchangeToMono(ResponseHandler.getResponseMono(RefundResponse.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String requestId) {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -262,6 +249,6 @@ public class RefundsApiClient {
         return WebClient.builder()
                 .clientConnector(connector)
                 .baseUrl(debitUrl)
-                .filter(accessTokenHandler.setAccessToken(correlationId));
+                .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }

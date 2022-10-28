@@ -38,6 +38,11 @@ import java.util.Objects;
 public class AccountNumberRefundRequest extends RefundDetail implements OneOfrefundRequest {
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.ACCOUNT_NUMBER;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

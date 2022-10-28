@@ -88,6 +88,11 @@ public class DecoupledFlowHint extends FlowHint {
     }
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.DECOUPLED;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

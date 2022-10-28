@@ -23,21 +23,16 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
-import nz.co.blink.debit.dto.v1.AuthFlowDetail;
-import nz.co.blink.debit.dto.v1.Bank;
-import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
 import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.FlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
-import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
-import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -90,201 +85,246 @@ public class QuickPaymentsApiClient {
     /**
      * Creates a quick payment with redirect flow.
      *
-     * @param type         the {@link AuthFlowDetail.TypeEnum}
-     * @param bank         the {@link Bank}
-     * @param redirectUri  the redirect URI or decoupled flow callback URI
-     * @param particulars  the particulars
-     * @param code         the code
-     * @param reference    the reference
-     * @param total        the total
-     * @param flowHintType the {@link FlowHint.TypeEnum} for gateway flow
+     * @param request the {@link QuickPaymentRequest}
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
      */
-    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                               final String redirectUri, final String particulars,
-                                                               final String code, final String reference,
-                                                               final String total, FlowHint.TypeEnum flowHintType) {
-        return createQuickPayment(type, bank, redirectUri, particulars, code, reference, total, flowHintType, null);
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithRedirectFlow(QuickPaymentRequest request) {
+        return createQuickPaymentWithRedirectFlow(request, null);
     }
 
     /**
      * Creates a quick payment with redirect flow.
      *
-     * @param type         the {@link AuthFlowDetail.TypeEnum}
-     * @param bank         the {@link Bank}
-     * @param redirectUri  the redirect URI or decoupled flow callback URI
-     * @param particulars  the particulars
-     * @param code         the code
-     * @param reference    the reference
-     * @param total        the total
-     * @param flowHintType the {@link FlowHint.TypeEnum} for gateway flow
-     * @param requestId    the optional correlation ID
+     * @param request   the {@link QuickPaymentRequest}
+     * @param requestId the optional correlation ID
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
      */
-    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                               final String redirectUri, final String particulars,
-                                                               final String code, final String reference,
-                                                               final String total, FlowHint.TypeEnum flowHintType,
-                                                               final String requestId) {
-        return createQuickPayment(type, bank, redirectUri, particulars, code, reference, total, flowHintType, null,
-                null, null, requestId);
-    }
-
-    /**
-     * Creates a quick payment.
-     *
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI or decoupled flow callback URI
-     * @param particulars     the particulars
-     * @param code            the code
-     * @param reference       the reference
-     * @param total           the total
-     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
-     * @param identifierType  the {@link IdentifierType} for decoupled flow
-     * @param identifierValue the identifier value for decoupled flow
-     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
-     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     */
-    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                               final String redirectUri, final String particulars,
-                                                               final String code, final String reference,
-                                                               final String total, FlowHint.TypeEnum flowHintType,
-                                                               IdentifierType identifierType,
-                                                               final String identifierValue, final String callbackUrl) {
-        return createQuickPayment(type, bank, redirectUri, particulars, code, reference, total, flowHintType,
-                identifierType, identifierValue, callbackUrl, null);
-    }
-
-    /**
-     * Creates a quick payment.
-     *
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI or decoupled flow callback URI
-     * @param particulars     the particulars
-     * @param code            the code
-     * @param reference       the reference
-     * @param total           the total
-     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
-     * @param identifierType  the {@link IdentifierType} for decoupled flow
-     * @param identifierValue the identifier value for decoupled flow
-     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
-     * @param requestId       the optional correlation ID
-     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     */
-    public Mono<CreateQuickPaymentResponse> createQuickPayment(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                               final String redirectUri, final String particulars,
-                                                               final String code, final String reference,
-                                                               final String total, FlowHint.TypeEnum flowHintType,
-                                                               IdentifierType identifierType,
-                                                               final String identifierValue, final String callbackUrl,
-                                                               final String requestId) {
-        if (AuthFlowDetail.TypeEnum.GATEWAY == type && flowHintType == null) {
-            throw new IllegalArgumentException("Gateway flow type requires redirect or decoupled flow hint type");
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithRedirectFlow(QuickPaymentRequest request,
+                                                                               final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Quick payment request must not be null");
         }
 
-        if (bank == null) {
+        AuthFlow flow = request.getFlow();
+        if (flow == null) {
+            throw new IllegalArgumentException("Authorisation flow must not be null");
+        }
+
+        OneOfauthFlowDetail detail = flow.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+        }
+
+        if (!(detail instanceof RedirectFlow)) {
+            throw new IllegalArgumentException("Authorisation flow detail must be a RedirectFlow");
+        }
+
+        RedirectFlow redirectFlow = (RedirectFlow) flow.getDetail();
+        if (redirectFlow.getBank() == null) {
             throw new IllegalArgumentException("Bank must not be null");
         }
 
-        FlowHint flowHint = null;
-        if (flowHintType != null) {
-            if (FlowHint.TypeEnum.REDIRECT == flowHintType) {
-                flowHint = new RedirectFlowHint()
-                        .bank(bank)
-                        .type(flowHintType);
-            } else if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
-                if (identifierType == null) {
-                    throw new IllegalArgumentException("Identifier type must not be null");
-                }
-                if (StringUtils.isBlank(identifierValue)) {
-                    throw new IllegalArgumentException("Identifier value must not be blank");
-                }
-                flowHint = new DecoupledFlowHint()
-                        .identifierType(identifierType)
-                        .identifierValue(identifierValue)
-                        .bank(bank)
-                        .type(flowHintType);
-            }
+        if (StringUtils.isBlank(redirectFlow.getRedirectUri())) {
+            throw new IllegalArgumentException("Redirect URI must not be blank");
         }
 
-        if (type == null) {
-            throw new IllegalArgumentException("Authorisation flow must not be null");
-        }
-        OneOfauthFlowDetail detail = null;
-        switch (type) {
-            case REDIRECT:
-                if (StringUtils.isBlank(redirectUri)) {
-                    throw new IllegalArgumentException("Redirect URI must not be blank");
-                }
-                detail = (OneOfauthFlowDetail) new RedirectFlow()
-                        .bank(bank)
-                        .redirectUri(redirectUri)
-                        .type(type);
-                break;
-            case DECOUPLED:
-                if (identifierType == null) {
-                    throw new IllegalArgumentException("Identifier type must not be null");
-                }
-                if (StringUtils.isBlank(identifierValue)) {
-                    throw new IllegalArgumentException("Identifier value must not be blank");
-                }
-                if (StringUtils.isBlank(callbackUrl)) {
-                    throw new IllegalArgumentException("Callback/webhook URL must not be blank");
-                }
-                detail = (OneOfauthFlowDetail) new DecoupledFlow()
-                        .bank(bank)
-                        .callbackUrl(callbackUrl)
-                        .identifierType(identifierType)
-                        .identifierValue(identifierValue)
-                        .type(type);
-                break;
-            case GATEWAY:
-                if (StringUtils.isBlank(redirectUri)) {
-                    throw new IllegalArgumentException("Redirect URI must not be blank");
-                }
-                detail = (OneOfauthFlowDetail) new GatewayFlow()
-                        .flowHint(flowHint)
-                        .redirectUri(redirectUri)
-                        .type(type);
-                break;
+        Pcr pcr = request.getPcr();
+        if (pcr == null) {
+            throw new IllegalArgumentException("PCR must not be null");
         }
 
-        if (StringUtils.isEmpty(particulars)) {
+        if (StringUtils.isBlank(pcr.getParticulars())) {
             throw new IllegalArgumentException("Particulars must have at least 1 character");
         }
 
-        if (!NumberUtils.isParsable(total)) {
+        Amount amount = request.getAmount();
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount must not be null");
+        }
+
+        if (amount.getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = amount.getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
             throw new IllegalArgumentException("Total is not a valid amount");
         }
 
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow()
-                        .detail(detail))
-                .pcr(new Pcr()
-                        .particulars(StringUtils.truncate(particulars, 12))
-                        .code(StringUtils.truncate(code, 12))
-                        .reference(StringUtils.truncate(reference, 12)))
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total(total))
-                .type(ConsentDetail.TypeEnum.SINGLE);
+        return createQuickPayment(request, requestId);
+    }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+    /**
+     * Creates a quick payment with decoupled flow.
+     *
+     * @param request the {@link QuickPaymentRequest}
+     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
+     */
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithDecoupledFlow(QuickPaymentRequest request) {
+        return createQuickPaymentWithDecoupledFlow(request, null);
+    }
 
-        return getWebClientBuilder(correlationId)
-                .build()
-                .post()
-                .uri(QUICK_PAYMENTS_PATH.getValue())
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
-                .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(CreateQuickPaymentResponse.class));
+    /**
+     * Creates a quick payment with decoupled flow.
+     *
+     * @param request   the {@link QuickPaymentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
+     */
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithDecoupledFlow(QuickPaymentRequest request,
+                                                                                final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Quick payment request must not be null");
+        }
+
+        AuthFlow flow = request.getFlow();
+        if (flow == null) {
+            throw new IllegalArgumentException("Authorisation flow must not be null");
+        }
+
+        OneOfauthFlowDetail detail = flow.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+        }
+
+        if (!(detail instanceof DecoupledFlow)) {
+            throw new IllegalArgumentException("Authorisation flow detail must be a DecoupledFlow");
+        }
+
+        DecoupledFlow decoupledFlow = (DecoupledFlow) flow.getDetail();
+        if (decoupledFlow.getBank() == null) {
+            throw new IllegalArgumentException("Bank must not be null");
+        }
+
+        if (decoupledFlow.getIdentifierType() == null) {
+            throw new IllegalArgumentException("Identifier type must not be null");
+        }
+
+        if (StringUtils.isBlank(decoupledFlow.getIdentifierValue())) {
+            throw new IllegalArgumentException("Identifier value must not be blank");
+        }
+
+        if (StringUtils.isBlank(decoupledFlow.getCallbackUrl())) {
+            throw new IllegalArgumentException("Callback/webhook URL must not be blank");
+        }
+
+        Pcr pcr = request.getPcr();
+        if (pcr == null) {
+            throw new IllegalArgumentException("PCR must not be null");
+        }
+
+        if (StringUtils.isBlank(pcr.getParticulars())) {
+            throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        Amount amount = request.getAmount();
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount must not be null");
+        }
+
+        if (amount.getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = amount.getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
+            throw new IllegalArgumentException("Total is not a valid amount");
+        }
+
+        return createQuickPayment(request, requestId);
+    }
+
+    /**
+     * Creates a quick payment with gateway flow.
+     *
+     * @param request the {@link QuickPaymentRequest}
+     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
+     */
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithGatewayFlow(QuickPaymentRequest request) {
+        return createQuickPaymentWithGatewayFlow(request, null);
+    }
+
+    /**
+     * Creates a quick payment with gateway flow.
+     *
+     * @param request   the {@link QuickPaymentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
+     */
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithGatewayFlow(QuickPaymentRequest request,
+                                                                              final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Quick payment request must not be null");
+        }
+
+        AuthFlow flow = request.getFlow();
+        if (flow == null) {
+            throw new IllegalArgumentException("Authorisation flow must not be null");
+        }
+
+        OneOfauthFlowDetail detail = flow.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+        }
+
+        if (!(detail instanceof GatewayFlow)) {
+            throw new IllegalArgumentException("Authorisation flow detail must be a GatewayFlow");
+        }
+
+        GatewayFlow gatewayFlow = (GatewayFlow) flow.getDetail();
+        if (StringUtils.isBlank(gatewayFlow.getRedirectUri())) {
+            throw new IllegalArgumentException("Redirect URI must not be blank");
+        }
+
+        FlowHint flowHint = gatewayFlow.getFlowHint();
+        if (flowHint == null) {
+            throw new IllegalArgumentException("Flow hint must not be null");
+        }
+
+        if (flowHint.getBank() == null) {
+            throw new IllegalArgumentException("Bank must not be null");
+        }
+
+        FlowHint.TypeEnum flowHintType = flowHint.getType();
+        if (flowHintType == null) {
+            throw new IllegalArgumentException("Flow hint type must not be null");
+        }
+
+        if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
+            DecoupledFlowHint decoupledFlowHint = (DecoupledFlowHint) flowHint;
+            if (decoupledFlowHint.getIdentifierType() == null) {
+                throw new IllegalArgumentException("Identifier type must not be null");
+            }
+
+            if (StringUtils.isBlank(decoupledFlowHint.getIdentifierValue())) {
+                throw new IllegalArgumentException("Identifier value must not be blank");
+            }
+        }
+
+        Pcr pcr = request.getPcr();
+        if (pcr == null) {
+            throw new IllegalArgumentException("PCR must not be null");
+        }
+
+        if (StringUtils.isBlank(pcr.getParticulars())) {
+            throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        Amount amount = request.getAmount();
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount must not be null");
+        }
+
+        if (amount.getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = amount.getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
+            throw new IllegalArgumentException("Total is not a valid amount");
+        }
+
+        return createQuickPayment(request, requestId);
     }
 
     /**
@@ -361,7 +401,24 @@ public class QuickPaymentsApiClient {
                 .exchangeToMono(ResponseHandler.getResponseMono(Void.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String correlationId) {
+    private Mono<CreateQuickPaymentResponse> createQuickPayment(QuickPaymentRequest request, String requestId) {
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+
+        return getWebClientBuilder(correlationId)
+                .build()
+                .post()
+                .uri(QUICK_PAYMENTS_PATH.getValue())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(httpHeaders -> {
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                })
+                .bodyValue(request)
+                .exchangeToMono(ResponseHandler.getResponseMono(CreateQuickPaymentResponse.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String requestId) {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -369,6 +426,6 @@ public class QuickPaymentsApiClient {
         return WebClient.builder()
                 .clientConnector(connector)
                 .baseUrl(debitUrl)
-                .filter(accessTokenHandler.setAccessToken(correlationId));
+                .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }

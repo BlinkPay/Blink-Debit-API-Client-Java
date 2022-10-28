@@ -21,12 +21,9 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import nz.co.blink.debit.dto.v1.Amount;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
-import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -77,153 +74,121 @@ public class PaymentsApiClient {
     }
 
     /**
-     * Creates a payment for a single consent.
+     * Creates a single payment.
      *
-     * @param consentId the required consent ID
+     * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
      */
-    public Mono<PaymentResponse> createPayment(UUID consentId) {
-        return createPayment(consentId, (String) null);
+    public Mono<PaymentResponse> createSinglePayment(PaymentRequest request) {
+        return createSinglePayment(request, null);
     }
 
     /**
-     * Creates a payment for a single consent.
+     * Creates a single payment.
      *
-     * @param consentId the required consent ID
+     * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
      */
-    public Mono<PaymentResponse> createPayment(UUID consentId, final String requestId) {
-        return createPayment(consentId, null, null, null, null, null, requestId);
-    }
-
-    /**
-     * Creates a payment for an enduring consent.
-     *
-     * @param consentId          the required consent ID
-     * @param particulars        the optional particulars of the enduring payment request
-     * @param code               the optional code of the enduring payment request
-     * @param reference          the optional reference of the enduring payment request
-     * @param total              the total of the enduring payment request
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createPayment(UUID consentId, final String particulars, final String code,
-                                               final String reference, final String total) {
-        return createPayment(consentId, particulars, code, reference, total, null);
-    }
-
-    /**
-     * Creates a payment for an enduring consent.
-     *
-     * @param consentId          the required consent ID
-     * @param particulars        the optional particulars of the enduring payment request
-     * @param code               the optional code of the enduring payment request
-     * @param reference          the optional reference of the enduring payment request
-     * @param total              the total of the enduring payment request
-     * @param requestId          the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createPayment(UUID consentId, final String particulars, final String code,
-                                               final String reference, final String total, final String requestId) {
-        return createPayment(consentId, null, particulars, code, reference, total, requestId);
-    }
-
-    /**
-     * Creates a Westpac payment.
-     *
-     * @param consentId          the required consent ID
-     * @param accountReferenceId the Westpac account reference ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId) {
-        return createPayment(consentId, accountReferenceId, null);
-    }
-
-    /**
-     * Creates a Westpac payment.
-     *
-     * @param consentId          the required consent ID
-     * @param accountReferenceId the Westpac account reference ID
-     * @param requestId          the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId, final String requestId) {
-        if (accountReferenceId == null) {
-            throw new IllegalArgumentException("Account reference ID must not be null");
+    public Mono<PaymentResponse> createSinglePayment(PaymentRequest request, final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Payment request must not be null");
         }
 
-        return createPayment(consentId, accountReferenceId, null, null, null, null, requestId);
-    }
-
-    /**
-     * Creates a payment for single or enduring consent.
-     *
-     * @param consentId          the required consent ID
-     * @param accountReferenceId the optional Westpac account reference ID
-     * @param particulars        the optional particulars of the enduring payment request
-     * @param code               the optional code of the enduring payment request
-     * @param reference          the optional reference of the enduring payment request
-     * @param total              the total of the enduring payment request
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId, final String particulars,
-                                               final String code, final String reference, final String total) {
-        return createPayment(consentId, accountReferenceId, particulars, code, reference, total, null);
-    }
-
-    /**
-     * Creates a payment for single or enduring consent.
-     *
-     * @param consentId          the required consent ID
-     * @param accountReferenceId the optional Westpac account reference ID
-     * @param particulars        the optional particulars of the enduring payment request
-     * @param code               the optional code of the enduring payment request
-     * @param reference          the optional reference of the enduring payment request
-     * @param total              the total of the enduring payment request
-     * @param requestId          the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createPayment(UUID consentId, UUID accountReferenceId, final String particulars,
-                                               final String code, final String reference, final String total,
-                                               final String requestId) {
-        if (consentId == null) {
+        if (request.getConsentId() == null) {
             throw new IllegalArgumentException("Consent ID must not be null");
         }
 
-        EnduringPaymentRequest enduringPaymentRequest = null;
-        if (StringUtils.isNotEmpty(particulars)) {
-            if (!NumberUtils.isParsable(total)) {
-                throw new IllegalArgumentException("Total is not a valid amount");
-            }
-            enduringPaymentRequest = new EnduringPaymentRequest()
-                    .pcr(new Pcr()
-                            .particulars(StringUtils.truncate(particulars, 12))
-                            .code(StringUtils.truncate(code, 12))
-                            .reference(StringUtils.truncate(reference, 12)))
-                    .amount(new Amount()
-                            .currency(Amount.CurrencyEnum.NZD)
-                            .total(total));
+        return createPayment(request, requestId);
+    }
+
+    /**
+     * Creates an enduring payment.
+     *
+     * @param request the {@link PaymentRequest}
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createEnduringPayment(PaymentRequest request) {
+        return createEnduringPayment(request, null);
+    }
+
+    /**
+     * Creates an enduring payment.
+     *
+     * @param request   the {@link PaymentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createEnduringPayment(PaymentRequest request, final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Payment request must not be null");
         }
 
-        PaymentRequest request = new PaymentRequest()
-                .consentId(consentId)
-                .accountReferenceId(accountReferenceId)
-                .enduringPayment(enduringPaymentRequest);
+        if (request.getConsentId() == null) {
+            throw new IllegalArgumentException("Consent ID must not be null");
+        }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        if (request.getEnduringPayment() == null) {
+            throw new IllegalArgumentException("Enduring payment must not be null");
+        }
 
-        return getWebClientBuilder(correlationId)
-                .build()
-                .post()
-                .uri(PAYMENTS_PATH.getValue())
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
-                .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(PaymentResponse.class));
+        if (request.getEnduringPayment().getPcr() == null) {
+            throw new IllegalArgumentException("PCR must not be null");
+        }
+
+        if (StringUtils.isBlank(request.getEnduringPayment().getPcr().getParticulars())) {
+            throw new IllegalArgumentException("Particulars must have at least 1 character");
+        }
+
+        if (request.getEnduringPayment().getAmount() == null) {
+            throw new IllegalArgumentException("Amount must not be null");
+        }
+
+        if (request.getEnduringPayment().getAmount().getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = request.getEnduringPayment().getAmount().getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
+            throw new IllegalArgumentException("Total is not a valid amount");
+        }
+
+        return createPayment(request, requestId);
+    }
+
+    /**
+     * Creates a Westpac payment. Once Westpac enables their Open Banking API, this can be replaced with
+     * {@link #createSinglePayment(PaymentRequest)}.
+     *
+     * @param request the {@link PaymentRequest}
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request) {
+        return createWestpacPayment(request, null);
+    }
+
+    /**
+     * Creates a Westpac payment. Once Westpac enables their Open Banking API, this can be replaced with
+     * {@link #createSinglePayment(PaymentRequest, String)}.
+     *
+     * @param request   the {@link PaymentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link PaymentResponse} {@link Mono}
+     */
+    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request, final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Payment request must not be null");
+        }
+
+        if (request.getConsentId() == null) {
+            throw new IllegalArgumentException("Consent ID must not be null");
+        }
+
+        if (request.getAccountReferenceId() == null) {
+            throw new IllegalArgumentException("Account reference ID must not be null");
+        }
+
+        return createPayment(request, requestId);
     }
 
     /**
@@ -264,7 +229,24 @@ public class PaymentsApiClient {
                 .exchangeToMono(ResponseHandler.getResponseMono(Payment.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String correlationId) {
+    private Mono<PaymentResponse> createPayment(PaymentRequest request, String requestId) {
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+
+        return getWebClientBuilder(correlationId)
+                .build()
+                .post()
+                .uri(PAYMENTS_PATH.getValue())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(httpHeaders -> {
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                })
+                .bodyValue(request)
+                .exchangeToMono(ResponseHandler.getResponseMono(PaymentResponse.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String requestId) {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -272,6 +254,6 @@ public class PaymentsApiClient {
         return WebClient.builder()
                 .clientConnector(connector)
                 .baseUrl(debitUrl)
-                .filter(accessTokenHandler.setAccessToken(correlationId));
+                .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }

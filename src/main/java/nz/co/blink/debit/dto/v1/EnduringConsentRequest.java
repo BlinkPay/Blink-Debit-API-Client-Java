@@ -169,6 +169,11 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
     }
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.ENDURING;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

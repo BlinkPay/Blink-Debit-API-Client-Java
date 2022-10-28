@@ -38,6 +38,11 @@ import java.util.Objects;
 public class RedirectFlowHint extends FlowHint {
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.REDIRECT;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

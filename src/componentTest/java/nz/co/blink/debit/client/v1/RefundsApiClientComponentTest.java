@@ -87,8 +87,10 @@ class RefundsApiClientComponentTest {
     @DisplayName("Verify that account number refund is created")
     @Order(1)
     void createAccountNumberRefund() {
-        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.ACCOUNT_NUMBER,
-                UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
+        AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
+
+        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -126,9 +128,15 @@ class RefundsApiClientComponentTest {
     @DisplayName("Verify that full refund is created")
     @Order(3)
     void createFullRefund() {
-        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.FULL_REFUND,
-                UUID.fromString("5de1b67f-0214-462e-aab5-1d8397b2fe67"), "redirectUri", "particulars", "code",
-                "reference");
+        FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .paymentId(UUID.fromString("5de1b67f-0214-462e-aab5-1d8397b2fe67"));
+
+        Mono<RefundResponse> refundResponseMono = client.createFullRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -171,9 +179,18 @@ class RefundsApiClientComponentTest {
     @DisplayName("Verify that partial refund is created")
     @Order(5)
     void createPartialRefund() {
-        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.PARTIAL_REFUND,
-                UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436"), "redirectUri", "particulars", "code",
-                "reference", "25.00", null);
+        PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.00"))
+                .paymentId(UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436"));
+
+        Mono<RefundResponse> refundResponseMono = client.createPartialRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();

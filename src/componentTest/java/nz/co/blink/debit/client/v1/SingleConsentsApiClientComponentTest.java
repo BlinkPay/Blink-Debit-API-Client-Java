@@ -23,17 +23,19 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
-import nz.co.blink.debit.dto.v1.FlowHint;
+import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
+import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,9 +98,20 @@ class SingleConsentsApiClientComponentTest {
     @DisplayName("Verify that single consent with redirect flow is created")
     @Order(1)
     void createSingleConsentWithRedirectFlow() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.BNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25");
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.BNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -160,10 +173,22 @@ class SingleConsentsApiClientComponentTest {
     @DisplayName("Verify that single consent with decoupled flow is created")
     @Order(4)
     void createSingleConsentWithDecoupledFlow() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.BNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", null, IdentifierType.CONSENT_ID, UUID.randomUUID().toString(),
-                        "callbackUrl");
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.BNZ)
+                                .identifierType(IdentifierType.CONSENT_ID)
+                                .identifierValue(UUID.randomUUID().toString())
+                                .callbackUrl("callbackUrl")))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -215,12 +240,55 @@ class SingleConsentsApiClientComponentTest {
     }
 
     @Test
-    @DisplayName("Verify that single consent with gateway flow is created")
+    @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created")
     @Order(6)
-    void createSingleConsentWithGatewayFlow() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.WESTPAC, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.REDIRECT, null, null, null);
+    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.WESTPAC))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(UUID.fromString("58ed876d-5419-405c-a416-f1d77177f93f"),
+                        "https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=58ed876d-5419-405c-a416-f1d77177f93f");
+    }
+
+    @Test
+    @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created")
+    @Order(7)
+    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+64-21835993")
+                                        .bank(Bank.ANZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -233,7 +301,7 @@ class SingleConsentsApiClientComponentTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow is retrieved")
-    @Order(7)
+    @Order(8)
     void getSingleConsentWithGatewayFlow() {
         Mono<Consent> consentMono = client.getSingleConsent(
                 UUID.fromString("58ed876d-5419-405c-a416-f1d77177f93f"), UUID.randomUUID().toString());

@@ -87,6 +87,11 @@ public class FullRefundRequest extends RefundDetail implements OneOfrefundReques
     }
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.FULL_REFUND;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

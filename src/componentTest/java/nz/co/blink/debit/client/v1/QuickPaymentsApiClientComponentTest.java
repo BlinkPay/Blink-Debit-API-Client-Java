@@ -23,18 +23,21 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.FlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.Pcr;
+import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
@@ -100,12 +103,24 @@ class QuickPaymentsApiClientComponentTest {
     @DisplayName("Verify that quick payment with redirect flow is created")
     @Order(1)
     void createQuickPaymentWithRedirectFlow() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.BNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.50", null);
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.BNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.50"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithRedirectFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
                 .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
@@ -166,13 +181,58 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
     @Order(4)
-    void createQuickPaymentWithGatewayFlow() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.WESTPAC, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.50", FlowHint.TypeEnum.REDIRECT);
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.WESTPAC))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.50"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(UUID.fromString("04157088-47ed-46ea-820e-6f726365b092"),
+                        "https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=04157088-47ed-46ea-820e-6f726365b092");
+    }
+
+    @Test
+    @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created")
+    @Order(5)
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.50"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
                 .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
@@ -182,7 +242,7 @@ class QuickPaymentsApiClientComponentTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is retrieved")
-    @Order(5)
+    @Order(6)
     void getQuickPaymentWithGatewayFlow() {
         UUID quickPaymentId = UUID.fromString("04157088-47ed-46ea-820e-6f726365b092");
         Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
@@ -232,14 +292,28 @@ class QuickPaymentsApiClientComponentTest {
 
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created")
-    @Order(6)
+    @Order(7)
     void createQuickPaymentWithDecoupledFlow() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code",
-                        "reference", "1.50", null, IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl("callbackUrl")))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.50"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithDecoupledFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual)
                 .isNotNull()
                 .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
@@ -248,7 +322,7 @@ class QuickPaymentsApiClientComponentTest {
 
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
-    @Order(7)
+    @Order(8)
     void getQuickPaymentWithDecoupledFlow() {
         UUID quickPaymentId = UUID.fromString("b9d04c2f-eea2-44cb-bf9f-72c834a3250b");
         Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);

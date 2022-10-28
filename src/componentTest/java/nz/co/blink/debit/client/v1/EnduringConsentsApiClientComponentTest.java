@@ -23,18 +23,21 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
 import nz.co.blink.debit.dto.v1.FlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
+import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -100,9 +103,19 @@ class EnduringConsentsApiClientComponentTest {
     @DisplayName("Verify that enduring consent with redirect flow is created")
     @Order(1)
     void createEnduringConsentWithRedirectFlow() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createEnduringConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI,
-                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00");
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.FORTNIGHTLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -161,10 +174,21 @@ class EnduringConsentsApiClientComponentTest {
     @DisplayName("Verify that enduring consent with decoupled flow is created")
     @Order(4)
     void createEnduringConsentWithDecoupledFlow() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
-                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", null,
-                        IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl("callbackUrl")))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.FORTNIGHTLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -214,13 +238,53 @@ class EnduringConsentsApiClientComponentTest {
     }
 
     @Test
-    @DisplayName("Verify that enduring consent with gateway flow is created")
+    @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created")
     @Order(6)
-    void createEnduringConsentWithGatewayFlow() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI,
-                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", FlowHint.TypeEnum.DECOUPLED,
-                        IdentifierType.PHONE_NUMBER, "+6449144425", "callbackUrl");
+    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() {
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.FORTNIGHTLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(UUID.fromString("44b7169f-90a0-4b8d-b723-056363a3fe53"),
+                        "https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=44b7169f-90a0-4b8d-b723-056363a3fe53");
+    }
+
+    @Test
+    @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created")
+    @Order(7)
+    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() {
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.FORTNIGHTLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

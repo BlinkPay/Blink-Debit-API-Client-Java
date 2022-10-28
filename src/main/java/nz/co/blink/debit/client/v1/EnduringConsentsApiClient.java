@@ -23,21 +23,15 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
-import nz.co.blink.debit.dto.v1.AuthFlowDetail;
-import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
-import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
 import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
 import nz.co.blink.debit.dto.v1.FlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
-import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
-import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
-import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +45,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.ENDURING_CONSENTS_PATH;
@@ -89,210 +82,245 @@ public class EnduringConsentsApiClient {
     }
 
     /**
-     * Creates an enduring payment consent request with redirect flow.
+     * Creates an enduring consent with redirect flow.
      *
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI
-     * @param period          the {@link Period}
-     * @param fromTimestamp   the ISO 8601 start date to calculate the periods for which to calculate the consent period.
-     * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
-     * @param total           the total
+     * @param request the {@link EnduringConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
      */
-    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                             final String redirectUri, Period period,
-                                                             OffsetDateTime fromTimestamp,
-                                                             OffsetDateTime expiryTimestamp, final String total) {
-        return createEnduringConsent(type, bank, redirectUri, period, fromTimestamp, expiryTimestamp, total, null);
+    public Mono<CreateConsentResponse> createEnduringConsentWithRedirectFlow(EnduringConsentRequest request) {
+        return createEnduringConsentWithRedirectFlow(request, null);
     }
 
     /**
-     * Creates an enduring payment consent request with redirect flow.
+     * Creates an enduring consent with redirect flow.
      *
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI
-     * @param period          the {@link Period}
-     * @param fromTimestamp   the ISO 8601 start date to calculate the periods for which to calculate the consent period.
-     * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
-     * @param total           the total
-     * @param requestId       the optional correlation ID
+     * @param request   the {@link EnduringConsentRequest}
+     * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
      */
-    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                             final String redirectUri, Period period,
-                                                             OffsetDateTime fromTimestamp,
-                                                             OffsetDateTime expiryTimestamp, final String total,
-                                                             final String requestId) {
-        return createEnduringConsent(type, bank, redirectUri, period, fromTimestamp, expiryTimestamp, total, null, null,
-                null, null, requestId);
-    }
-
-    /**
-     * Creates an enduring payment consent request with the bank that will go to the customer for approval.
-     * A successful response does not indicate a completed consent.
-     * The status of the consent can be subsequently checked with the consent ID.
-     *
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI
-     * @param period          the {@link Period}
-     * @param fromTimestamp   the ISO 8601 start date to calculate the periods for which to calculate the consent period.
-     * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
-     * @param total           the total
-     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
-     * @param identifierType  the {@link IdentifierType} for decoupled flow
-     * @param identifierValue the identifier value for decoupled flow
-     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                             final String redirectUri, Period period,
-                                                             OffsetDateTime fromTimestamp,
-                                                             OffsetDateTime expiryTimestamp, final String total,
-                                                             FlowHint.TypeEnum flowHintType,
-                                                             IdentifierType identifierType,
-                                                             final String identifierValue, final String callbackUrl) {
-        return createEnduringConsent(type, bank, redirectUri, period, fromTimestamp, expiryTimestamp, total,
-                flowHintType, identifierType, identifierValue, callbackUrl, null);
-    }
-
-    /**
-     * Creates an enduring payment consent request with the bank that will go to the customer for approval.
-     * A successful response does not indicate a completed consent.
-     * The status of the consent can be subsequently checked with the consent ID.
-     *
-     * @param type            the {@link AuthFlowDetail.TypeEnum}
-     * @param bank            the {@link Bank}
-     * @param redirectUri     the redirect URI
-     * @param period          the {@link Period}
-     * @param fromTimestamp   the ISO 8601 start date to calculate the periods for which to calculate the consent period.
-     * @param expiryTimestamp the ISO 8601 timeout for when an enduring consent will expire
-     * @param total           the total
-     * @param flowHintType    the {@link FlowHint.TypeEnum} for gateway flow
-     * @param identifierType  the {@link IdentifierType} for decoupled flow
-     * @param identifierValue the identifier value for decoupled flow
-     * @param callbackUrl     the merchant callback/webhook URL for decoupled flow
-     * @param requestId       the optional correlation ID
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createEnduringConsent(AuthFlowDetail.TypeEnum type, Bank bank,
-                                                             final String redirectUri, Period period,
-                                                             OffsetDateTime fromTimestamp,
-                                                             OffsetDateTime expiryTimestamp, final String total,
-                                                             FlowHint.TypeEnum flowHintType,
-                                                             IdentifierType identifierType,
-                                                             final String identifierValue, final String callbackUrl,
-                                                             final String requestId) {
-        if (AuthFlowDetail.TypeEnum.GATEWAY == type && flowHintType == null) {
-            throw new IllegalArgumentException("Gateway flow type requires redirect or decoupled flow hint type");
+    public Mono<CreateConsentResponse> createEnduringConsentWithRedirectFlow(EnduringConsentRequest request,
+                                                                             final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Enduring consent request must not be null");
         }
 
-        if (bank == null) {
+        AuthFlow flow = request.getFlow();
+        if (flow == null) {
+            throw new IllegalArgumentException("Authorisation flow must not be null");
+        }
+
+        OneOfauthFlowDetail detail = flow.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+        }
+
+        if (!(detail instanceof RedirectFlow)) {
+            throw new IllegalArgumentException("Authorisation flow detail must be a RedirectFlow");
+        }
+
+        RedirectFlow redirectFlow = (RedirectFlow) flow.getDetail();
+        if (redirectFlow.getBank() == null) {
             throw new IllegalArgumentException("Bank must not be null");
         }
 
-        FlowHint flowHint = null;
-        if (flowHintType != null) {
-            if (FlowHint.TypeEnum.REDIRECT == flowHintType) {
-                flowHint = new RedirectFlowHint()
-                        .bank(bank)
-                        .type(flowHintType);
-            } else if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
-                if (identifierType == null) {
-                    throw new IllegalArgumentException("Identifier type must not be null");
-                }
-                if (StringUtils.isBlank(identifierValue)) {
-                    throw new IllegalArgumentException("Identifier value must not be blank");
-                }
-                flowHint = new DecoupledFlowHint()
-                        .identifierType(identifierType)
-                        .identifierValue(identifierValue)
-                        .bank(bank)
-                        .type(flowHintType);
-            }
+        if (StringUtils.isBlank(redirectFlow.getRedirectUri())) {
+            throw new IllegalArgumentException("Redirect URI must not be blank");
         }
 
-        if (type == null) {
-            throw new IllegalArgumentException("Authorisation flow must not be null");
-        }
-        OneOfauthFlowDetail detail = null;
-        switch (type) {
-            case REDIRECT:
-                if (StringUtils.isBlank(redirectUri)) {
-                    throw new IllegalArgumentException("Redirect URI must not be blank");
-                }
-                detail = (OneOfauthFlowDetail) new RedirectFlow()
-                        .bank(bank)
-                        .redirectUri(redirectUri)
-                        .type(type);
-                break;
-            case DECOUPLED:
-                if (identifierType == null) {
-                    throw new IllegalArgumentException("Identifier type must not be null");
-                }
-                if (StringUtils.isBlank(identifierValue)) {
-                    throw new IllegalArgumentException("Identifier value must not be blank");
-                }
-                if (StringUtils.isBlank(callbackUrl)) {
-                    throw new IllegalArgumentException("Callback/webhook URL must not be blank");
-                }
-                detail = (OneOfauthFlowDetail) new DecoupledFlow()
-                        .bank(bank)
-                        .callbackUrl(callbackUrl)
-                        .identifierType(identifierType)
-                        .identifierValue(identifierValue)
-                        .type(type);
-                break;
-            case GATEWAY:
-                if (StringUtils.isBlank(redirectUri)) {
-                    throw new IllegalArgumentException("Redirect URI must not be blank");
-                }
-                detail = (OneOfauthFlowDetail) new GatewayFlow()
-                        .flowHint(flowHint)
-                        .redirectUri(redirectUri)
-                        .type(type);
-                break;
-        }
-
-        if (period == null) {
+        if (request.getPeriod() == null) {
             throw new IllegalArgumentException("Period must not be null");
         }
 
-        if (fromTimestamp == null) {
+        if (request.getFromTimestamp() == null) {
             throw new IllegalArgumentException("Start date must not be null");
         }
 
-        if (!NumberUtils.isParsable(total)) {
+        Amount amount = request.getMaximumAmountPeriod();
+        if (amount == null) {
+            throw new IllegalArgumentException("Maximum amount period must not be null");
+        }
+
+        if (amount.getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = amount.getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
             throw new IllegalArgumentException("Total is not a valid amount");
         }
 
-        EnduringConsentRequest request = (EnduringConsentRequest) new EnduringConsentRequest()
-                .flow(new AuthFlow()
-                        .detail(detail))
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total(total))
-                .period(period)
-                .fromTimestamp(fromTimestamp)
-                .expiryTimestamp(expiryTimestamp)
-                .type(ConsentDetail.TypeEnum.ENDURING);
+        return createEnduringConsent(request, requestId);
+    }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+    /**
+     * Creates an enduring consent with decoupled flow.
+     *
+     * @param request the {@link EnduringConsentRequest}
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createEnduringConsentWithDecoupledFlow(EnduringConsentRequest request) {
+        return createEnduringConsentWithDecoupledFlow(request, null);
+    }
 
-        return getWebClientBuilder(correlationId)
-                .build()
-                .post()
-                .uri(ENDURING_CONSENTS_PATH.getValue())
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
-                .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(CreateConsentResponse.class));
+    /**
+     * Creates an enduring consent with decoupled flow.
+     *
+     * @param request   the {@link EnduringConsentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createEnduringConsentWithDecoupledFlow(EnduringConsentRequest request,
+                                                                              final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Enduring consent request must not be null");
+        }
+
+        AuthFlow flow = request.getFlow();
+        if (flow == null) {
+            throw new IllegalArgumentException("Authorisation flow must not be null");
+        }
+
+        OneOfauthFlowDetail detail = flow.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+        }
+
+        if (!(detail instanceof DecoupledFlow)) {
+            throw new IllegalArgumentException("Authorisation flow detail must be a DecoupledFlow");
+        }
+
+        DecoupledFlow decoupledFlow = (DecoupledFlow) flow.getDetail();
+        if (decoupledFlow.getBank() == null) {
+            throw new IllegalArgumentException("Bank must not be null");
+        }
+
+        if (decoupledFlow.getIdentifierType() == null) {
+            throw new IllegalArgumentException("Identifier type must not be null");
+        }
+
+        if (StringUtils.isBlank(decoupledFlow.getIdentifierValue())) {
+            throw new IllegalArgumentException("Identifier value must not be blank");
+        }
+
+        if (StringUtils.isBlank(decoupledFlow.getCallbackUrl())) {
+            throw new IllegalArgumentException("Callback/webhook URL must not be blank");
+        }
+
+        if (request.getPeriod() == null) {
+            throw new IllegalArgumentException("Period must not be null");
+        }
+
+        if (request.getFromTimestamp() == null) {
+            throw new IllegalArgumentException("Start date must not be null");
+        }
+
+        Amount amount = request.getMaximumAmountPeriod();
+        if (amount == null) {
+            throw new IllegalArgumentException("Maximum amount period must not be null");
+        }
+
+        if (amount.getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = amount.getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
+            throw new IllegalArgumentException("Total is not a valid amount");
+        }
+
+        return createEnduringConsent(request, requestId);
+    }
+
+    /**
+     * Creates an enduring consent with gateway flow.
+     *
+     * @param request the {@link EnduringConsentRequest}
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createEnduringConsentWithGatewayFlow(EnduringConsentRequest request) {
+        return createEnduringConsentWithGatewayFlow(request, null);
+    }
+
+    /**
+     * Creates an enduring consent with gateway flow.
+     *
+     * @param request   the {@link EnduringConsentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createEnduringConsentWithGatewayFlow(EnduringConsentRequest request,
+                                                                            final String requestId) {
+        if (request == null) {
+            throw new IllegalArgumentException("Enduring consent request must not be null");
+        }
+
+        AuthFlow flow = request.getFlow();
+        if (flow == null) {
+            throw new IllegalArgumentException("Authorisation flow must not be null");
+        }
+
+        OneOfauthFlowDetail detail = flow.getDetail();
+        if (detail == null) {
+            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+        }
+
+        if (!(detail instanceof GatewayFlow)) {
+            throw new IllegalArgumentException("Authorisation flow detail must be a GatewayFlow");
+        }
+
+        GatewayFlow gatewayFlow = (GatewayFlow) flow.getDetail();
+        if (StringUtils.isBlank(gatewayFlow.getRedirectUri())) {
+            throw new IllegalArgumentException("Redirect URI must not be blank");
+        }
+
+        FlowHint flowHint = gatewayFlow.getFlowHint();
+        if (flowHint == null) {
+            throw new IllegalArgumentException("Flow hint must not be null");
+        }
+
+        if (flowHint.getBank() == null) {
+            throw new IllegalArgumentException("Bank must not be null");
+        }
+
+        FlowHint.TypeEnum flowHintType = flowHint.getType();
+        if (flowHintType == null) {
+            throw new IllegalArgumentException("Flow hint type must not be null");
+        }
+
+        if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
+            DecoupledFlowHint decoupledFlowHint = (DecoupledFlowHint) flowHint;
+            if (decoupledFlowHint.getIdentifierType() == null) {
+                throw new IllegalArgumentException("Identifier type must not be null");
+            }
+
+            if (StringUtils.isBlank(decoupledFlowHint.getIdentifierValue())) {
+                throw new IllegalArgumentException("Identifier value must not be blank");
+            }
+        }
+
+        if (request.getPeriod() == null) {
+            throw new IllegalArgumentException("Period must not be null");
+        }
+
+        if (request.getFromTimestamp() == null) {
+            throw new IllegalArgumentException("Start date must not be null");
+        }
+
+        Amount amount = request.getMaximumAmountPeriod();
+        if (amount == null) {
+            throw new IllegalArgumentException("Maximum amount period must not be null");
+        }
+
+        if (amount.getCurrency() == null) {
+            throw new IllegalArgumentException("Currency must not be null");
+        }
+
+        String total = amount.getTotal();
+        if (StringUtils.isBlank(total) || !NumberUtils.isParsable(total)) {
+            throw new IllegalArgumentException("Total is not a valid amount");
+        }
+
+        return createEnduringConsent(request, requestId);
     }
 
     /**
@@ -369,7 +397,24 @@ public class EnduringConsentsApiClient {
                 .exchangeToMono(ResponseHandler.getResponseMono(Void.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String correlationId) {
+    private Mono<CreateConsentResponse> createEnduringConsent(EnduringConsentRequest request, String requestId) {
+        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+
+        return getWebClientBuilder(correlationId)
+                .build()
+                .post()
+                .uri(ENDURING_CONSENTS_PATH.getValue())
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(httpHeaders -> {
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                })
+                .bodyValue(request)
+                .exchangeToMono(ResponseHandler.getResponseMono(CreateConsentResponse.class));
+    }
+
+    private WebClient.Builder getWebClientBuilder(String requestId) {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -377,6 +422,6 @@ public class EnduringConsentsApiClient {
         return WebClient.builder()
                 .clientConnector(connector)
                 .baseUrl(debitUrl)
-                .filter(accessTokenHandler.setAccessToken(correlationId));
+                .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }

@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
@@ -68,6 +69,8 @@ class SingleConsentsApiClientIntegrationTest {
 
     private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
 
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
+
     @Autowired
     private SingleConsentsApiClient client;
 
@@ -77,9 +80,20 @@ class SingleConsentsApiClientIntegrationTest {
     @DisplayName("Verify that single consent with redirect flow is created in PNZ")
     @Order(1)
     void createSingleConsentWithRedirectFlowInPnz() {
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(
-                AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, "particulars", "code",
-                "reference", "1.25");
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -211,10 +225,22 @@ class SingleConsentsApiClientIntegrationTest {
     @DisplayName("Verify that single consent with decoupled flow is created in PNZ")
     @Order(5)
     void createSingleConsentWithDecoupledFlowInPnz() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code",
-                        "reference", "1.25", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        "https://eout2fipbfh7o93.m.pipedream.net");
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -252,7 +278,7 @@ class SingleConsentsApiClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+                        "+6449144425", CALLBACK_URL);
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -293,7 +319,7 @@ class SingleConsentsApiClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+                        "+6449144425", CALLBACK_URL);
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -308,9 +334,21 @@ class SingleConsentsApiClientIntegrationTest {
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created in PNZ")
     @Order(8)
     void createSingleConsentWithGatewayFlowAndRedirectFlowHintInPnz() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.REDIRECT, null, null, null);
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -418,10 +456,23 @@ class SingleConsentsApiClientIntegrationTest {
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created in PNZ")
     @Order(11)
     void createSingleConsentWithGatewayFlowAndDecoupledFlowHintInPnz() {
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", null);
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

@@ -113,7 +113,7 @@ public class OAuthApiClient {
                 .exchangeToMono(ResponseHandler.getResponseMono(AccessTokenResponse.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String correlationId) {
+    private WebClient.Builder getWebClientBuilder(String requestId) {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

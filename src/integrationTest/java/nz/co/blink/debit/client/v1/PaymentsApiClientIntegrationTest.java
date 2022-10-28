@@ -23,9 +23,11 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.Amount;
-import nz.co.blink.debit.dto.v1.AuthFlowDetail;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
+import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
 import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Payment;
@@ -33,6 +35,7 @@ import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Period;
+import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -65,7 +68,7 @@ import static org.assertj.core.api.Assertions.fail;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class PaymentsApiClientIntegrationTest {
 
-    private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
 
     private static final ZoneId ZONE_ID = ZoneId.of("Pacific/Auckland");
 
@@ -86,10 +89,23 @@ class PaymentsApiClientIntegrationTest {
     @DisplayName("Verify that payment for single consent with decoupled flow is created")
     @Order(1)
     void createPaymentForSingleConsentWithDecoupledFlow() throws InterruptedException {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
-                        "particulars", "code", "reference", "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        "https://eout2fipbfh7o93.m.pipedream.net");
+                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -101,7 +117,10 @@ class PaymentsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId);
+                PaymentRequest paymentRequest = new PaymentRequest()
+                        .consentId(consentId);
+
+                Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -152,10 +171,21 @@ class PaymentsApiClientIntegrationTest {
     @DisplayName("Verify that payment for enduring consent with decoupled flow is created")
     @Order(3)
     void createPaymentForEnduringConsentWithDecoupledFlow() throws InterruptedException {
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.FORTNIGHTLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID));
+
         Mono<CreateConsentResponse> createConsentResponseMono =
-                enduringConsentsApiClient.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null,
-                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", null,
-                        IdentifierType.PHONE_NUMBER, "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+                enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -167,8 +197,18 @@ class PaymentsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId, "particulars", "code",
-                        "reference", "45.00");
+                PaymentRequest paymentRequest = new PaymentRequest()
+                        .consentId(consentId)
+                        .enduringPayment(new EnduringPaymentRequest()
+                                .amount(new Amount()
+                                        .currency(Amount.CurrencyEnum.NZD)
+                                        .total("45.00"))
+                                .pcr(new Pcr()
+                                        .particulars("particulars")
+                                        .code("code")
+                                        .reference("reference")));
+
+                Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();

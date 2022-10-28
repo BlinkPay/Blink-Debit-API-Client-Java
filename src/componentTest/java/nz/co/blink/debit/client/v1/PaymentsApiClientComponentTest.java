@@ -85,9 +85,11 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for single consent is created")
     @Order(1)
-    void createPaymentForSingleConsent() {
-        Mono<PaymentResponse> paymentResponseMono =
-                client.createPayment(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"));
+    void createSinglePayment() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"));
+
+        Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -124,10 +126,19 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for enduring consent is created")
     @Order(3)
-    void createPaymentForEnduringConsent() {
-        Mono<PaymentResponse> paymentResponseMono =
-                client.createPayment(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"), "particulars", "code",
-                        "reference", "45.00");
+    void createEnduringPayment() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"))
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("45.00"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -168,5 +179,23 @@ class PaymentsApiClientComponentTest {
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
                 .containsExactly("particulars", "code", "reference");
+    }
+
+    @Test
+    @DisplayName("Verify that payment for single consent is created in Westpac")
+    @Order(5)
+    void createWestpacPayment() {
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"))
+                .accountReferenceId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPayment(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
     }
 }

@@ -88,6 +88,11 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
     }
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.REDIRECT;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

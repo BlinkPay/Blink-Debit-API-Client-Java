@@ -113,6 +113,11 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
     }
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.SINGLE;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

@@ -111,6 +111,11 @@ public class PartialRefundRequest extends RefundDetail implements OneOfrefundReq
     }
 
     @Override
+    public TypeEnum getType() {
+        return TypeEnum.PARTIAL_REFUND;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

@@ -22,19 +22,28 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
-import nz.co.blink.debit.dto.v1.AuthFlowDetail;
+import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
+import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
+import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
+import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
+import nz.co.blink.debit.dto.v1.FullRefundRequest;
 import nz.co.blink.debit.dto.v1.IdentifierType;
+import nz.co.blink.debit.dto.v1.PartialRefundRequest;
+import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
+import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
+import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.exception.ApiError;
 import nz.co.blink.debit.exception.ApiException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -67,7 +76,7 @@ import static org.assertj.core.api.Assertions.fail;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class RefundsApiClientIntegrationTest {
 
-    private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
 
     private static final ZoneId ZONE_ID = ZoneId.of("Pacific/Auckland");
 
@@ -92,12 +101,24 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that account refund for single consent with decoupled flow is created")
     @Order(1)
-    void createAccountNumberRefundForSingleConsentWithDecoupledFlow()
-            throws InterruptedException {
+    void createAccountNumberRefundForSingleConsentWithDecoupledFlow() throws InterruptedException {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
-                        "particulars", "code", "reference", "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        "https://eout2fipbfh7o93.m.pipedream.net");
+                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -109,7 +130,10 @@ class RefundsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(consentId);
+                PaymentRequest paymentRequest = new PaymentRequest()
+                        .consentId(consentId);
+
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createSinglePayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -128,7 +152,10 @@ class RefundsApiClientIntegrationTest {
             fail("Payment for single consent with decoupled flow failed");
         }
 
-        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.ACCOUNT_NUMBER, paymentId);
+        AccountNumberRefundRequest refundRequest = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(paymentId);
+
+        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(refundRequest);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -165,12 +192,22 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that account number refund for enduring consent with decoupled flow is created")
     @Order(3)
-    void createAccountNumberRefundForEnduringConsentWithDecoupledFlow()
-            throws InterruptedException {
+    void createAccountNumberRefundForEnduringConsentWithDecoupledFlow() throws InterruptedException {
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.FORTNIGHTLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID));
+
         Mono<CreateConsentResponse> createConsentResponseMono =
-                enduringConsentsApiClient.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null,
-                        Period.FORTNIGHTLY, OffsetDateTime.now(ZONE_ID), null, "50.00", null,
-                        IdentifierType.PHONE_NUMBER, "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+                enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -182,8 +219,18 @@ class RefundsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(consentId, "particulars",
-                        "code", "reference", "45.00");
+                PaymentRequest paymentRequest = new PaymentRequest()
+                        .consentId(consentId)
+                        .enduringPayment(new EnduringPaymentRequest()
+                                .amount(new Amount()
+                                        .currency(Amount.CurrencyEnum.NZD)
+                                        .total("45.00"))
+                                .pcr(new Pcr()
+                                        .particulars("particulars")
+                                        .code("code")
+                                        .reference("reference")));
+
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createEnduringPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -202,7 +249,10 @@ class RefundsApiClientIntegrationTest {
             fail("Payment for enduring consent with decoupled flow failed");
         }
 
-        Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.ACCOUNT_NUMBER, paymentId);
+        AccountNumberRefundRequest refundRequest = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(paymentId);
+
+        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(refundRequest);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -239,12 +289,24 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that full refund for single consent with decoupled flow is handled")
     @Order(5)
-    @Disabled("re-enable when staging returns 501 instead of 403")
     void createFullRefundForSingleConsentWithDecoupledFlow() throws InterruptedException {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
-                        "particulars", "code", "reference", "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        "https://eout2fipbfh7o93.m.pipedream.net");
+                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -256,7 +318,10 @@ class RefundsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(consentId);
+                PaymentRequest paymentRequest = new PaymentRequest()
+                        .consentId(consentId);
+
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createSinglePayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -275,8 +340,16 @@ class RefundsApiClientIntegrationTest {
             fail("Payment for single consent with decoupled flow failed");
         }
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(RefundDetail.TypeEnum.FULL_REFUND,
-                paymentId, "http://localhost", "particulars1", "code1", "reference1").block(), RuntimeException.class);
+        FullRefundRequest refundRequest = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .paymentId(paymentId);
+
+        RuntimeException exception = catchThrowableOfType(() -> client.createFullRefund(refundRequest).block(),
+                RuntimeException.class);
 
         assertThat(exception).isNotNull();
         assertThat(((ApiException) exception.getCause()).getApiError())
@@ -290,13 +363,25 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that partial refund for single consent with decoupled flow is handled")
     @Order(6)
-    @Disabled("re-enable when staging returns 501 instead of 403")
     void createPartialRefundForSingleConsentWithDecoupledFlow()
             throws InterruptedException {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, REDIRECT_URI,
-                        "particulars", "code", "reference", "50.00", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        "https://eout2fipbfh7o93.m.pipedream.net");
+                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -308,7 +393,10 @@ class RefundsApiClientIntegrationTest {
         for (int i = 1; i <= 10; i++) {
             System.out.println("attempt: " + i);
             try {
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(consentId);
+                PaymentRequest paymentRequest = new PaymentRequest()
+                        .consentId(consentId);
+
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createSinglePayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -327,9 +415,19 @@ class RefundsApiClientIntegrationTest {
             fail("Payment for single consent with decoupled flow failed");
         }
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.createRefund(RefundDetail.TypeEnum.PARTIAL_REFUND, paymentId, "http://localhost", "particulars1",
-                        "code1", "reference1", "25.00", null).block(), RuntimeException.class);
+        PartialRefundRequest refundRequest = (PartialRefundRequest) new PartialRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .paymentId(paymentId);
+
+        RuntimeException exception = catchThrowableOfType(() -> client.createPartialRefund(refundRequest).block(),
+                RuntimeException.class);
 
         assertThat(exception).isNotNull();
         assertThat(((ApiException) exception.getCause()).getApiError())

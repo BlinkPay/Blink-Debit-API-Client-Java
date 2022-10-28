@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
@@ -34,6 +35,7 @@ import nz.co.blink.debit.dto.v1.FlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Pcr;
+import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
@@ -69,6 +71,8 @@ class QuickPaymentsApiClientIntegrationTest {
 
     private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
 
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
+
     @Autowired
     private QuickPaymentsApiClient client;
 
@@ -78,12 +82,24 @@ class QuickPaymentsApiClientIntegrationTest {
     @DisplayName("Verify that quick payment with redirect flow is created in PNZ")
     @Order(1)
     void createQuickPaymentWithRedirectFlowInPnz() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", null);
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithRedirectFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual).isNotNull();
 
         quickPaymentId = actual.getQuickPaymentId();
@@ -230,13 +246,26 @@ class QuickPaymentsApiClientIntegrationTest {
     @DisplayName("Verify that quick payment with decoupled flow is created in PNZ")
     @Order(5)
     void createQuickPaymentWithDecoupledFlowInPnz() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars", "code",
-                        "reference", "1.25", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        "https://eout2fipbfh7o93.m.pipedream.net");
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithDecoupledFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual).isNotNull();
 
         quickPaymentId = actual.getQuickPaymentId();
@@ -278,7 +307,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+                        "+6449144425", CALLBACK_URL);
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -325,7 +354,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", "https://eout2fipbfh7o93.m.pipedream.net");
+                        "+6449144425", CALLBACK_URL);
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -340,12 +369,25 @@ class QuickPaymentsApiClientIntegrationTest {
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created in PNZ")
     @Order(8)
     void createQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.REDIRECT);
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual).isNotNull();
 
         quickPaymentId = actual.getQuickPaymentId();
@@ -462,13 +504,27 @@ class QuickPaymentsApiClientIntegrationTest {
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created in PNZ")
     @Order(11)
     void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() {
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", null);
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
-        assertThat(createQuickPaymentResponseResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseResponseMono.block();
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
         assertThat(actual).isNotNull();
 
         quickPaymentId = actual.getQuickPaymentId();

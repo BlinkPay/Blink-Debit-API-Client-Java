@@ -28,14 +28,18 @@ import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
+import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.FlowHint;
+import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.OneOfconsentDetail;
 import nz.co.blink.debit.dto.v1.Pcr;
+import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
-import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -77,6 +81,8 @@ class QuickPaymentsApiClientTest {
 
     private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
 
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
+
     @Mock
     private WebClient.Builder webClientBuilder;
 
@@ -105,48 +111,121 @@ class QuickPaymentsApiClientTest {
     private QuickPaymentsApiClient client;
 
     @Test
-    @DisplayName("Verify that null authorisation flow hint is handled")
-    void createQuickPaymentWithGatewayFlowAndNullFlowHint() {
+    @DisplayName("Verify that null request is handled")
+    void createQuickPaymentWithRedirectFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, "http://localhost:8080",
-                        "particulars", "code", "reference", "1.25", null).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithRedirectFlow(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Gateway flow type requires redirect or decoupled flow hint type");
-    }
-
-    @Test
-    @DisplayName("Verify that null bank is handled")
-    void createQuickPaymentWithNullBank() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, null, "http://localhost:8080",
-                        "particulars", "code", "reference", "1.25", null).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Bank must not be null");
+                .hasMessage("Quick payment request must not be null");
     }
 
     @Test
     @DisplayName("Verify that null authorisation flow is handled")
-    void createQuickPaymentWithNullAuthorisationFlow() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createQuickPayment(null, Bank.PNZ,
-                        "http://localhost:8080", "particulars", "code", "reference", "1.25", null).block(),
-                IllegalArgumentException.class);
+    void createQuickPaymentWithRedirectFlowAndNullAuthorisationFlow() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow must not be null");
     }
 
+    @Test
+    @DisplayName("Verify that null authorisation flow detail is handled")
+    void createQuickPaymentWithRedirectFlowAndNullAuthorisationFlowDetail() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that invalid authorisation flow is handled")
+    void createQuickPaymentWithRedirectFlowAndInvalidAuthorisationFlow() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must be a RedirectFlow");
+    }
+
+    @Test
+    @DisplayName("Verify that null bank is handled")
+    void createQuickPaymentWithRedirectFlowAndNullBank() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Bank must not be null");
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @DisplayName("Verify that redirect flow with blank redirect URI is handled")
     void createQuickPaymentWithRedirectFlowAndBlankRedirectUri(String redirectUri) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(redirectUri)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, redirectUri, "particulars",
-                        "code", "reference", "1.25", null).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -154,12 +233,363 @@ class QuickPaymentsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that null amount is handled")
+    void createQuickPaymentWithRedirectFlowAndNullAmount() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createQuickPaymentWithRedirectFlowAndNullCurrency() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createQuickPaymentWithRedirectFlowAndInvalidTotal(String total) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createQuickPaymentWithRedirectFlowAndNullPcr() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .total("1.25"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createQuickPaymentWithRedirectFlowAndBlankParticulars(String particulars) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that null request is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(null).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Quick payment request must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullAuthorisationFlow() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow detail is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullAuthorisationFlowDetail() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that invalid authorisation flow is handled")
+    void createQuickPaymentWithDecoupledFlowAndInvalidAuthorisationFlow() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must be a DecoupledFlow");
+    }
+
+    @Test
+    @DisplayName("Verify that null bank is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullBank() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Bank must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null amount is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullAmount() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullCurrency() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createQuickPaymentWithDecoupledFlowAndInvalidTotal(String total) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createQuickPaymentWithDecoupledFlowAndNullPcr() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .total("1.25"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createQuickPaymentWithDecoupledFlowAndBlankParticulars(String particulars) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
     @DisplayName("Verify that decoupled flow with null identifier type is handled")
     void createQuickPaymentWithDecoupledFlowAndNullIdentifierType() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                        client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars",
-                                "code", "reference", "1.25", null, null, "+6449144425", "callbackUrl").block(),
-                IllegalArgumentException.class);
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -170,10 +600,23 @@ class QuickPaymentsApiClientTest {
     @NullAndEmptySource
     @DisplayName("Verify that decoupled flow with blank redirect URI is handled")
     void createQuickPaymentWithDecoupledFlowAndBlankIdentifierValue(String identifierValue) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue(identifierValue)
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", null, IdentifierType.PHONE_NUMBER, identifierValue,
-                        "callbackUrl").block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -184,24 +627,316 @@ class QuickPaymentsApiClientTest {
     @NullAndEmptySource
     @DisplayName("Verify that decoupled flow with blank callback URL is handled")
     void createQuickPaymentWithDecoupledFlowAndBlankCallbackUrl(String callbackUrl) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(callbackUrl)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        callbackUrl).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Callback/webhook URL must not be blank");
     }
 
+    @Test
+    @DisplayName("Verify that null request is handled")
+    void createQuickPaymentWithGatewayFlowAndNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(null).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Quick payment request must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow is handled")
+    void createQuickPaymentWithGatewayFlowAndNullAuthorisationFlow() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow detail is handled")
+    void createQuickPaymentWithGatewayFlowAndNullAuthorisationFlowDetail() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that invalid authorisation flow is handled")
+    void createQuickPaymentWithGatewayFlowAndInvalidAuthorisationFlow() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must be a GatewayFlow");
+    }
+
+    @Test
+    @DisplayName("Verify that null bank is handled")
+    void createQuickPaymentWithGatewayFlowAndNullBank() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint())))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Bank must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null amount is handled")
+    void createQuickPaymentWithGatewayFlowAndNullAmount() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createQuickPaymentWithGatewayFlowAndNullCurrency() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createQuickPaymentWithGatewayFlowAndInvalidTotal(String total) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createQuickPaymentWithGatewayFlowAndNullPcr() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createQuickPaymentWithGatewayFlowAndBlankParticulars(String particulars) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow hint is handled")
+    void createQuickPaymentWithGatewayFlowAndNullFlowHint() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Flow hint must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow hint type is handled")
+    void createQuickPaymentWithGatewayFlowAndNullFlowHintType() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new FlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Flow hint type must not be null");
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @DisplayName("Verify that gateway flow with blank redirect URI is handled")
     void createQuickPaymentWithGatewayFlowAndBlankRedirectUri(String redirectUri) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(redirectUri)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                        client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, redirectUri, "particulars", "code",
-                                "reference", "1.25", FlowHint.TypeEnum.REDIRECT, null, null, null).block(),
-                IllegalArgumentException.class);
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -211,10 +946,23 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that gateway flow with null identifier type is handled")
     void createQuickPaymentWithGatewayFlowAndNullIdentifierType() {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, null, "+6449144425",
-                        "callbackUrl").block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -225,10 +973,24 @@ class QuickPaymentsApiClientTest {
     @NullAndEmptySource
     @DisplayName("Verify that gateway flow with blank redirect URI is handled")
     void createQuickPaymentWithGatewayFlowAndBlankIdentifierValue(String identifierValue) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue(identifierValue)
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, null, "particulars", "code",
-                        "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER, identifierValue,
-                        null).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -237,11 +999,24 @@ class QuickPaymentsApiClientTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    @DisplayName("Verify that invalid particulars is handled")
-    void createQuickPaymentWithInvalidParticulars(String particulars) {
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createQuickPaymentWithBlankParticulars(String particulars) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, "http://localhost:8080",
-                        particulars, "code", "reference", "1.25", null).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -253,45 +1028,25 @@ class QuickPaymentsApiClientTest {
     @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
     @DisplayName("Verify that invalid total is handled")
     void createQuickPaymentWithInvalidTotal(String total) {
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, "http://localhost:8080",
-                        "particulars", "code", "reference", total, null).block(), IllegalArgumentException.class);
+                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Total is not a valid amount");
-    }
-
-    @Test
-    @DisplayName("Verify that quick payment is created")
-    void createQuickPayment() {
-        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
-        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
-
-        UUID quickPaymentId = UUID.randomUUID();
-        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
-                .quickPaymentId(quickPaymentId)
-                .redirectUri(REDIRECT_URI);
-
-        when(webClientBuilder.build()).thenReturn(webClient);
-        when(webClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
-        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(any(SingleConsentRequest.class))).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
-
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25", null);
-
-        assertThat(createQuickPaymentResponseMono).isNotNull();
-        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
-                .containsExactly(quickPaymentId, REDIRECT_URI);
     }
 
     @Test
@@ -322,7 +1077,7 @@ class QuickPaymentsApiClientTest {
                         .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
                         .creationTimestamp(now.minusMinutes(5))
                         .statusUpdatedTimestamp(now)
-                        .detail((OneOfconsentDetail) new SingleConsentRequest()
+                        .detail((OneOfconsentDetail) new QuickPaymentRequest()
                                 .flow(new AuthFlow()
                                         .detail((OneOfauthFlowDetail) new RedirectFlow()
                                                 .bank(Bank.PNZ)
@@ -362,8 +1117,8 @@ class QuickPaymentsApiClientTest {
         assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
         assertThat(consent.getDetail())
                 .isNotNull()
-                .isInstanceOf(SingleConsentRequest.class);
-        SingleConsentRequest detail = (SingleConsentRequest) consent.getDetail();
+                .isInstanceOf(QuickPaymentRequest.class);
+        QuickPaymentRequest detail = (QuickPaymentRequest) consent.getDetail();
         assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
         assertThat(detail.getFlow()).isNotNull();
         assertThat(detail.getFlow().getDetail())
@@ -409,5 +1164,185 @@ class QuickPaymentsApiClientTest {
         when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.empty());
 
         assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
+    }
+
+    @Test
+    @DisplayName("Verify that quick payment with redirect flow is created")
+    void createQuickPaymentWithRedirectFlow() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(QuickPaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithRedirectFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    @DisplayName("Verify that quick payment with decoupled flow is created")
+    void createQuickPaymentWithDecoupledFlow() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(QuickPaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithDecoupledFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, null);
+    }
+
+    @Test
+    @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(QuickPaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created")
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(QuickPaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, null);
     }
 }

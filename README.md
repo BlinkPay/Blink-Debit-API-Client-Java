@@ -4,8 +4,9 @@
 This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
 
 # Minimum Requirements
-- Maven 3
+- Maven 3 or Gradle 7
 - Java 8
+- Lombok 1.18
 
 This SDK uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
 
@@ -56,45 +57,98 @@ blinkpay.client.secret=<BLINKPAY_CLIENT_SECRET>
 ```
 
 # Integration
-WebClient builder and access token handler must be injected when instantiating the API clients. Alternatively, Spring-based client code can simply autowire the API clients. Optional correlation ID can be added as the last argument.
+ReactorClientHttpConnector and AccessTokenHandler must be injected when instantiating the API clients. Alternatively, Spring-based client code can simply autowire the API clients. Optional correlation ID can be added as the last argument.
 ## Access Token Handler
 ```java
-private OAuthApiClient oauthApiClient = new OAuthApiClient(webClientBuilder, clientId, clientSecret);
+private OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
 private AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
 ```
 
 ## Bank Metadata
 ```java
-private MetaApiClient client = new MetaApiClient(webClientBuilder, accessTokenHandler);
+private MetaApiClient client = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
 ```
 ```java
 Flux<BankMetadata> bankMetadataFlux = client.getMeta();
 ```
 
-## Single Consents
+## Single/One-Off Consents
 ```java
-private SingleConsentsApiClient client = new SingleConsentsApiClient(webClientBuilder, accessTokenHandler);
+private SingleConsentsApiClient client = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
 ```
 ### Redirect Flow
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT,
-        bank, redirectUri, particulars, code, reference, total);
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new RedirectFlow()
+                .bank(bank)
+                .redirectUri(redirectUri)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
 ```
 ### Decoupled Flow
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED,
-        bank, null, particulars, code, reference, total, null, identifierType, identifierValue, callbackUrl);
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new DecoupledFlow()
+                .bank(bank)
+                .identifierType(identifierType)
+                .identifierValue(identifierValue)
+                .callbackUrl(callbackUrl)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY,
-        bank, redirectUri, particulars, code, reference, total, FlowHint.TypeEnum.REDIRECT, null, null, null);
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new RedirectFlowHint()
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY,
-        bank, redirectUri, particulars, code, reference, total, FlowHint.TypeEnum.DECOUPLED, identifierType,
-        identifierValue, null);
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new DecoupledFlowHint()
+                    .identifierType(identifierType)
+                    .identifierValue(identifierValue)
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
@@ -105,30 +159,79 @@ Mono<Consent> consentMono = client.getSingleConsent(consentId);
 Mono<Void> voidMono = client.revokeSingleConsent(consentId);
 ```
 
-## Enduring Consents
+## Enduring/Recurring Consents
 ```java
-private EnduringConsentsApiClient client = new EnduringConsentsApiClient(webClientBuilder, accessTokenHandler);
+private EnduringConsentsApiClient client = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
 ```
 ### Redirect Flow
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.REDIRECT,
-        bank, redirectUri, period, startDate, endDate, maximumAmount);
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new RedirectFlow()
+                .bank(bank)
+                .redirectUri(redirectUri)))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlow(request);
 ```
 ### Decoupled Flow
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.DECOUPLED,
-        bank, null, period, startDate, endDate, maximumAmount, null, identifierType,identifierValue, callbackUrl);
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new DecoupledFlow()
+                .bank(bank)
+                .identifierType(identifierType)
+                .identifierValue(identifierValue)
+                .callbackUrl(callbackUrl)))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlow(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY,
-        bank, redirectUri, period, startDate, endDate, maximumAmount, FlowHint.TypeEnum.REDIRECT, null, null, null);
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new RedirectFlowHint()
+                    .bank(bank))))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(AuthFlowDetail.TypeEnum.GATEWAY,
-        bank, redirectUri, period, startDate, endDate, maximumAmount, FlowHint.TypeEnum.DECOUPLED, identifierType,
-        identifierValue, null);
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new DecoupledFlowHint()
+                    .identifierType(identifierType)
+                    .identifierValue(identifierValue)
+                    .bank(bank))))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
@@ -141,19 +244,37 @@ Mono<Void> voidMono = client.revokeEnduringConsent(consentId);
 
 ## Payments
 ```java
-private PaymentsApiClient client = new PaymentsApiClient(webClientBuilder, accessTokenHandler);
+private PaymentsApiClient client = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
 ```
-### Single Consent
+### Single/One-Off
 ```java
-Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId);
+PaymentRequest request = new PaymentRequest()
+        .consentId(consentId);
+
+Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(request);
 ```
-### Enduring Consent
+### Enduring/Recurring
 ```java
-Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId, particulars, code, reference, total);
+PaymentRequest request = new PaymentRequest()
+        .consentId(consentId)
+        .enduringPayment(new EnduringPaymentRequest()
+            .amount(new Amount()
+                .currency(Amount.CurrencyEnum.NZD)
+                .total(total))
+            .pcr(new Pcr()
+                .particulars(particulars)
+                .code(code)
+                .reference(reference)));
+
+Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(request);
 ```
 ### Westpac
 ```java
-Mono<PaymentResponse> paymentResponseMono = client.createPayment(consentId, accountReferenceId);
+PaymentRequest request = new PaymentRequest()
+        .consentId(consentId)
+        .accountReferenceId(accountReferenceId);
+
+Mono<PaymentResponse> paymentResponseMono = client.createWestpacPayment(request);
 ```
 ### Retrieval
 ```java
@@ -162,31 +283,81 @@ Mono<Payment> paymentMono = client.getPayment(paymentId);
 
 ## Quick Payments
 ```java
-private QuickPaymentsApiClient client = new QuickPaymentsApiClient((webClientBuilder, accessTokenHandler);
+private QuickPaymentsApiClient client = new QuickPaymentsApiClient((reactorClientHttpConnector, debitUrl, accessTokenHandler);
 ```
 ### Redirect Flow
 ```java
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-        client.createQuickPayment(AuthFlowDetail.TypeEnum.REDIRECT, bank, redirectUri, particulars, code, reference,
-        total, null);
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new RedirectFlow()
+                .bank(bank)
+                .redirectUri(redirectUri)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithRedirectFlow(request);
 ```
 ### Decoupled Flow
 ```java
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-        client.createQuickPayment(AuthFlowDetail.TypeEnum.DECOUPLED, bank, null, particulars, code, reference, total,
-        null, identifierType, identifierValue, callbackUrl);
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new RedirectFlow()
+                .bank(bank)
+                .identifierType(identifierType)
+                .identifierValue(identifierValue)
+                .callbackUrl(callbackUrl)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithDecoupledFlow(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-        client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference,
-        total, FlowHint.TypeEnum.REDIRECT);
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new RedirectFlowHint()
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithGatewayFlow(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseResponseMono =
-        client.createQuickPayment(AuthFlowDetail.TypeEnum.GATEWAY, bank, redirectUri, particulars, code, reference,
-        total, FlowHint.TypeEnum.DECOUPLED, identifierType, identifierValue, null);
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new DecoupledFlowHint()
+                    .identifierType(identifierType)
+                    .identifierValue(identifierValue)
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
@@ -199,21 +370,41 @@ Mono<Void> voidMono = client.revokeQuickPayment(quickPaymentId);
 
 ## Refunds
 ```java
-private RefundsApiClient client = new RefundsApiClient(webClientBuilder, accessTokenHandler);
+private RefundsApiClient client = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
 ```
 ### Account Number Refund
 ```java
-Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.ACCOUNT_NUMBER, paymentId);
+AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+        .paymentId(paymentId);
+
+Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(request);
 ```
 ### Full Refund
 ```java
-Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.FULL_REFUND, paymentId,
-        redirectUri, particulars, code, reference);
+FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+        .consentRedirect(redirectUri)
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference))
+        .paymentId(paymentId);
+
+Mono<RefundResponse> refundResponseMono = client.createFullRefund(request);
 ```
 ### Partial Refund (Not yet implemented)
 ```java
-Mono<RefundResponse> refundResponseMono = client.createRefund(RefundDetail.TypeEnum.PARTIAL_REFUND, paymentId,
-        redirectUri, particulars, code, reference, total, correlationId);
+PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
+        .consentRedirect(redirectUri)
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .paymentId(paymentId);
+
+Mono<RefundResponse> refundResponseMono = client.createPartialRefund(request);
 ```
 ### Retrieval
 ```java

@@ -28,12 +28,16 @@ import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
+import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.FlowHint;
+import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.OneOfconsentDetail;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
+import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -76,6 +80,8 @@ class SingleConsentsApiClientTest {
 
     private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
 
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
+
     @Mock
     private WebClient.Builder webClientBuilder;
 
@@ -104,48 +110,121 @@ class SingleConsentsApiClientTest {
     private SingleConsentsApiClient client;
 
     @Test
-    @DisplayName("Verify that null authorisation flow hint is handled")
-    void createSingleConsentWithGatewayFlowAndNullFlowHint() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSingleConsent(
-                AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, "http://localhost:8080",
-                "particulars", "code", "reference", "1.25").block(), IllegalArgumentException.class);
+    @DisplayName("Verify that null request is handled")
+    void createSingleConsentWithRedirectFlowAndNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Gateway flow type requires redirect or decoupled flow hint type");
-    }
-
-    @Test
-    @DisplayName("Verify that null bank is handled")
-    void createSingleConsentWithNullBank() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSingleConsent(
-                AuthFlowDetail.TypeEnum.REDIRECT, null, "http://localhost:8080",
-                "particulars", "code", "reference", "1.25").block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Bank must not be null");
+                .hasMessage("Single consent request must not be null");
     }
 
     @Test
     @DisplayName("Verify that null authorisation flow is handled")
-    void createSingleConsentWithNullAuthorisationFlow() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSingleConsent(
-                null, Bank.PNZ, "http://localhost:8080", "particulars", "code", "reference",
-                "1.25").block(), IllegalArgumentException.class);
+    void createSingleConsentWithRedirectFlowAndNullAuthorisationFlow() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow must not be null");
     }
 
+    @Test
+    @DisplayName("Verify that null authorisation flow detail is handled")
+    void createSingleConsentWithRedirectFlowAndNullAuthorisationFlowDetail() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that invalid authorisation flow is handled")
+    void createSingleConsentWithRedirectFlowAndInvalidAuthorisationFlow() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must be a RedirectFlow");
+    }
+
+    @Test
+    @DisplayName("Verify that null bank is handled")
+    void createSingleConsentWithRedirectFlowAndNullBank() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Bank must not be null");
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @DisplayName("Verify that redirect flow with blank redirect URI is handled")
     void createSingleConsentWithRedirectFlowAndBlankRedirectUri(String redirectUri) {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSingleConsent(
-                AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, redirectUri, "particulars", "code", "reference",
-                "1.25").block(), IllegalArgumentException.class);
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(redirectUri)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -153,12 +232,364 @@ class SingleConsentsApiClientTest {
     }
 
     @Test
+    @DisplayName("Verify that null amount is handled")
+    void createSingleConsentWithRedirectFlowAndNullAmount() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createSingleConsentWithRedirectFlowAndNullCurrency() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createSingleConsentWithRedirectFlowAndInvalidTotal(String total) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createSingleConsentWithRedirectFlowAndNullPcr() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .total("1.25"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createSingleConsentWithRedirectFlowAndBlankParticulars(String particulars) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that null request is handled")
+    void createSingleConsentWithDecoupledFlowAndNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(null).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Single consent request must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow is handled")
+    void createSingleConsentWithDecoupledFlowAndNullAuthorisationFlow() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow detail is handled")
+    void createSingleConsentWithDecoupledFlowAndNullAuthorisationFlowDetail() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that invalid authorisation flow is handled")
+    void createSingleConsentWithDecoupledFlowAndInvalidAuthorisationFlow() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must be a DecoupledFlow");
+    }
+
+    @Test
+    @DisplayName("Verify that null bank is handled")
+    void createSingleConsentWithDecoupledFlowAndNullBank() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Bank must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null amount is handled")
+    void createSingleConsentWithDecoupledFlowAndNullAmount() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createSingleConsentWithDecoupledFlowAndNullCurrency() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createSingleConsentWithDecoupledFlowAndInvalidTotal(String total) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createSingleConsentWithDecoupledFlowAndNullPcr() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createSingleConsentWithDecoupledFlowAndBlankParticulars(String particulars) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
     @DisplayName("Verify that decoupled flow with null identifier type is handled")
     void createSingleConsentWithDecoupledFlowAndNullIdentifierType() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", null, null, "+6449144425", "callbackUrl",
-                        UUID.randomUUID().toString()).block(), IllegalArgumentException.class);
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -169,10 +600,23 @@ class SingleConsentsApiClientTest {
     @NullAndEmptySource
     @DisplayName("Verify that decoupled flow with blank identifier value is handled")
     void createSingleConsentWithDecoupledFlowAndBlankIdentifierValue(String identifierValue) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue(identifierValue)
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", null, IdentifierType.PHONE_NUMBER, identifierValue,
-                        "callbackUrl").block(), IllegalArgumentException.class);
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -183,24 +627,316 @@ class SingleConsentsApiClientTest {
     @NullAndEmptySource
     @DisplayName("Verify that decoupled flow with blank callback URL is handled")
     void createSingleConsentWithDecoupledFlowAndBlankCallbackUrl(String callbackUrl) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(callbackUrl)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", null, IdentifierType.PHONE_NUMBER, "+6449144425",
-                        callbackUrl).block(), IllegalArgumentException.class);
+                client.createSingleConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Callback/webhook URL must not be blank");
     }
 
+    @Test
+    @DisplayName("Verify that null request is handled")
+    void createSingleConsentWithGatewayFlowAndNullRequest() {
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(null).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Single consent request must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow is handled")
+    void createSingleConsentWithGatewayFlowAndNullAuthorisationFlow() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow detail is handled")
+    void createSingleConsentWithGatewayFlowAndNullAuthorisationFlowDetail() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that invalid authorisation flow is handled")
+    void createSingleConsentWithGatewayFlowAndInvalidAuthorisationFlow() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Authorisation flow detail must be a GatewayFlow");
+    }
+
+    @Test
+    @DisplayName("Verify that null bank is handled")
+    void createSingleConsentWithGatewayFlowAndNullBank() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint())))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Bank must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null amount is handled")
+    void createSingleConsentWithGatewayFlowAndNullAmount() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Amount must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null currency is handled")
+    void createSingleConsentWithGatewayFlowAndNullCurrency() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Currency must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
+    @DisplayName("Verify that invalid total is handled")
+    void createSingleConsentWithGatewayFlowAndInvalidTotal(String total) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Total is not a valid amount");
+    }
+
+    @Test
+    @DisplayName("Verify that null PCR is handled")
+    void createSingleConsentWithGatewayFlowAndNullPcr() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("PCR must not be null");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" "})
+    @DisplayName("Verify that blank particulars is handled")
+    void createSingleConsentWithGatewayFlowAndBlankParticulars(String particulars) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Particulars must have at least 1 character");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow hint is handled")
+    void createSingleConsentWithGatewayFlowAndNullFlowHint() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Flow hint must not be null");
+    }
+
+    @Test
+    @DisplayName("Verify that null authorisation flow hint type is handled")
+    void createSingleConsentWithGatewayFlowAndNullFlowHintType() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new FlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        IllegalArgumentException exception = catchThrowableOfType(() ->
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+
+        assertThat(exception)
+                .isNotNull()
+                .hasMessage("Flow hint type must not be null");
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @DisplayName("Verify that gateway flow with blank redirect URI is handled")
     void createSingleConsentWithGatewayFlowAndBlankRedirectUri(String redirectUri) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(redirectUri)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, redirectUri, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.REDIRECT, null, null, null,
-                        UUID.randomUUID().toString()).block(), IllegalArgumentException.class);
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -210,10 +946,23 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that gateway flow with null identifier type is handled")
     void createSingleConsentWithGatewayFlowAndNullIdentifierType() {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, null, "particulars",
-                        "code", "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, null, "+6449144425",
-                        "callbackUrl").block(), IllegalArgumentException.class);
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -224,74 +973,28 @@ class SingleConsentsApiClientTest {
     @NullAndEmptySource
     @DisplayName("Verify that gateway flow with blank identifier value is handled")
     void createSingleConsentWithGatewayFlowAndBlankIdentifierValue(String identifierValue) {
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue(identifierValue)
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.GATEWAY, Bank.PNZ, null, "particulars", "code",
-                        "reference", "1.25", FlowHint.TypeEnum.DECOUPLED, IdentifierType.PHONE_NUMBER, identifierValue,
-                        null).block(), IllegalArgumentException.class);
+                client.createSingleConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Identifier value must not be blank");
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @DisplayName("Verify that invalid particulars is handled")
-    void createSingleConsentWithInvalidParticulars(String particulars) {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                        client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ,
-                                "http://localhost:8080", particulars, "code", "reference", "1.25").block(),
-                IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Particulars must have at least 1 character");
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
-    @DisplayName("Verify that invalid total is handled")
-    void createSingleConsentWithInvalidTotal(String total) {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, "http://localhost:8080",
-                        "particulars", "code", "reference", total).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Total is not a valid amount");
-    }
-
-    @Test
-    @DisplayName("Verify that single consent is created")
-    void createSingleConsent() {
-        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
-        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
-
-        UUID consentId = UUID.randomUUID();
-        CreateConsentResponse response = new CreateConsentResponse()
-                .consentId(consentId)
-                .redirectUri(REDIRECT_URI);
-
-        when(webClientBuilder.build()).thenReturn(webClient);
-        when(webClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(SINGLE_CONSENTS_PATH.getValue())).thenReturn(requestBodySpec);
-        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(any(SingleConsentRequest.class))).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
-
-        Mono<CreateConsentResponse> createConsentResponseMono =
-                client.createSingleConsent(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI, "particulars",
-                        "code", "reference", "1.25");
-
-        assertThat(createConsentResponseMono).isNotNull();
-        CreateConsentResponse actual = createConsentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
-                .containsExactly(consentId, REDIRECT_URI);
     }
 
     @Test
@@ -397,5 +1100,180 @@ class SingleConsentsApiClientTest {
         when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.empty());
 
         assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId).block());
+    }
+
+    @Test
+    @DisplayName("Verify that single consent with redirect flow is created")
+    void createSingleConsentWithRedirectFlow() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(SINGLE_CONSENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(SingleConsentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    @DisplayName("Verify that single consent with decoupled flow is created")
+    void createSingleConsentWithDecoupledFlow() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(SINGLE_CONSENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(SingleConsentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created")
+    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(SINGLE_CONSENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(SingleConsentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created")
+    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(SINGLE_CONSENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(SingleConsentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
     }
 }
