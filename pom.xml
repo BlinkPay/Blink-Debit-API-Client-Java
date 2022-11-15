@@ -21,18 +21,18 @@
         </sonar.test.exclusions>
 
         <spring.version>2.7.5</spring.version>
-        <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.4</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
+        <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.5</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>1.7.1</resilience4j.version>
         <lombok.version>1.18.24</lombok.version>
         <validation.api.version>2.0.1.Final</validation.api.version>
-        <swagger.version>2.2.4</swagger.version>
+        <swagger.version>2.2.6</swagger.version>
         <java.jwt.version>4.2.1</java.jwt.version>
         <commons.lang.version>3.12.0</commons.lang.version>
 
         <junit.version>5.9.1</junit.version>
         <spring.boot.starter.test.version>2.7.5</spring.boot.starter.test.version>
-        <spring.cloud.contract.wiremock.version>3.1.4</spring.cloud.contract.wiremock.version>
-        <reactor.test.version>3.4.24</reactor.test.version>
+        <spring.cloud.contract.wiremock.version>3.1.5</spring.cloud.contract.wiremock.version>
+        <reactor.test.version>3.5.0</reactor.test.version>
         <assertj.version>3.23.1</assertj.version>
     </properties>
 

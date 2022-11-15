@@ -1,0 +1,3071 @@
+package nz.co.blink.debit.client.v1;
+
+import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
+import nz.co.blink.debit.dto.v1.Amount;
+import nz.co.blink.debit.dto.v1.AuthFlow;
+import nz.co.blink.debit.dto.v1.AuthFlowDetail;
+import nz.co.blink.debit.dto.v1.Bank;
+import nz.co.blink.debit.dto.v1.BankMetadata;
+import nz.co.blink.debit.dto.v1.BankmetadataFeatures;
+import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlow;
+import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlowAvailableIdentifiers;
+import nz.co.blink.debit.dto.v1.BankmetadataFeaturesEnduringConsent;
+import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
+import nz.co.blink.debit.dto.v1.Consent;
+import nz.co.blink.debit.dto.v1.ConsentDetail;
+import nz.co.blink.debit.dto.v1.CreateConsentResponse;
+import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
+import nz.co.blink.debit.dto.v1.DecoupledFlow;
+import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
+import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
+import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
+import nz.co.blink.debit.dto.v1.FullRefundRequest;
+import nz.co.blink.debit.dto.v1.GatewayFlow;
+import nz.co.blink.debit.dto.v1.IdentifierType;
+import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
+import nz.co.blink.debit.dto.v1.OneOfconsentDetail;
+import nz.co.blink.debit.dto.v1.OneOfrefundRequest;
+import nz.co.blink.debit.dto.v1.PartialRefundRequest;
+import nz.co.blink.debit.dto.v1.Payment;
+import nz.co.blink.debit.dto.v1.PaymentRequest;
+import nz.co.blink.debit.dto.v1.PaymentResponse;
+import nz.co.blink.debit.dto.v1.Pcr;
+import nz.co.blink.debit.dto.v1.Period;
+import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
+import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
+import nz.co.blink.debit.dto.v1.RedirectFlow;
+import nz.co.blink.debit.dto.v1.RedirectFlowHint;
+import nz.co.blink.debit.dto.v1.Refund;
+import nz.co.blink.debit.dto.v1.RefundDetail;
+import nz.co.blink.debit.dto.v1.RefundResponse;
+import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
+/**
+ * The test case for {@link BlinkDebitClient}.
+ */
+@ExtendWith(MockitoExtension.class)
+@Tag("unit")
+class BlinkDebitClientTest {
+
+    @Mock
+    private SingleConsentsApiClient singleConsentsApiClient;
+
+    @Mock
+    private EnduringConsentsApiClient enduringConsentsApiClient;
+
+    @Mock
+    private QuickPaymentsApiClient quickPaymentsApiClient;
+
+    @Mock
+    private PaymentsApiClient paymentsApiClient;
+
+    @Mock
+    private RefundsApiClient refundsApiClient;
+
+    @Mock
+    private MetaApiClient metaApiClient;
+
+    @InjectMocks
+    private BlinkDebitClient client;
+
+    private static final String REDIRECT_URI = "https://www.blinkpay.co.nz/sample-merchant-return-page";
+
+    private static final String CALLBACK_URL = "https://www.mymerchant.co.nz/callback";
+
+    private static final ZoneId ZONE_ID = ZoneId.of("Pacific/Auckland");
+
+    private static final BankMetadata BNZ = new BankMetadata()
+            .name(Bank.BNZ)
+            .features(new BankmetadataFeatures()
+                    .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                            .enabled(true)
+                            .availableIdentifiers(Collections.singletonList(
+                                    new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                            .type(IdentifierType.CONSENT_ID)
+                                            .name("Consent ID")))
+                            .requestTimeout("PT4M")))
+            .redirectFlow(new BankmetadataRedirectFlow()
+                    .enabled(true)
+                    .requestTimeout("PT5M"));
+
+    private static final BankMetadata PNZ = new BankMetadata()
+            .name(Bank.PNZ)
+            .features(new BankmetadataFeatures()
+                    .enduringConsent(new BankmetadataFeaturesEnduringConsent()
+                            .enabled(true)
+                            .consentIndefinite(true))
+                    .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                            .enabled(true)
+                            .availableIdentifiers(Stream.of(
+                                            new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                    .type(IdentifierType.PHONE_NUMBER)
+                                                    .name("Phone Number"),
+                                            new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                    .type(IdentifierType.MOBILE_NUMBER)
+                                                    .name("Mobile Number"))
+                                    .collect(Collectors.toList()))
+                            .requestTimeout("PT3M")))
+            .redirectFlow(new BankmetadataRedirectFlow()
+                    .enabled(true)
+                    .requestTimeout("PT10M"));
+
+    private static final BankMetadata WESTPAC = new BankMetadata()
+            .name(Bank.WESTPAC)
+            .features(new BankmetadataFeatures())
+            .redirectFlow(new BankmetadataRedirectFlow()
+                    .enabled(true)
+                    .requestTimeout("PT10M"));
+
+    private static final BankMetadata ASB = new BankMetadata()
+            .name(Bank.ASB)
+            .features(new BankmetadataFeatures())
+            .redirectFlow(new BankmetadataRedirectFlow()
+                    .enabled(true)
+                    .requestTimeout("PT10M"));
+
+    private static final BankMetadata ANZ = new BankMetadata()
+            .name(Bank.ANZ)
+            .features(new BankmetadataFeatures()
+                    .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                            .enabled(true)
+                            .availableIdentifiers(Stream.of(
+                                            new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                    .type(IdentifierType.MOBILE_NUMBER)
+                                                    .name("Mobile Number"))
+                                    .collect(Collectors.toList()))
+                            .requestTimeout("PT3M")));
+
+    @Test
+    void getMeta() {
+        when(metaApiClient.getMeta())
+                .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
+
+        List<BankMetadata> actual = client.getMeta();
+
+        assertThat(actual)
+                .isNotNull()
+                .hasSize(5)
+                .containsExactlyInAnyOrder(BNZ, PNZ, WESTPAC, ASB, ANZ);
+    }
+
+    @Test
+    void getMetaWithRequestId() {
+        when(metaApiClient.getMeta(anyString()))
+                .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
+
+        List<BankMetadata> actual = client.getMeta(UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .hasSize(5)
+                .containsExactlyInAnyOrder(BNZ, PNZ, WESTPAC, ASB, ANZ);
+    }
+
+    @Test
+    void getMetaAsFlux() {
+        when(metaApiClient.getMeta())
+                .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
+
+        Flux<BankMetadata> actual = client.getMetaAsFlux();
+
+        assertThat(actual).isNotNull();
+        Set<BankMetadata> set = new HashSet<>();
+        StepVerifier
+                .create(actual)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .verifyComplete();
+        assertThat(set)
+                .hasSize(5)
+                .containsExactlyInAnyOrder(BNZ, PNZ, WESTPAC, ASB, ANZ);
+    }
+
+    @Test
+    void getMetaAsFluxWithRequestId() {
+        when(metaApiClient.getMeta(anyString()))
+                .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
+
+        Flux<BankMetadata> actual = client.getMetaAsFlux(UUID.randomUUID().toString());
+
+        assertThat(actual).isNotNull();
+        Set<BankMetadata> set = new HashSet<>();
+        StepVerifier
+                .create(actual)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .verifyComplete();
+        assertThat(set)
+                .hasSize(5)
+                .containsExactlyInAnyOrder(BNZ, PNZ, WESTPAC, ASB, ANZ);
+    }
+
+    @Test
+    void createSingleConsentWithRedirectFlow() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateConsentResponse actual = client.createSingleConsentWithRedirectFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createSingleConsentWithRedirectFlowAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateConsentResponse actual = client.createSingleConsentWithRedirectFlow(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createSingleConsentWithRedirectFlowAsMono() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlowAsMono(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createSingleConsentWithRedirectFlowAsMonoAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlowAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createSingleConsentWithDecoupledFlow() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateConsentResponse actual = client.createSingleConsentWithDecoupledFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithDecoupledFlowAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateConsentResponse actual = client.createSingleConsentWithDecoupledFlow(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithDecoupledFlowAsMono() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlowAsMono(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithDecoupledFlowAsMonoAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlowAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithGatewayFlow() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateConsentResponse actual = client.createSingleConsentWithGatewayFlow(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithGatewayFlowAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateConsentResponse actual = client.createSingleConsentWithGatewayFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithGatewayFlowAsMono() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlowAsMono(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createSingleConsentWithGatewayFlowAsMonoAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        SingleConsentRequest request = new SingleConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlowAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void getSingleConsent() {
+        UUID consentId = UUID.randomUUID();
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")).minusHours(1))
+                .detail((OneOfconsentDetail) new SingleConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference"))
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("1.25"))
+                        .type(ConsentDetail.TypeEnum.SINGLE))
+                .payments(Collections.emptySet());
+        when(singleConsentsApiClient.getSingleConsent(consentId))
+                .thenReturn(Mono.just(consent));
+
+        Consent actual = client.getSingleConsent(consentId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(SingleConsentRequest.class);
+        SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void getSingleConsentWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")).minusHours(1))
+                .detail((OneOfconsentDetail) new SingleConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference"))
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("1.25"))
+                        .type(ConsentDetail.TypeEnum.SINGLE))
+                .payments(Collections.emptySet());
+        when(singleConsentsApiClient.getSingleConsent(consentId, requestId))
+                .thenReturn(Mono.just(consent));
+
+        Consent actual = client.getSingleConsent(consentId, requestId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(SingleConsentRequest.class);
+        SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void getSingleConsentAsMono() {
+        UUID consentId = UUID.randomUUID();
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")).minusHours(1))
+                .detail((OneOfconsentDetail) new SingleConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference"))
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("1.25"))
+                        .type(ConsentDetail.TypeEnum.SINGLE))
+                .payments(Collections.emptySet());
+        when(singleConsentsApiClient.getSingleConsent(consentId))
+                .thenReturn(Mono.just(consent));
+
+        Mono<Consent> consentMono = client.getSingleConsentAsMono(consentId);
+
+        Consent actual = consentMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(SingleConsentRequest.class);
+        SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void getSingleConsentAsMonoWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")).minusHours(1))
+                .detail((OneOfconsentDetail) new SingleConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference"))
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("1.25"))
+                        .type(ConsentDetail.TypeEnum.SINGLE))
+                .payments(Collections.emptySet());
+        when(singleConsentsApiClient.getSingleConsent(consentId, requestId))
+                .thenReturn(Mono.just(consent));
+
+        Mono<Consent> consentMono = client.getSingleConsentAsMono(consentId, requestId);
+
+        Consent actual = consentMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(SingleConsentRequest.class);
+        SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void revokeSingleConsent() {
+        UUID consentId = UUID.randomUUID();
+        when(singleConsentsApiClient.revokeSingleConsent(consentId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId));
+    }
+
+    @Test
+    void revokeSingleConsentWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        when(singleConsentsApiClient.revokeSingleConsent(consentId, requestId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId, requestId));
+    }
+
+    @Test
+    void revokeSingleConsentAsMono() {
+        UUID consentId = UUID.randomUUID();
+        when(singleConsentsApiClient.revokeSingleConsent(consentId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeSingleConsentAsMono(consentId).block());
+    }
+
+    @Test
+    void revokeSingleConsentAsMonoWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        when(singleConsentsApiClient.revokeSingleConsent(consentId, requestId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeSingleConsentAsMono(consentId, requestId).block());
+    }
+
+    @Test
+    void createEnduringConsentWithRedirectFlow() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        CreateConsentResponse actual = client.createEnduringConsentWithRedirectFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createEnduringConsentWithRedirectFlowAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class),
+                anyString()))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        CreateConsentResponse actual = client.createEnduringConsentWithRedirectFlow(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createEnduringConsentWithRedirectFlowAsMono() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlowAsMono(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createEnduringConsentWithRedirectFlowAsMonoAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri(REDIRECT_URI);
+        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class),
+                anyString()))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlowAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createEnduringConsentWithDecoupledFlow() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        CreateConsentResponse actual = client.createEnduringConsentWithDecoupledFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithDecoupledFlowAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class),
+                anyString()))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        CreateConsentResponse actual = client.createEnduringConsentWithDecoupledFlow(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithDecoupledFlowAsMono() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlowAsMono(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithDecoupledFlowAsMonoAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class),
+                anyString()))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlowAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithGatewayFlow() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        CreateConsentResponse actual = client.createEnduringConsentWithGatewayFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithGatewayFlowAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        CreateConsentResponse actual = client.createEnduringConsentWithGatewayFlow(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithGatewayFlowAsMono() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlowAsMono(request);
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void createEnduringConsentWithGatewayFlowAsMonoAndRequestId() {
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId);
+        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        EnduringConsentRequest request = new EnduringConsentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new DecoupledFlowHint()
+                                        .identifierType(IdentifierType.PHONE_NUMBER)
+                                        .identifierValue("+6449144425")
+                                        .bank(Bank.PNZ))))
+                .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .period(Period.MONTHLY)
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlowAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, null);
+    }
+
+    @Test
+    void getEnduringConsent() {
+        UUID consentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(now.minusHours(1))
+                .detail((OneOfconsentDetail) new EnduringConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .period(Period.MONTHLY)
+                        .fromTimestamp(now)
+                        .maximumAmountPeriod(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("50.00"))
+                        .type(ConsentDetail.TypeEnum.ENDURING))
+                .payments(Collections.emptySet());
+        when(enduringConsentsApiClient.getEnduringConsent(consentId))
+                .thenReturn(Mono.just(consent));
+
+        Consent actual = client.getEnduringConsent(consentId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(EnduringConsentRequest.class);
+        EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.ENDURING);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPeriod()).isEqualTo(Period.MONTHLY);
+        assertThat(detail.getFromTimestamp()).isEqualTo(now);
+        assertThat(detail.getMaximumAmountPeriod())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+    }
+
+    @Test
+    void getEnduringConsentWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(now.minusHours(1))
+                .detail((OneOfconsentDetail) new EnduringConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .period(Period.MONTHLY)
+                        .fromTimestamp(now)
+                        .maximumAmountPeriod(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("50.00"))
+                        .type(ConsentDetail.TypeEnum.ENDURING))
+                .payments(Collections.emptySet());
+        when(enduringConsentsApiClient.getEnduringConsent(consentId, requestId))
+                .thenReturn(Mono.just(consent));
+
+        Consent actual = client.getEnduringConsent(consentId, requestId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(EnduringConsentRequest.class);
+        EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.ENDURING);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPeriod()).isEqualTo(Period.MONTHLY);
+        assertThat(detail.getFromTimestamp()).isEqualTo(now);
+        assertThat(detail.getMaximumAmountPeriod())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+    }
+
+    @Test
+    void getEnduringConsentAsMono() {
+        UUID consentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(now.minusHours(1))
+                .detail((OneOfconsentDetail) new EnduringConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .period(Period.MONTHLY)
+                        .fromTimestamp(now)
+                        .maximumAmountPeriod(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("50.00"))
+                        .type(ConsentDetail.TypeEnum.ENDURING))
+                .payments(Collections.emptySet());
+        when(enduringConsentsApiClient.getEnduringConsent(consentId))
+                .thenReturn(Mono.just(consent));
+
+        Mono<Consent> consentMono = client.getEnduringConsentAsMono(consentId);
+
+        Consent actual = consentMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(EnduringConsentRequest.class);
+        EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.ENDURING);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPeriod()).isEqualTo(Period.MONTHLY);
+        assertThat(detail.getFromTimestamp()).isEqualTo(now);
+        assertThat(detail.getMaximumAmountPeriod())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+    }
+
+    @Test
+    void getEnduringConsentAsMonoWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Consent consent = new Consent()
+                .consentId(consentId)
+                .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                .creationTimestamp(now.minusHours(1))
+                .detail((OneOfconsentDetail) new EnduringConsentRequest()
+                        .flow(new AuthFlow()
+                                .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                        .bank(Bank.PNZ)
+                                        .redirectUri(REDIRECT_URI)
+                                        .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                        .period(Period.MONTHLY)
+                        .fromTimestamp(now)
+                        .maximumAmountPeriod(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("50.00"))
+                        .type(ConsentDetail.TypeEnum.ENDURING))
+                .payments(Collections.emptySet());
+        when(enduringConsentsApiClient.getEnduringConsent(consentId, requestId))
+                .thenReturn(Mono.just(consent));
+
+        Mono<Consent> consentMono = client.getEnduringConsentAsMono(consentId, requestId);
+
+        Consent actual = consentMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(actual.getCreationTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
+        assertThat(actual.getDetail())
+                .isNotNull()
+                .isInstanceOf(EnduringConsentRequest.class);
+        EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.ENDURING);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPeriod()).isEqualTo(Period.MONTHLY);
+        assertThat(detail.getFromTimestamp()).isEqualTo(now);
+        assertThat(detail.getMaximumAmountPeriod())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+    }
+
+    @Test
+    void revokeEnduringConsent() {
+        UUID consentId = UUID.randomUUID();
+        when(enduringConsentsApiClient.revokeEnduringConsent(consentId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId));
+    }
+
+    @Test
+    void revokeEnduringConsentWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        when(enduringConsentsApiClient.revokeEnduringConsent(consentId, requestId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId, requestId));
+    }
+
+    @Test
+    void revokeEnduringConsentAsMono() {
+        UUID consentId = UUID.randomUUID();
+        when(enduringConsentsApiClient.revokeEnduringConsent(consentId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsentAsMono(consentId).block());
+    }
+
+    @Test
+    void revokeEnduringConsentAsMonoWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        when(enduringConsentsApiClient.revokeEnduringConsent(consentId, requestId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeEnduringConsentAsMono(consentId, requestId).block());
+    }
+
+    @Test
+    void createQuickPaymentWithRedirectFlow() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateQuickPaymentResponse actual = client.createQuickPaymentWithRedirectFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithRedirectFlowAndRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateQuickPaymentResponse actual = client.createQuickPaymentWithRedirectFlow(request,
+                UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithRedirectFlowAsMono() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithRedirectFlowAsMono(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithRedirectFlowAsMonoAndRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new RedirectFlow()
+                                .bank(Bank.PNZ)
+                                .redirectUri(REDIRECT_URI)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithRedirectFlowAsMono(request, UUID.randomUUID().toString());
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithDecoupledFlow() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId);
+        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateQuickPaymentResponse actual = client.createQuickPaymentWithDecoupledFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, null);
+    }
+
+    @Test
+    void createQuickPaymentWithDecoupledFlowAndRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId);
+        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateQuickPaymentResponse actual = client.createQuickPaymentWithDecoupledFlow(request,
+                UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, null);
+    }
+
+    @Test
+    void createQuickPaymentWithDecoupledFlowAsMono() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId);
+        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithDecoupledFlowAsMono(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, null);
+    }
+
+    @Test
+    void createQuickPaymentWithDecoupledFlowAsMonoAndRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId);
+        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new DecoupledFlow()
+                                .bank(Bank.PNZ)
+                                .identifierType(IdentifierType.PHONE_NUMBER)
+                                .identifierValue("+6449144425")
+                                .callbackUrl(CALLBACK_URL)))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithDecoupledFlowAsMono(request, UUID.randomUUID().toString());
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, null);
+    }
+
+    @Test
+    void createQuickPaymentWithGatewayFlow() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateQuickPaymentResponse actual = client.createQuickPaymentWithGatewayFlow(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithGatewayFlowAndRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        CreateQuickPaymentResponse actual = client.createQuickPaymentWithGatewayFlow(request,
+                UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithGatewayFlowAsMono() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlowAsMono(request);
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void createQuickPaymentWithGatewayFlowAsMonoAndRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+                .flow(new AuthFlow()
+                        .detail(new GatewayFlow()
+                                .redirectUri(REDIRECT_URI)
+                                .flowHint(new RedirectFlowHint()
+                                        .bank(Bank.PNZ))))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("1.25"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
+
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPaymentWithGatewayFlowAsMono(request, UUID.randomUUID().toString());
+
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
+    }
+
+    @Test
+    void getQuickPayment() {
+        UUID quickPaymentId = UUID.randomUUID();
+
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        QuickPaymentResponse response = new QuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .consent(new Consent()
+                        .consentId(quickPaymentId)
+                        .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                        .creationTimestamp(now.minusMinutes(5))
+                        .statusUpdatedTimestamp(now)
+                        .detail((OneOfconsentDetail) new QuickPaymentRequest()
+                                .flow(new AuthFlow()
+                                        .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                                .bank(Bank.PNZ)
+                                                .redirectUri(REDIRECT_URI)
+                                                .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                                .pcr(new Pcr()
+                                        .particulars("particulars")
+                                        .code("code")
+                                        .reference("reference"))
+                                .amount(new Amount()
+                                        .currency(Amount.CurrencyEnum.NZD)
+                                        .total("1.25"))
+                                .type(ConsentDetail.TypeEnum.SINGLE))
+                        .payments(Collections.emptySet()));
+        when(quickPaymentsApiClient.getQuickPayment(quickPaymentId))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentResponse actual = client.getQuickPayment(quickPaymentId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(QuickPaymentResponse::getQuickPaymentId)
+                .isEqualTo(quickPaymentId);
+        Consent consent = actual.getConsent();
+        assertThat(consent)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
+        assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
+        assertThat(consent.getDetail())
+                .isNotNull()
+                .isInstanceOf(QuickPaymentRequest.class);
+        QuickPaymentRequest detail = (QuickPaymentRequest) consent.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void getQuickPaymentWithRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        String requestId = UUID.randomUUID().toString();
+
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        QuickPaymentResponse response = new QuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .consent(new Consent()
+                        .consentId(quickPaymentId)
+                        .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                        .creationTimestamp(now.minusMinutes(5))
+                        .statusUpdatedTimestamp(now)
+                        .detail((OneOfconsentDetail) new QuickPaymentRequest()
+                                .flow(new AuthFlow()
+                                        .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                                .bank(Bank.PNZ)
+                                                .redirectUri(REDIRECT_URI)
+                                                .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                                .pcr(new Pcr()
+                                        .particulars("particulars")
+                                        .code("code")
+                                        .reference("reference"))
+                                .amount(new Amount()
+                                        .currency(Amount.CurrencyEnum.NZD)
+                                        .total("1.25"))
+                                .type(ConsentDetail.TypeEnum.SINGLE))
+                        .payments(Collections.emptySet()));
+        when(quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId))
+                .thenReturn(Mono.just(response));
+
+        QuickPaymentResponse actual = client.getQuickPayment(quickPaymentId, requestId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(QuickPaymentResponse::getQuickPaymentId)
+                .isEqualTo(quickPaymentId);
+        Consent consent = actual.getConsent();
+        assertThat(consent)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
+        assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
+        assertThat(consent.getDetail())
+                .isNotNull()
+                .isInstanceOf(QuickPaymentRequest.class);
+        QuickPaymentRequest detail = (QuickPaymentRequest) consent.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void getQuickPaymentAsMono() {
+        UUID quickPaymentId = UUID.randomUUID();
+
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        QuickPaymentResponse response = new QuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .consent(new Consent()
+                        .consentId(quickPaymentId)
+                        .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                        .creationTimestamp(now.minusMinutes(5))
+                        .statusUpdatedTimestamp(now)
+                        .detail((OneOfconsentDetail) new QuickPaymentRequest()
+                                .flow(new AuthFlow()
+                                        .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                                .bank(Bank.PNZ)
+                                                .redirectUri(REDIRECT_URI)
+                                                .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                                .pcr(new Pcr()
+                                        .particulars("particulars")
+                                        .code("code")
+                                        .reference("reference"))
+                                .amount(new Amount()
+                                        .currency(Amount.CurrencyEnum.NZD)
+                                        .total("1.25"))
+                                .type(ConsentDetail.TypeEnum.SINGLE))
+                        .payments(Collections.emptySet()));
+        when(quickPaymentsApiClient.getQuickPayment(quickPaymentId))
+                .thenReturn(Mono.just(response));
+
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPaymentAsMono(quickPaymentId);
+
+        assertThat(quickPaymentResponseMono).isNotNull();
+        QuickPaymentResponse actual = quickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(QuickPaymentResponse::getQuickPaymentId)
+                .isEqualTo(quickPaymentId);
+        Consent consent = actual.getConsent();
+        assertThat(consent)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
+        assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
+        assertThat(consent.getDetail())
+                .isNotNull()
+                .isInstanceOf(QuickPaymentRequest.class);
+        QuickPaymentRequest detail = (QuickPaymentRequest) consent.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void getQuickPaymentAsMonoWithRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        String requestId = UUID.randomUUID().toString();
+
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        QuickPaymentResponse response = new QuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .consent(new Consent()
+                        .consentId(quickPaymentId)
+                        .status(Consent.StatusEnum.AWAITINGAUTHORISATION)
+                        .creationTimestamp(now.minusMinutes(5))
+                        .statusUpdatedTimestamp(now)
+                        .detail((OneOfconsentDetail) new QuickPaymentRequest()
+                                .flow(new AuthFlow()
+                                        .detail((OneOfauthFlowDetail) new RedirectFlow()
+                                                .bank(Bank.PNZ)
+                                                .redirectUri(REDIRECT_URI)
+                                                .type(AuthFlowDetail.TypeEnum.REDIRECT)))
+                                .pcr(new Pcr()
+                                        .particulars("particulars")
+                                        .code("code")
+                                        .reference("reference"))
+                                .amount(new Amount()
+                                        .currency(Amount.CurrencyEnum.NZD)
+                                        .total("1.25"))
+                                .type(ConsentDetail.TypeEnum.SINGLE))
+                        .payments(Collections.emptySet()));
+        when(quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId))
+                .thenReturn(Mono.just(response));
+
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPaymentAsMono(quickPaymentId, requestId);
+
+        assertThat(quickPaymentResponseMono).isNotNull();
+        QuickPaymentResponse actual = quickPaymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(QuickPaymentResponse::getQuickPaymentId)
+                .isEqualTo(quickPaymentId);
+        Consent consent = actual.getConsent();
+        assertThat(consent)
+                .isNotNull()
+                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+        assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
+        assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
+        assertThat(consent.getDetail())
+                .isNotNull()
+                .isInstanceOf(QuickPaymentRequest.class);
+        QuickPaymentRequest detail = (QuickPaymentRequest) consent.getDetail();
+        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+        assertThat(detail.getFlow()).isNotNull();
+        assertThat(detail.getFlow().getDetail())
+                .isNotNull()
+                .isInstanceOf(RedirectFlow.class);
+        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+        assertThat(flow)
+                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+        assertThat(detail.getPcr())
+                .isNotNull()
+                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                .containsExactly("particulars", "code", "reference");
+        assertThat(detail.getAmount())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "1.25");
+    }
+
+    @Test
+    void revokeQuickPayment() {
+        UUID quickPaymentId = UUID.randomUUID();
+        when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId));
+    }
+
+    @Test
+    void revokeQuickPaymentWithRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        String requestId = UUID.randomUUID().toString();
+        when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId, requestId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId, requestId));
+    }
+
+    @Test
+    void revokeQuickPaymentAsMono() {
+        UUID quickPaymentId = UUID.randomUUID();
+        when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPaymentAsMono(quickPaymentId).block());
+    }
+
+    @Test
+    void revokeQuickPaymentAsMonoWithRequestId() {
+        UUID quickPaymentId = UUID.randomUUID();
+        String requestId = UUID.randomUUID().toString();
+        when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId, requestId))
+                .thenReturn(Mono.empty());
+
+        assertThatNoException().isThrownBy(() -> client.revokeQuickPaymentAsMono(quickPaymentId, requestId).block());
+    }
+
+    @Test
+    void createSinglePayment() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        PaymentResponse actual = client.createSinglePayment(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createSinglePaymentWithRequestId() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        PaymentResponse actual = client.createSinglePayment(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createSinglePaymentAsMono() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createSinglePaymentAsMono(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createSinglePaymentAsMonoWithRequestId() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createSinglePaymentAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createEnduringPayment() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.75"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        PaymentResponse actual = client.createEnduringPayment(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createEnduringPaymentWithRequestId() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.75"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        PaymentResponse actual = client.createEnduringPayment(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createEnduringPaymentAsMono() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.75"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPaymentAsMono(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createEnduringPaymentAsMonoWithRequestId() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .enduringPayment(new EnduringPaymentRequest()
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("25.75"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference")));
+
+        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPaymentAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createWestpacPayment() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .accountReferenceId(UUID.randomUUID());
+
+        PaymentResponse actual = client.createWestpacPayment(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createWestpacPaymentWithRequestId() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .accountReferenceId(UUID.randomUUID());
+
+        PaymentResponse actual = client.createWestpacPayment(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createWestpacPaymentAsMono() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .accountReferenceId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPaymentAsMono(request);
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void createWestpacPaymentAsMonoWithRequestId() {
+        UUID paymentId = UUID.randomUUID();
+        PaymentResponse response = new PaymentResponse()
+                .paymentId(paymentId);
+        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PaymentRequest request = new PaymentRequest()
+                .consentId(UUID.randomUUID())
+                .accountReferenceId(UUID.randomUUID());
+
+        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPaymentAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(paymentResponseMono).isNotNull();
+        PaymentResponse actual = paymentResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(PaymentResponse::getPaymentId)
+                .isEqualTo(paymentId);
+    }
+
+    @Test
+    void getPayment() {
+        UUID consentId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Payment payment = new Payment()
+                .paymentId(paymentId)
+                .type(Payment.TypeEnum.SINGLE)
+                .status(Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .refunds(Collections.emptyList())
+                .detail(new PaymentRequest()
+                        .consentId(consentId));
+        when(paymentsApiClient.getPayment(paymentId))
+                .thenReturn(Mono.just(payment));
+
+        Payment actual = client.getPayment(paymentId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Payment::getPaymentId, Payment::getType, Payment::getStatus, Payment::getRefunds)
+                .containsExactly(paymentId, Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
+                        Collections.emptyList());
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        PaymentRequest paymentRequest = actual.getDetail();
+        assertThat(paymentRequest)
+                .isNotNull()
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
+                        PaymentRequest::getEnduringPayment)
+                .containsExactly(consentId, null, null);
+    }
+
+    @Test
+    void getPaymentWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Payment payment = new Payment()
+                .paymentId(paymentId)
+                .type(Payment.TypeEnum.SINGLE)
+                .status(Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .refunds(Collections.emptyList())
+                .detail(new PaymentRequest()
+                        .consentId(consentId));
+        when(paymentsApiClient.getPayment(paymentId, requestId))
+                .thenReturn(Mono.just(payment));
+
+        Payment actual = client.getPayment(paymentId, requestId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Payment::getPaymentId, Payment::getType, Payment::getStatus, Payment::getRefunds)
+                .containsExactly(paymentId, Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
+                        Collections.emptyList());
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        PaymentRequest paymentRequest = actual.getDetail();
+        assertThat(paymentRequest)
+                .isNotNull()
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
+                        PaymentRequest::getEnduringPayment)
+                .containsExactly(consentId, null, null);
+    }
+
+    @Test
+    void getPaymentAsMono() {
+        UUID consentId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Payment payment = new Payment()
+                .paymentId(paymentId)
+                .type(Payment.TypeEnum.SINGLE)
+                .status(Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .refunds(Collections.emptyList())
+                .detail(new PaymentRequest()
+                        .consentId(consentId));
+        when(paymentsApiClient.getPayment(paymentId))
+                .thenReturn(Mono.just(payment));
+
+        Mono<Payment> paymentMono = client.getPaymentAsMono(paymentId);
+
+        assertThat(paymentMono).isNotNull();
+        Payment actual = paymentMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Payment::getPaymentId, Payment::getType, Payment::getStatus, Payment::getRefunds)
+                .containsExactly(paymentId, Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
+                        Collections.emptyList());
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        PaymentRequest paymentRequest = actual.getDetail();
+        assertThat(paymentRequest)
+                .isNotNull()
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
+                        PaymentRequest::getEnduringPayment)
+                .containsExactly(consentId, null, null);
+    }
+
+    @Test
+    void getPaymentAsMonoWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID consentId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Payment payment = new Payment()
+                .paymentId(paymentId)
+                .type(Payment.TypeEnum.SINGLE)
+                .status(Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .refunds(Collections.emptyList())
+                .detail(new PaymentRequest()
+                        .consentId(consentId));
+        when(paymentsApiClient.getPayment(paymentId, requestId))
+                .thenReturn(Mono.just(payment));
+
+        Mono<Payment> paymentMono = client.getPaymentAsMono(paymentId, requestId);
+
+        assertThat(paymentMono).isNotNull();
+        Payment actual = paymentMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Payment::getPaymentId, Payment::getType, Payment::getStatus, Payment::getRefunds)
+                .containsExactly(paymentId, Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
+                        Collections.emptyList());
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        PaymentRequest paymentRequest = actual.getDetail();
+        assertThat(paymentRequest)
+                .isNotNull()
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
+                        PaymentRequest::getEnduringPayment)
+                .containsExactly(consentId, null, null);
+    }
+
+    @Test
+    void createFullRefund() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class)))
+                .thenReturn(Mono.just(response));
+        FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .paymentId(UUID.randomUUID());
+
+        RefundResponse actual = client.createFullRefund(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createFullRefundWithRequestId() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+        FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .paymentId(UUID.randomUUID());
+
+        RefundResponse actual = client.createFullRefund(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createFullRefundAsMono() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class)))
+                .thenReturn(Mono.just(response));
+        FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .paymentId(UUID.randomUUID());
+
+        Mono<RefundResponse> refundResponseMono = client.createFullRefundAsMono(request);
+
+        assertThat(refundResponseMono).isNotNull();
+        RefundResponse actual = refundResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createFullRefundAsMonoWithRequestId() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+        FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .paymentId(UUID.randomUUID());
+
+        Mono<RefundResponse> refundResponseMono = client.createFullRefundAsMono(request, UUID.randomUUID().toString());
+
+        assertThat(refundResponseMono).isNotNull();
+        RefundResponse actual = refundResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createPartialRefund() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .paymentId(UUID.randomUUID());
+
+        RefundResponse actual = client.createPartialRefund(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createPartialRefundWithRequestId() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .paymentId(UUID.randomUUID());
+
+        RefundResponse actual = client.createPartialRefund(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createPartialRefundAsMono() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .paymentId(UUID.randomUUID());
+
+        Mono<RefundResponse> refundResponseMono = client.createPartialRefundAsMono(request);
+
+        assertThat(refundResponseMono).isNotNull();
+        RefundResponse actual = refundResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createPartialRefundAsMonoWithRequestId() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
+                .consentRedirect("https://www.mymerchant.co.nz")
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .paymentId(UUID.randomUUID());
+
+        Mono<RefundResponse> refundResponseMono = client.createPartialRefundAsMono(request, UUID.randomUUID().toString());
+
+        assertThat(refundResponseMono).isNotNull();
+        RefundResponse actual = refundResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createAccountNumberRefund() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(UUID.randomUUID());
+
+        RefundResponse actual = client.createAccountNumberRefund(request);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createAccountNumberRefundWithRequestId() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(UUID.randomUUID());
+
+        RefundResponse actual = client.createAccountNumberRefund(request, UUID.randomUUID().toString());
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createAccountNumberRefundAsMono() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class)))
+                .thenReturn(Mono.just(response));
+
+        AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(UUID.randomUUID());
+
+        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefundAsMono(request);
+
+        assertThat(refundResponseMono).isNotNull();
+        RefundResponse actual = refundResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void createAccountNumberRefundAsMonoWithRequestId() {
+        UUID refundId = UUID.randomUUID();
+        RefundResponse response = new RefundResponse()
+                .refundId(refundId);
+        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class), anyString()))
+                .thenReturn(Mono.just(response));
+
+        AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
+                .paymentId(UUID.randomUUID());
+
+        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefundAsMono(request,
+                UUID.randomUUID().toString());
+
+        assertThat(refundResponseMono).isNotNull();
+        RefundResponse actual = refundResponseMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(RefundResponse::getRefundId)
+                .isEqualTo(refundId);
+    }
+
+    @Test
+    void getRefund() {
+        UUID paymentId = UUID.randomUUID();
+        UUID refundId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Refund refund = new Refund()
+                .refundId(refundId)
+                .accountNumber("99-6121-6242460-00")
+                .status(Refund.StatusEnum.COMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                        .paymentId(paymentId)
+                        .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
+        when(refundsApiClient.getRefund(refundId))
+                .thenReturn(Mono.just(refund));
+
+        Refund actual = client.getRefund(refundId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Refund::getRefundId, Refund::getStatus, Refund::getAccountNumber)
+                .containsExactly(refundId, Refund.StatusEnum.COMPLETED, "99-6121-6242460-00");
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        RefundDetail refundDetail = (RefundDetail) actual.getDetail();
+        assertThat(refundDetail)
+                .isNotNull()
+                .extracting(RefundDetail::getPaymentId, RefundDetail::getType)
+                .containsExactly(paymentId, RefundDetail.TypeEnum.ACCOUNT_NUMBER);
+    }
+
+    @Test
+    void getRefundWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID paymentId = UUID.randomUUID();
+        UUID refundId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Refund refund = new Refund()
+                .refundId(refundId)
+                .accountNumber("99-6121-6242460-00")
+                .status(Refund.StatusEnum.COMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                        .paymentId(paymentId)
+                        .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
+        when(refundsApiClient.getRefund(refundId, requestId))
+                .thenReturn(Mono.just(refund));
+
+        Refund actual = client.getRefund(refundId, requestId);
+
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Refund::getRefundId, Refund::getStatus, Refund::getAccountNumber)
+                .containsExactly(refundId, Refund.StatusEnum.COMPLETED, "99-6121-6242460-00");
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        RefundDetail refundDetail = (RefundDetail) actual.getDetail();
+        assertThat(refundDetail)
+                .isNotNull()
+                .extracting(RefundDetail::getPaymentId, RefundDetail::getType)
+                .containsExactly(paymentId, RefundDetail.TypeEnum.ACCOUNT_NUMBER);
+    }
+
+    @Test
+    void getRefundAsMono() {
+        UUID paymentId = UUID.randomUUID();
+        UUID refundId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Refund refund = new Refund()
+                .refundId(refundId)
+                .accountNumber("99-6121-6242460-00")
+                .status(Refund.StatusEnum.COMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                        .paymentId(paymentId)
+                        .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
+        when(refundsApiClient.getRefund(refundId))
+                .thenReturn(Mono.just(refund));
+
+        Mono<Refund> refundMono = client.getRefundAsMono(refundId);
+
+        assertThat(refundMono).isNotNull();
+        Refund actual = refundMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Refund::getRefundId, Refund::getStatus, Refund::getAccountNumber)
+                .containsExactly(refundId, Refund.StatusEnum.COMPLETED, "99-6121-6242460-00");
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        RefundDetail refundDetail = (RefundDetail) actual.getDetail();
+        assertThat(refundDetail)
+                .isNotNull()
+                .extracting(RefundDetail::getPaymentId, RefundDetail::getType)
+                .containsExactly(paymentId, RefundDetail.TypeEnum.ACCOUNT_NUMBER);
+    }
+
+    @Test
+    void getRefundAsMonoWithRequestId() {
+        String requestId = UUID.randomUUID().toString();
+        UUID paymentId = UUID.randomUUID();
+        UUID refundId = UUID.randomUUID();
+        OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
+        Refund refund = new Refund()
+                .refundId(refundId)
+                .accountNumber("99-6121-6242460-00")
+                .status(Refund.StatusEnum.COMPLETED)
+                .creationTimestamp(now)
+                .statusUpdatedTimestamp(now.plusMinutes(5))
+                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                        .paymentId(paymentId)
+                        .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
+        when(refundsApiClient.getRefund(refundId, requestId))
+                .thenReturn(Mono.just(refund));
+
+        Mono<Refund> refundMono = client.getRefundAsMono(refundId, requestId);
+
+        assertThat(refundMono).isNotNull();
+        Refund actual = refundMono.block();
+        assertThat(actual)
+                .isNotNull()
+                .extracting(Refund::getRefundId, Refund::getStatus, Refund::getAccountNumber)
+                .containsExactly(refundId, Refund.StatusEnum.COMPLETED, "99-6121-6242460-00");
+        assertThat(actual.getCreationTimestamp()).isEqualTo(now);
+        assertThat(actual.getStatusUpdatedTimestamp()).isEqualTo(now.plusMinutes(5));
+        RefundDetail refundDetail = (RefundDetail) actual.getDetail();
+        assertThat(refundDetail)
+                .isNotNull()
+                .extracting(RefundDetail::getPaymentId, RefundDetail::getType)
+                .containsExactly(paymentId, RefundDetail.TypeEnum.ACCOUNT_NUMBER);
+    }
+
+    @Test
+    void construct() throws IOException {
+        Path propertiesFile = Paths.get("src", "test", "resources", "application.properties");
+
+        Properties properties = new Properties();
+        properties.load(Files.newBufferedReader(propertiesFile));
+
+        assertThatNoException().isThrownBy(() -> new BlinkDebitClient(properties));
+    }
+}

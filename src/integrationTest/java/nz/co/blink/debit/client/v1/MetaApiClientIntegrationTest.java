@@ -120,9 +120,6 @@ class MetaApiClientIntegrationTest {
                                 .enabled(true)
                                 .availableIdentifiers(Stream.of(
                                                 new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
-                                                        .type(IdentifierType.PHONE_NUMBER)
-                                                        .name("Phone Number"),
-                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
                                                         .type(IdentifierType.MOBILE_NUMBER)
                                                         .name("Mobile Number"))
                                         .collect(Collectors.toList()))
@@ -140,9 +137,10 @@ class MetaApiClientIntegrationTest {
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
                 .verifyComplete();
         assertThat(set)
-                .hasSize(4)
-                .containsExactlyInAnyOrder(bnz, pnz, westpac, anz);
+                .hasSize(5)
+                .containsExactlyInAnyOrder(bnz, pnz, westpac, anz, asb);
     }
 }

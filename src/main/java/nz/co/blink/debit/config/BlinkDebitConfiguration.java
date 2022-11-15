@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 @Configuration
 public class BlinkDebitConfiguration {
 
-    @Value("${blinkpay.max.connections:50}")
+    @Value("${blinkpay.max.connections:10}")
     private int maxConnections;
 
     @Value("${blinkpay.max.idle.time:PT20S}")

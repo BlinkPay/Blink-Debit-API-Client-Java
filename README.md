@@ -8,7 +8,7 @@ This SDK allows merchants with Java-based e-commerce site to integrate with Blin
 - Java 8
 - Lombok 1.18
 
-This SDK uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
+This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
 
 # Dependency
 ## Maven
@@ -25,57 +25,64 @@ implementation 'nz.co.blinkpay:blink-debit-api-client-java:1.0.0
 ```
 
 # Configuration
-- Customise/supply the required properties in your `application.yaml` or `application.properties`. Sandbox debit URL is `https://sandbox.debit.blinkpay.co.nz` and production debit URL is `https://debit.blinkpay.co.nz`. The client credentials will be provided to you as part of the on-boarding process.
+- Customise/supply the required properties in your `application.yaml` or `application.properties`. This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
+- Sandbox debit URL is `https://sandbox.debit.blinkpay.co.nz` and production debit URL is `https://debit.blinkpay.co.nz`.
+- The client credentials will be provided to you as part of the on-boarding process. These properties can also be supplied using environment variables.
+> **Warning** Take care not to check in your client ID and secret to your source control.
 ```yaml
 blinkpay:
   debit:
-    url: <BLINKPAY_DEBIT_URL>
+    url: ${BLINKPAY_DEBIT_URL}
   max:
-    connections: 10
+    connections: ${BLINKPAY_MAX_CONNECTIONS:10}
     idle:
-      time: PT20S
+      time: ${BLINKPAY_MAX_IDLE_TIME:PT20S}
     life:
-      time: PT60S
+      time: ${BLINKPAY_MAX_LIFE_TIME:PT60S}
   pending:
     acquire:
-      timeout: PT10S
+      timeout: ${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
   eviction:
-    interval: PT60S
+    interval: ${BLINKPAY_EVICTION_INTERVAL:PT60S}
   client:
-    id: <BLINKPAY_CLIENT_ID>
-    secret: <BLINKPAY_CLIENT_SECRET>
+    id: ${BLINKPAY_CLIENT_ID}
+    secret: ${BLINKPAY_CLIENT_SECRET}
 ```
 ```properties
-blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
-blinkpay.max.connections=10
-blinkpay.max.idle.time=PT20S
-blinkpay.max.life.time=PT60S
-blinkpay.pending.acquire.timeout=PT10S
-blinkpay.eviction.interval=PT60S
-blinkpay.client.id=<BLINKPAY_CLIENT_ID>
-blinkpay.client.secret=<BLINKPAY_CLIENT_SECRET>
+blinkpay.debit.url=${BLINKPAY_DEBIT_URL}
+blinkpay.max.connections=${BLINKPAY_MAX_CONNECTIONS:10}
+blinkpay.max.idle.time=${BLINKPAY_MAX_IDLE_TIME:PT20S}
+blinkpay.max.life.time=${BLINKPAY_MAX_LIFE_TIME:PT60S}
+blinkpay.pending.acquire.timeout=${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
+blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
+blinkpay.client.id=${BLINKPAY_CLIENT_ID}
+blinkpay.client.secret=${BLINKPAY_CLIENT_SECRET}
+# for non-Spring consumer as an alternative to spring.profiles.active property
+blinkpay.active.profile=${BLINKPAY_ACTIVE_PROFILE}
 ```
 
 # Integration
-ReactorClientHttpConnector and AccessTokenHandler must be injected when instantiating the API clients. Alternatively, Spring-based client code can simply autowire the API clients. Optional correlation ID can be added as the last argument.
-## Access Token Handler
+## Client
+Spring-based client code can simply autowire/inject the API client.
 ```java
-private OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
-private AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
+@Autowired
+BlinkDebitClient client;
 ```
+Pure Java client code can load the contents of `application.properties` into Properties.
+```java
+Properties properties = new Properties();
+properties.load(getClass().getClassLoader().getResourceAsStream("application.properties"));
+
+BlinkDebitClient client = new BlinkDebitClient(properties);
+```
+Optional correlation ID can be added as the last argument to API calls.
 
 ## Bank Metadata
 ```java
-private MetaApiClient client = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-```
-```java
-Flux<BankMetadata> bankMetadataFlux = client.getMeta();
+List<BankMetadata> bankMetadataList = client.getMeta();
 ```
 
 ## Single/One-Off Consents
-```java
-private SingleConsentsApiClient client = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-```
 ### Redirect Flow
 ```java
 SingleConsentRequest request = new SingleConsentRequest()
@@ -91,7 +98,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithRedirectFlow(request);
 ```
 ### Decoupled Flow
 ```java
@@ -110,7 +117,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithDecoupledFlow(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
@@ -128,7 +135,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
@@ -148,21 +155,18 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
-Mono<Consent> consentMono = client.getSingleConsent(consentId);
+Consent consent = client.getSingleConsent(consentId);
 ```
 ### Revocation
 ```java
-Mono<Void> voidMono = client.revokeSingleConsent(consentId);
+client.revokeSingleConsent(consentId);
 ```
 
 ## Enduring/Recurring Consents
-```java
-private EnduringConsentsApiClient client = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-```
 ### Redirect Flow
 ```java
 EnduringConsentRequest request = new EnduringConsentRequest()
@@ -177,7 +181,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithRedirectFlow(request);
 ```
 ### Decoupled Flow
 ```java
@@ -195,7 +199,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithDecoupledFlow(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
@@ -212,7 +216,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
@@ -231,27 +235,24 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
-Mono<Consent> consentMono = client.getEnduringConsent(consentId);
+Consent consent = client.getEnduringConsent(consentId);
 ```
 ### Revocation
 ```java
-Mono<Void> voidMono = client.revokeEnduringConsent(consentId);
+client.revokeEnduringConsent(consentId);
 ```
 
 ## Payments
-```java
-private PaymentsApiClient client = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-```
 ### Single/One-Off
 ```java
 PaymentRequest request = new PaymentRequest()
         .consentId(consentId);
 
-Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(request);
+PaymentResponse paymentResponse = client.createSinglePayment(request);
 ```
 ### Enduring/Recurring
 ```java
@@ -266,7 +267,7 @@ PaymentRequest request = new PaymentRequest()
                 .code(code)
                 .reference(reference)));
 
-Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(request);
+PaymentResponse paymentResponse = client.createEnduringPayment(request);
 ```
 ### Westpac
 ```java
@@ -274,17 +275,14 @@ PaymentRequest request = new PaymentRequest()
         .consentId(consentId)
         .accountReferenceId(accountReferenceId);
 
-Mono<PaymentResponse> paymentResponseMono = client.createWestpacPayment(request);
+PaymentResponse paymentResponse = client.createWestpacPayment(request);
 ```
 ### Retrieval
 ```java
-Mono<Payment> paymentMono = client.getPayment(paymentId);
+Payment payment = client.getPayment(paymentId);
 ```
 
 ## Quick Payments
-```java
-private QuickPaymentsApiClient client = new QuickPaymentsApiClient((reactorClientHttpConnector, debitUrl, accessTokenHandler);
-```
 ### Redirect Flow
 ```java
 QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -300,7 +298,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithRedirectFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithRedirectFlow(request);
 ```
 ### Decoupled Flow
 ```java
@@ -319,7 +317,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithDecoupledFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithDecoupledFlow(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
@@ -337,7 +335,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithGatewayFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
@@ -357,27 +355,24 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPaymentWithGatewayFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
-Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
+QuickPaymentResponse quickPaymentResponse = client.getQuickPayment(quickPaymentId);
 ```
 ### Revocation
 ```java
-Mono<Void> voidMono = client.revokeQuickPayment(quickPaymentId);
+client.revokeQuickPayment(quickPaymentId);
 ```
 
 ## Refunds
-```java
-private RefundsApiClient client = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-```
 ### Account Number Refund
 ```java
 AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
         .paymentId(paymentId);
 
-Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(request);
+RefundResponse refundResponse = client.createAccountNumberRefund(request);
 ```
 ### Full Refund
 ```java
@@ -389,7 +384,7 @@ FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
             .reference(reference))
         .paymentId(paymentId);
 
-Mono<RefundResponse> refundResponseMono = client.createFullRefund(request);
+RefundResponse refundResponse = client.createFullRefund(request);
 ```
 ### Partial Refund (Not yet implemented)
 ```java
@@ -404,9 +399,9 @@ PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
             .total(total))
         .paymentId(paymentId);
 
-Mono<RefundResponse> refundResponseMono = client.createPartialRefund(request);
+RefundResponse refundResponse = client.createPartialRefund(request);
 ```
 ### Retrieval
 ```java
-Mono<Refund> refundMono = client.getRefund(refundId);
+Refund refund = client.getRefund(refundId);
 ```
