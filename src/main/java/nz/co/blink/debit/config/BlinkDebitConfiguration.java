@@ -25,6 +25,7 @@ import io.netty.handler.logging.LogLevel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -37,6 +38,9 @@ import java.util.regex.Pattern;
  * The {@link Configuration} for Blink Debit.
  */
 @Configuration
+@PropertySource(value = "classpath:blinkdebit.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "classpath:blinkdebit.yaml", ignoreResourceNotFound = true)
+@PropertySource(value = "classpath:blinkdebit.yml", ignoreResourceNotFound = true)
 public class BlinkDebitConfiguration {
 
     @Value("${blinkpay.max.connections:10}")
@@ -54,7 +58,7 @@ public class BlinkDebitConfiguration {
     @Value("${blinkpay.eviction.interval:PT60S}")
     private Duration evictionInterval;
 
-    @Value("${spring.profiles.active:}")
+    @Value("${spring.profiles.active:test}")
     private String activeProfile;
 
     /**

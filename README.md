@@ -25,7 +25,7 @@ implementation 'nz.co.blinkpay:blink-debit-api-client-java:1.0.0
 ```
 
 # Configuration
-- Customise/supply the required properties in your `application.yaml` or `application.properties`. This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
+- Customise/supply the required properties in your `blinkdebit.yaml` or `blinkdebit.properties`. This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
 - Sandbox debit URL is `https://sandbox.debit.blinkpay.co.nz` and production debit URL is `https://debit.blinkpay.co.nz`.
 - The client credentials will be provided to you as part of the on-boarding process. These properties can also be supplied using environment variables.
 > **Warning** Take care not to check in your client ID and secret to your source control.
@@ -58,7 +58,7 @@ blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
 blinkpay.client.id=${BLINKPAY_CLIENT_ID}
 blinkpay.client.secret=${BLINKPAY_CLIENT_SECRET}
 # for non-Spring consumer as an alternative to spring.profiles.active property
-blinkpay.active.profile=${BLINKPAY_ACTIVE_PROFILE}
+blinkpay.active.profile=${BLINKPAY_ACTIVE_PROFILE:test}
 ```
 
 # Integration
@@ -82,7 +82,162 @@ Optional correlation ID can be added as the last argument to API calls.
 List<BankMetadata> bankMetadataList = client.getMeta();
 ```
 
+## Quick Payments
+### Gateway Flow
+```java
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
+```
+### Gateway Flow - Redirect Flow Hint
+```java
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new RedirectFlowHint()
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
+```
+### Gateway Flow - Decoupled Flow Hint
+```java
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new DecoupledFlowHint()
+                    .identifierType(identifierType)
+                    .identifierValue(identifierValue)
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
+```
+### Redirect Flow
+```java
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new RedirectFlow()
+                .bank(bank)
+                .redirectUri(redirectUri)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithRedirectFlow(request);
+```
+### Decoupled Flow
+```java
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+            .detail(new RedirectFlow()
+                .bank(bank)
+                .identifierType(identifierType)
+                .identifierValue(identifierValue)
+                .callbackUrl(callbackUrl)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithDecoupledFlow(request);
+```
+### Retrieval
+```java
+QuickPaymentResponse quickPaymentResponse = client.getQuickPayment(quickPaymentId);
+```
+### Revocation
+```java
+client.revokeQuickPayment(quickPaymentId);
+```
+
 ## Single/One-Off Consents
+Except for quick payments, the completion of a payment requires a consent in authorised status, followed by a payment.
+### Gateway Flow
+```java
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
+```
+### Gateway Flow - Redirect Flow Hint
+```java
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new RedirectFlowHint()
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
+```
+### Gateway Flow - Decoupled Flow Hint
+```java
+SingleConsentRequest request = new SingleConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new DecoupledFlowHint()
+                    .identifierType(identifierType)
+                    .identifierValue(identifierValue)
+                    .bank(bank))))
+        .amount(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .pcr(new Pcr()
+            .particulars(particulars)
+            .code(code)
+            .reference(reference));
+
+CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
+```
 ### Redirect Flow
 ```java
 SingleConsentRequest request = new SingleConsentRequest()
@@ -119,44 +274,6 @@ SingleConsentRequest request = new SingleConsentRequest()
 
 CreateConsentResponse createConsentResponse = client.createSingleConsentWithDecoupledFlow(request);
 ```
-### Gateway Flow - Redirect Flow Hint
-```java
-SingleConsentRequest request = new SingleConsentRequest()
-        .flow(new AuthFlow()
-            .detail(new GatewayFlow()
-                .redirectUri(redirectUri)
-                .flowHint(new RedirectFlowHint()
-                    .bank(bank))))
-        .amount(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .pcr(new Pcr()
-            .particulars(particulars)
-            .code(code)
-            .reference(reference));
-
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
-```
-### Gateway Flow - Decoupled Flow Hint
-```java
-SingleConsentRequest request = new SingleConsentRequest()
-        .flow(new AuthFlow()
-            .detail(new GatewayFlow()
-                .redirectUri(redirectUri)
-                .flowHint(new DecoupledFlowHint()
-                    .identifierType(identifierType)
-                    .identifierValue(identifierValue)
-                    .bank(bank))))
-        .amount(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .pcr(new Pcr()
-            .particulars(particulars)
-            .code(code)
-            .reference(reference));
-
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
-```
 ### Retrieval
 ```java
 Consent consent = client.getSingleConsent(consentId);
@@ -167,6 +284,58 @@ client.revokeSingleConsent(consentId);
 ```
 
 ## Enduring/Recurring Consents
+Except for quick payments, the completion of a payment requires a consent in authorised status, followed by a payment.
+### Gateway Flow
+```java
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
+```
+### Gateway Flow - Redirect Flow Hint
+```java
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new RedirectFlowHint()
+                    .bank(bank))))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
+```
+### Gateway Flow - Decoupled Flow Hint
+```java
+EnduringConsentRequest request = new EnduringConsentRequest()
+        .flow(new AuthFlow()
+            .detail(new GatewayFlow()
+                .redirectUri(redirectUri)
+                .flowHint(new DecoupledFlowHint()
+                    .identifierType(identifierType)
+                    .identifierValue(identifierValue)
+                    .bank(bank))))
+        .maximumAmountPeriod(new Amount()
+            .currency(Amount.CurrencyEnum.NZD)
+            .total(total))
+        .period(period)
+        .fromTimestamp(startDate)
+        .expiryTimestamp(endDate);
+
+CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
+```
 ### Redirect Flow
 ```java
 EnduringConsentRequest request = new EnduringConsentRequest()
@@ -200,42 +369,6 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .expiryTimestamp(endDate);
 
 CreateConsentResponse createConsentResponse = client.createEnduringConsentWithDecoupledFlow(request);
-```
-### Gateway Flow - Redirect Flow Hint
-```java
-EnduringConsentRequest request = new EnduringConsentRequest()
-        .flow(new AuthFlow()
-            .detail(new GatewayFlow()
-                .redirectUri(redirectUri)
-                .flowHint(new RedirectFlowHint()
-                    .bank(bank))))
-        .maximumAmountPeriod(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .period(period)
-        .fromTimestamp(startDate)
-        .expiryTimestamp(endDate);
-
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
-```
-### Gateway Flow - Decoupled Flow Hint
-```java
-EnduringConsentRequest request = new EnduringConsentRequest()
-        .flow(new AuthFlow()
-            .detail(new GatewayFlow()
-                .redirectUri(redirectUri)
-                .flowHint(new DecoupledFlowHint()
-                    .identifierType(identifierType)
-                    .identifierValue(identifierValue)
-                    .bank(bank))))
-        .maximumAmountPeriod(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .period(period)
-        .fromTimestamp(startDate)
-        .expiryTimestamp(endDate);
-
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
 ```
 ### Retrieval
 ```java
@@ -280,90 +413,6 @@ PaymentResponse paymentResponse = client.createWestpacPayment(request);
 ### Retrieval
 ```java
 Payment payment = client.getPayment(paymentId);
-```
-
-## Quick Payments
-### Redirect Flow
-```java
-QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-        .flow(new AuthFlow()
-            .detail(new RedirectFlow()
-                .bank(bank)
-                .redirectUri(redirectUri)))
-        .amount(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .pcr(new Pcr()
-            .particulars(particulars)
-            .code(code)
-            .reference(reference));
-
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithRedirectFlow(request);
-```
-### Decoupled Flow
-```java
-QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-        .flow(new AuthFlow()
-            .detail(new RedirectFlow()
-                .bank(bank)
-                .identifierType(identifierType)
-                .identifierValue(identifierValue)
-                .callbackUrl(callbackUrl)))
-        .amount(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .pcr(new Pcr()
-            .particulars(particulars)
-            .code(code)
-            .reference(reference));
-
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithDecoupledFlow(request);
-```
-### Gateway Flow - Redirect Flow Hint
-```java
-QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-        .flow(new AuthFlow()
-            .detail(new GatewayFlow()
-                .redirectUri(redirectUri)
-                .flowHint(new RedirectFlowHint()
-                    .bank(bank))))
-        .amount(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .pcr(new Pcr()
-            .particulars(particulars)
-            .code(code)
-            .reference(reference));
-
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
-```
-### Gateway Flow - Decoupled Flow Hint
-```java
-QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-        .flow(new AuthFlow()
-            .detail(new GatewayFlow()
-                .redirectUri(redirectUri)
-                .flowHint(new DecoupledFlowHint()
-                    .identifierType(identifierType)
-                    .identifierValue(identifierValue)
-                    .bank(bank))))
-        .amount(new Amount()
-            .currency(Amount.CurrencyEnum.NZD)
-            .total(total))
-        .pcr(new Pcr()
-            .particulars(particulars)
-            .code(code)
-            .reference(reference));
-
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
-```
-### Retrieval
-```java
-QuickPaymentResponse quickPaymentResponse = client.getQuickPayment(quickPaymentId);
-```
-### Revocation
-```java
-client.revokeQuickPayment(quickPaymentId);
 ```
 
 ## Refunds

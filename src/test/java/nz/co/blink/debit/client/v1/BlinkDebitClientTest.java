@@ -49,7 +49,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -3061,7 +3060,7 @@ class BlinkDebitClientTest {
 
     @Test
     void construct() throws IOException {
-        Path propertiesFile = Paths.get("src", "test", "resources", "application.properties");
+        Path propertiesFile = Paths.get("src", "test", "resources", "blinkdebit.properties");
 
         Properties properties = new Properties();
         properties.load(Files.newBufferedReader(propertiesFile));

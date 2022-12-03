@@ -88,7 +88,53 @@ public class BlinkDebitClient {
         String debitUrl = properties.getProperty("blinkpay.debit.url");
         String clientId = properties.getProperty("blinkpay.client.id");
         String clientSecret = properties.getProperty("blinkpay.client.secret");
-        String activeProfile = properties.getProperty("blinkpay.active.profile");
+        String activeProfile = properties.getProperty("blinkpay.active.profile", "test");
+
+        ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
+                .maxConnections(maxConnections)
+                .maxIdleTime(maxIdleTime)
+                .maxLifeTime(maxLifeTime)
+                .pendingAcquireTimeout(pendingAcquireTimeout)
+                .evictInBackground(evictionInterval)
+                .build();
+
+        HttpClient client;
+        boolean debugMode = Pattern.compile("local|dev|test").matcher(activeProfile).matches();
+        if (debugMode) {
+            client = HttpClient.create(provider)
+                    .wiretap("reactor.netty.http.client.HttpClient", LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+        } else {
+            client = HttpClient.create(provider);
+        }
+        client.warmup().subscribe();
+
+        ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(client);
+
+        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
+        AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
+        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        metaApiClient = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+    }
+
+    /**
+     * Constructor for pure Java application.
+     *
+     * @param debitUrl the Blink Debit URL
+     * @param clientId the client ID
+     * @param clientSecret the client secret
+     * @param activeProfile the active profile
+     */
+    public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
+                            final String activeProfile) {
+        int maxConnections = 10;
+        Duration maxIdleTime = Duration.parse("PT20S");
+        Duration maxLifeTime = Duration.parse("PT60S");
+        Duration pendingAcquireTimeout = Duration.parse("PT10S");
+        Duration evictionInterval = Duration.parse("PT60S");
 
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
                 .maxConnections(maxConnections)
