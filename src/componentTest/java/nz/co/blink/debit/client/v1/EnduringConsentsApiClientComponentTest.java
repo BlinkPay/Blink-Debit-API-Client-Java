@@ -54,6 +54,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -84,6 +85,9 @@ class EnduringConsentsApiClientComponentTest {
     @Autowired
     private ReactorClientHttpConnector connector;
 
+    @Autowired
+    private Validator validator;
+
     @Value("${blinkpay.debit.url}")
     private String debitUrl;
 
@@ -95,7 +99,7 @@ class EnduringConsentsApiClientComponentTest {
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
                 System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"));
 
-        client = new EnduringConsentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient));
+        client = new EnduringConsentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator);
     }
 
     @Test
@@ -114,7 +118,7 @@ class EnduringConsentsApiClientComponentTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -187,7 +191,7 @@ class EnduringConsentsApiClientComponentTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -253,7 +257,7 @@ class EnduringConsentsApiClientComponentTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -283,7 +287,7 @@ class EnduringConsentsApiClientComponentTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

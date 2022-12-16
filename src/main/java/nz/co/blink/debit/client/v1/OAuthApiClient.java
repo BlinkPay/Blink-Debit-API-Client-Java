@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
@@ -102,7 +103,7 @@ public class OAuthApiClient {
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder()
                 .build()
                 .post()
                 .uri(TOKEN_PATH.getValue())
@@ -113,13 +114,14 @@ public class OAuthApiClient {
                 .exchangeToMono(ResponseHandler.getResponseMono(AccessTokenResponse.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) {
+    private WebClient.Builder getWebClientBuilder() {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
 
         return WebClient.builder()
                 .clientConnector(connector)
+                .defaultHeader(HttpHeaders.USER_AGENT, "Java/Blink SDK 1.0")
                 .baseUrl(debitUrl);
     }
 }

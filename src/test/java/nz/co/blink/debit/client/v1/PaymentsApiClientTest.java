@@ -38,6 +38,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -45,6 +46,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -89,13 +93,16 @@ class PaymentsApiClientTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
 
+    @Spy
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     @InjectMocks
     private PaymentsApiClient client;
 
     @Test
     @DisplayName("Verify that null request is handled")
     void createSinglePaymentWithNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSinglePayment(null).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -108,7 +115,7 @@ class PaymentsApiClientTest {
     void createSinglePaymentWithNullConsentId() {
         PaymentRequest request = new PaymentRequest();
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createSinglePayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -119,7 +126,7 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createEnduringPaymentWithNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(null).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -132,26 +139,12 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithNullConsentId() {
         PaymentRequest request = new PaymentRequest();
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Consent ID must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null enduring payment detail is handled")
-    void createEnduringPaymentWithNullDetail() {
-        PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.randomUUID());
-
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
-                IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Enduring payment must not be null");
     }
 
     @Test
@@ -164,7 +157,7 @@ class PaymentsApiClientTest {
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("25.50")));
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -188,7 +181,7 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -210,7 +203,7 @@ class PaymentsApiClientTest {
                                 .code("merchant code")
                                 .reference("merchant reference")));
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -229,7 +222,7 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -250,7 +243,7 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -274,12 +267,12 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createEnduringPayment(request).block(),
-                IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for payment request");
     }
 
     @Test
@@ -398,7 +391,7 @@ class PaymentsApiClientTest {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID());
 
-        Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(request);
+        Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -438,7 +431,7 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(request);
+        Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();

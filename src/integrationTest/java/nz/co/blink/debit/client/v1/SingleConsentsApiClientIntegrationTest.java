@@ -93,7 +93,7 @@ class SingleConsentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -240,7 +240,7 @@ class SingleConsentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -348,7 +348,7 @@ class SingleConsentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -472,7 +472,7 @@ class SingleConsentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

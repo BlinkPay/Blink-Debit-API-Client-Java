@@ -34,19 +34,22 @@
             src/integrationTest/**
         </sonar.test.exclusions>
 
-        <spring.version>2.7.5</spring.version>
+        <spring.version>2.7.6</spring.version>
         <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.5</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>1.7.1</resilience4j.version>
         <lombok.version>1.18.24</lombok.version>
         <validation.api.version>2.0.1.Final</validation.api.version>
-        <swagger.version>2.2.6</swagger.version>
+        <hibernate.validator.version>6.2.5.Final</hibernate.validator.version>
+        <javax.el.version>3.0.0</javax.el.version>
+        <swagger.version>2.2.7</swagger.version>
         <java.jwt.version>4.2.1</java.jwt.version>
         <commons.lang.version>3.12.0</commons.lang.version>
+        <netty.version>4.1.85.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
 
         <junit.version>5.9.1</junit.version>
-        <spring.boot.starter.test.version>2.7.5</spring.boot.starter.test.version>
+        <spring.boot.starter.test.version>2.7.6</spring.boot.starter.test.version>
         <spring.cloud.contract.wiremock.version>3.1.5</spring.cloud.contract.wiremock.version>
-        <reactor.test.version>3.5.0</reactor.test.version>
+        <reactor.test.version>3.5.1</reactor.test.version>
         <assertj.version>3.23.1</assertj.version>
     </properties>
 
@@ -104,6 +107,16 @@
             <artifactId>validation-api</artifactId>
             <version>${validation.api.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate.validator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>${javax.el.version}</version>
+        </dependency>
 
         <!-- Swagger dependencies -->
         <dependency>
@@ -124,6 +137,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons.lang.version}</version>
+        </dependency>
+
+        <!-- Netty dependencies -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <version>${netty.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
@@ -176,7 +196,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.11.0</version>
+                <version>2.14.0</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -303,7 +323,7 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
+                <version>1.6.13</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
@@ -314,7 +334,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -327,7 +347,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -340,7 +360,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>

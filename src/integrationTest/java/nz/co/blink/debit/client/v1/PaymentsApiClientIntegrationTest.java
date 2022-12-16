@@ -105,7 +105,7 @@ class PaymentsApiClientIntegrationTest {
                         .reference("reference"));
 
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
+                singleConsentsApiClient.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -120,7 +120,7 @@ class PaymentsApiClientIntegrationTest {
                 PaymentRequest paymentRequest = new PaymentRequest()
                         .consentId(consentId);
 
-                Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(paymentRequest);
+                Mono<PaymentResponse> paymentResponseMono = client.createPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -185,7 +185,7 @@ class PaymentsApiClientIntegrationTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 
         Mono<CreateConsentResponse> createConsentResponseMono =
-                enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(request);
+                enduringConsentsApiClient.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -208,7 +208,7 @@ class PaymentsApiClientIntegrationTest {
                                         .code("code")
                                         .reference("reference")));
 
-                Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(paymentRequest);
+                Mono<PaymentResponse> paymentResponseMono = client.createPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();

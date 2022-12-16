@@ -54,6 +54,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Validator;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -80,6 +81,9 @@ class SingleConsentsApiClientComponentTest {
     @Autowired
     private ReactorClientHttpConnector connector;
 
+    @Autowired
+    private Validator validator;
+
     @Value("${blinkpay.debit.url}")
     private String debitUrl;
 
@@ -91,7 +95,7 @@ class SingleConsentsApiClientComponentTest {
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
                 System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"));
 
-        client = new SingleConsentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient));
+        client = new SingleConsentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator);
     }
 
     @Test
@@ -111,7 +115,7 @@ class SingleConsentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -188,7 +192,7 @@ class SingleConsentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -257,7 +261,7 @@ class SingleConsentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -288,7 +292,7 @@ class SingleConsentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

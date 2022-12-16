@@ -31,6 +31,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -38,6 +39,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -72,6 +75,9 @@ class OAuthApiClientTest {
 
     @Mock
     private ReactorClientHttpConnector connector;
+
+    @Spy
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @InjectMocks
     private OAuthApiClient client;

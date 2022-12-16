@@ -50,6 +50,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -57,6 +58,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -108,6 +112,9 @@ class EnduringConsentsApiClientTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
 
+    @Spy
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     @InjectMocks
     private EnduringConsentsApiClient client;
 
@@ -115,7 +122,7 @@ class EnduringConsentsApiClientTest {
     @DisplayName("Verify that null request is handled")
     void createEnduringConsentWithRedirectFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(null).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -134,7 +141,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -154,32 +161,11 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow detail must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that invalid authorisation flow is handled")
-    void createEnduringConsentWithRedirectFlowInvalidAuthorisationFlow() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .flow(new AuthFlow()
-                        .detail(new DecoupledFlow()))
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must be a RedirectFlow");
     }
 
     @Test
@@ -197,7 +183,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -219,7 +205,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -239,7 +225,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -261,7 +247,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -285,12 +271,12 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for enduring consent request");
     }
 
     @Test
@@ -308,7 +294,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -332,7 +318,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -343,7 +329,7 @@ class EnduringConsentsApiClientTest {
     @DisplayName("Verify that null request is handled")
     void createEnduringConsentWithDecoupledFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(null).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -362,7 +348,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -382,32 +368,11 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow detail must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that invalid authorisation flow is handled")
-    void createEnduringConsentWithDecoupledFlowInvalidAuthorisationFlow() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .flow(new AuthFlow()
-                        .detail(new GatewayFlow()))
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must be a DecoupledFlow");
     }
 
     @Test
@@ -427,7 +392,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -451,7 +416,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -473,7 +438,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -497,7 +462,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -523,12 +488,12 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for enduring consent request");
     }
 
     @Test
@@ -548,7 +513,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -572,7 +537,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -598,7 +563,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -624,7 +589,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -635,7 +600,7 @@ class EnduringConsentsApiClientTest {
     @DisplayName("Verify that null request is handled")
     void createEnduringConsentWithGatewayFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(null).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -654,7 +619,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -674,32 +639,11 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow detail must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that invalid authorisation flow is handled")
-    void createEnduringConsentWithGatewayFlowInvalidAuthorisationFlow() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .flow(new AuthFlow()
-                        .detail(new RedirectFlow()))
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must be a GatewayFlow");
     }
 
     @Test
@@ -718,7 +662,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -741,7 +685,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -762,7 +706,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -785,7 +729,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -810,12 +754,12 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for enduring consent request");
     }
 
     @Test
@@ -834,7 +778,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -842,8 +786,25 @@ class EnduringConsentsApiClientTest {
     }
 
     @Test
-    @DisplayName("Verify that null authorisation flow hint is handled")
+    @DisplayName("Verify that enduring consent with gateway flow and null flow hint is created")
     void createEnduringConsentWithGatewayFlowAndNullFlowHint() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID consentId = UUID.randomUUID();
+        CreateConsentResponse response = new CreateConsentResponse()
+                .consentId(consentId)
+                .redirectUri("http://localhost:8080");
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(ENDURING_CONSENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(EnduringConsentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -855,12 +816,14 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
-        assertThat(exception)
+        assertThat(createConsentResponseMono).isNotNull();
+        CreateConsentResponse actual = createConsentResponseMono.block();
+        assertThat(actual)
                 .isNotNull()
-                .hasMessage("Flow hint must not be null");
+                .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
+                .containsExactly(consentId, "http://localhost:8080");
     }
 
     @Test
@@ -880,7 +843,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -905,7 +868,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -930,7 +893,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -957,7 +920,7 @@ class EnduringConsentsApiClientTest {
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1098,7 +1061,7 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -1141,7 +1104,7 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -1184,7 +1147,7 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -1228,7 +1191,7 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

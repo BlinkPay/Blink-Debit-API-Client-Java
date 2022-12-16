@@ -57,7 +57,7 @@ blinkpay.pending.acquire.timeout=${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
 blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
 blinkpay.client.id=${BLINKPAY_CLIENT_ID}
 blinkpay.client.secret=${BLINKPAY_CLIENT_SECRET}
-# for non-Spring consumer as an alternative to spring.profiles.active property
+# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
 blinkpay.active.profile=${BLINKPAY_ACTIVE_PROFILE:test}
 ```
 
@@ -97,7 +97,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPayment(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
@@ -115,7 +115,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPayment(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
@@ -135,7 +135,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithGatewayFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPayment(request);
 ```
 ### Redirect Flow
 ```java
@@ -152,7 +152,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithRedirectFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPayment(request);
 ```
 ### Decoupled Flow
 ```java
@@ -171,7 +171,7 @@ QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
             .code(code)
             .reference(reference));
 
-CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPaymentWithDecoupledFlow(request);
+CreateQuickPaymentResponse createQuickPaymentResponse = client.createQuickPayment(request);
 ```
 ### Retrieval
 ```java
@@ -198,7 +198,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsent(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
@@ -216,7 +216,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsent(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
@@ -236,7 +236,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsent(request);
 ```
 ### Redirect Flow
 ```java
@@ -253,7 +253,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithRedirectFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsent(request);
 ```
 ### Decoupled Flow
 ```java
@@ -272,7 +272,7 @@ SingleConsentRequest request = new SingleConsentRequest()
             .code(code)
             .reference(reference));
 
-CreateConsentResponse createConsentResponse = client.createSingleConsentWithDecoupledFlow(request);
+CreateConsentResponse createConsentResponse = client.createSingleConsent(request);
 ```
 ### Retrieval
 ```java
@@ -298,7 +298,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsent(request);
 ```
 ### Gateway Flow - Redirect Flow Hint
 ```java
@@ -315,7 +315,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsent(request);
 ```
 ### Gateway Flow - Decoupled Flow Hint
 ```java
@@ -334,7 +334,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithGatewayFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsent(request);
 ```
 ### Redirect Flow
 ```java
@@ -350,7 +350,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithRedirectFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsent(request);
 ```
 ### Decoupled Flow
 ```java
@@ -368,7 +368,7 @@ EnduringConsentRequest request = new EnduringConsentRequest()
         .fromTimestamp(startDate)
         .expiryTimestamp(endDate);
 
-CreateConsentResponse createConsentResponse = client.createEnduringConsentWithDecoupledFlow(request);
+CreateConsentResponse createConsentResponse = client.createEnduringConsent(request);
 ```
 ### Retrieval
 ```java
@@ -385,7 +385,7 @@ client.revokeEnduringConsent(consentId);
 PaymentRequest request = new PaymentRequest()
         .consentId(consentId);
 
-PaymentResponse paymentResponse = client.createSinglePayment(request);
+PaymentResponse paymentResponse = client.createPayment(request);
 ```
 ### Enduring/Recurring
 ```java
@@ -400,7 +400,7 @@ PaymentRequest request = new PaymentRequest()
                 .code(code)
                 .reference(reference)));
 
-PaymentResponse paymentResponse = client.createEnduringPayment(request);
+PaymentResponse paymentResponse = client.createPayment(request);
 ```
 ### Westpac
 ```java
@@ -421,9 +421,9 @@ Payment payment = client.getPayment(paymentId);
 AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
         .paymentId(paymentId);
 
-RefundResponse refundResponse = client.createAccountNumberRefund(request);
+RefundResponse refundResponse = client.createRefund(request);
 ```
-### Full Refund
+### Full Refund (Not yet implemented)
 ```java
 FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
         .consentRedirect(redirectUri)
@@ -433,7 +433,7 @@ FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
             .reference(reference))
         .paymentId(paymentId);
 
-RefundResponse refundResponse = client.createFullRefund(request);
+RefundResponse refundResponse = client.createRefund(request);
 ```
 ### Partial Refund (Not yet implemented)
 ```java
@@ -448,7 +448,7 @@ PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
             .total(total))
         .paymentId(paymentId);
 
-RefundResponse refundResponse = client.createPartialRefund(request);
+RefundResponse refundResponse = client.createRefund(request);
 ```
 ### Retrieval
 ```java

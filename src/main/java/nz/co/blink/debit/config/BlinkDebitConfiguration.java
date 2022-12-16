@@ -31,6 +31,8 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.Duration;
 import java.util.regex.Pattern;
 
@@ -87,5 +89,15 @@ public class BlinkDebitConfiguration {
         client.warmup().subscribe();
 
         return new ReactorClientHttpConnector(client);
+    }
+
+    /**
+     * Returns the {@link Validator}.
+     *
+     * @return the {@link Validator}
+     */
+    @Bean
+    public Validator validator() {
+        return Validation.buildDefaultValidatorFactory().getValidator();
     }
 }

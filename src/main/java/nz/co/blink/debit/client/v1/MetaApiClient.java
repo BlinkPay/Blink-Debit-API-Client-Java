@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
@@ -103,6 +104,7 @@ public class MetaApiClient {
 
         return WebClient.builder()
                 .clientConnector(connector)
+                .defaultHeader(HttpHeaders.USER_AGENT, "Java/Blink SDK 1.0")
                 .baseUrl(debitUrl)
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }

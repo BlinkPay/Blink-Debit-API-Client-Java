@@ -45,6 +45,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Validator;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -68,6 +69,9 @@ class PaymentsApiClientComponentTest {
     @Autowired
     private ReactorClientHttpConnector connector;
 
+    @Autowired
+    private Validator validator;
+
     @Value("${blinkpay.debit.url}")
     private String debitUrl;
 
@@ -79,7 +83,7 @@ class PaymentsApiClientComponentTest {
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
                 System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"));
 
-        client = new PaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient));
+        client = new PaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator);
     }
 
     @Test
@@ -89,7 +93,7 @@ class PaymentsApiClientComponentTest {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"));
 
-        Mono<PaymentResponse> paymentResponseMono = client.createSinglePayment(request);
+        Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -138,7 +142,7 @@ class PaymentsApiClientComponentTest {
                                 .code("code")
                                 .reference("reference")));
 
-        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPayment(request);
+        Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();

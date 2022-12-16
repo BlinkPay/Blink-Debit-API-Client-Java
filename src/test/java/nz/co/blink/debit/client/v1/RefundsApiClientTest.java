@@ -41,6 +41,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -48,6 +49,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
@@ -91,18 +95,21 @@ class RefundsApiClientTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
 
+    @Spy
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     @InjectMocks
     private RefundsApiClient client;
 
     @Test
     @DisplayName("Verify that null request is handled")
     void createAccountNumberRefundWithNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createAccountNumberRefund(null).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(null).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Account number refund request must not be null");
+                .hasMessage("Refund request must not be null");
     }
 
     @Test
@@ -111,7 +118,7 @@ class RefundsApiClientTest {
         AccountNumberRefundRequest request = new AccountNumberRefundRequest();
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createAccountNumberRefund(request).block(), IllegalArgumentException.class);
+                client.createRefund(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -121,12 +128,12 @@ class RefundsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createFullRefundWithNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createFullRefund(null).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(null).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Full refund request must not be null");
+                .hasMessage("Refund request must not be null");
     }
 
     @Test
@@ -134,7 +141,7 @@ class RefundsApiClientTest {
     void createFullRefundWithNullPaymentId() {
         FullRefundRequest request = new FullRefundRequest();
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createFullRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -149,7 +156,7 @@ class RefundsApiClientTest {
                 .consentRedirect("https://www.mymerchant.co.nz")
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createFullRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -170,7 +177,7 @@ class RefundsApiClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createFullRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -189,7 +196,7 @@ class RefundsApiClientTest {
                         .reference("merchant reference"))
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createFullRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -200,12 +207,12 @@ class RefundsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createPartialRefundWithNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(null).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(null).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Partial refund request must not be null");
+                .hasMessage("Refund request must not be null");
     }
 
     @Test
@@ -213,7 +220,7 @@ class RefundsApiClientTest {
     void createPartialRefundWithNullPaymentId() {
         PartialRefundRequest request = new PartialRefundRequest();
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -228,7 +235,7 @@ class RefundsApiClientTest {
                 .consentRedirect("https://www.mymerchant.co.nz")
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -252,7 +259,7 @@ class RefundsApiClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -271,7 +278,7 @@ class RefundsApiClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -292,7 +299,7 @@ class RefundsApiClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(request).block(),
+        IllegalArgumentException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
                 IllegalArgumentException.class);
 
         assertThat(exception)
@@ -316,12 +323,12 @@ class RefundsApiClientTest {
                         .total(total))
                 .paymentId(UUID.randomUUID());
 
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.createPartialRefund(request).block(),
-                IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
+                ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for refund request");
     }
 
     @Test
@@ -401,7 +408,7 @@ class RefundsApiClientTest {
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -438,7 +445,7 @@ class RefundsApiClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createFullRefund(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -478,7 +485,7 @@ class RefundsApiClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createPartialRefund(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();

@@ -59,6 +59,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Validator;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -85,6 +86,9 @@ class QuickPaymentsApiClientComponentTest {
     @Autowired
     private ReactorClientHttpConnector connector;
 
+    @Autowired
+    private Validator validator;
+
     @Value("${blinkpay.debit.url}")
     private String debitUrl;
 
@@ -96,7 +100,7 @@ class QuickPaymentsApiClientComponentTest {
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
                 System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"));
 
-        client = new QuickPaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient));
+        client = new QuickPaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator);
     }
 
     @Test
@@ -116,8 +120,7 @@ class QuickPaymentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithRedirectFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -196,8 +199,7 @@ class QuickPaymentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -228,8 +230,7 @@ class QuickPaymentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -309,8 +310,7 @@ class QuickPaymentsApiClientComponentTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithDecoupledFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();

@@ -44,11 +44,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -94,6 +97,9 @@ class BlinkDebitClientTest {
 
     @Mock
     private MetaApiClient metaApiClient;
+
+    @Spy
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @InjectMocks
     private BlinkDebitClient client;
@@ -241,7 +247,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class)))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -257,7 +263,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateConsentResponse actual = client.createSingleConsentWithRedirectFlow(request);
+        CreateConsentResponse actual = client.createSingleConsent(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -271,7 +277,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class), anyString()))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -287,7 +293,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateConsentResponse actual = client.createSingleConsentWithRedirectFlow(request, UUID.randomUUID().toString());
+        CreateConsentResponse actual = client.createSingleConsent(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -301,7 +307,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class)))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -317,7 +323,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlowAsMono(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -333,7 +339,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(singleConsentsApiClient.createSingleConsentWithRedirectFlow(any(SingleConsentRequest.class), anyString()))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -349,7 +355,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithRedirectFlowAsMono(request,
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(createConsentResponseMono).isNotNull();
@@ -365,7 +371,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class)))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -383,7 +389,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateConsentResponse actual = client.createSingleConsentWithDecoupledFlow(request);
+        CreateConsentResponse actual = client.createSingleConsent(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -396,7 +402,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class), anyString()))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -414,7 +420,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateConsentResponse actual = client.createSingleConsentWithDecoupledFlow(request, UUID.randomUUID().toString());
+        CreateConsentResponse actual = client.createSingleConsent(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -427,7 +433,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class)))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -445,7 +451,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlowAsMono(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -460,7 +466,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithDecoupledFlow(any(SingleConsentRequest.class), anyString()))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -478,7 +484,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithDecoupledFlowAsMono(request,
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(createConsentResponseMono).isNotNull();
@@ -494,7 +500,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class), anyString()))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -511,7 +517,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateConsentResponse actual = client.createSingleConsentWithGatewayFlow(request, UUID.randomUUID().toString());
+        CreateConsentResponse actual = client.createSingleConsent(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -524,7 +530,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class)))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -541,7 +547,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateConsentResponse actual = client.createSingleConsentWithGatewayFlow(request);
+        CreateConsentResponse actual = client.createSingleConsent(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -554,7 +560,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class)))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -571,7 +577,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlowAsMono(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -586,7 +592,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(singleConsentsApiClient.createSingleConsentWithGatewayFlow(any(SingleConsentRequest.class), anyString()))
+        when(singleConsentsApiClient.createSingleConsent(any(SingleConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         SingleConsentRequest request = new SingleConsentRequest()
@@ -603,7 +609,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentWithGatewayFlowAsMono(request,
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(createConsentResponseMono).isNotNull();
@@ -886,7 +892,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class)))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -902,7 +908,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        CreateConsentResponse actual = client.createEnduringConsentWithRedirectFlow(request);
+        CreateConsentResponse actual = client.createEnduringConsent(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -916,7 +922,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class),
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class),
                 anyString()))
                 .thenReturn(Mono.just(response));
 
@@ -933,7 +939,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        CreateConsentResponse actual = client.createEnduringConsentWithRedirectFlow(request, UUID.randomUUID().toString());
+        CreateConsentResponse actual = client.createEnduringConsent(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -947,7 +953,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class)))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -963,7 +969,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlowAsMono(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -979,7 +985,7 @@ class BlinkDebitClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
-        when(enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(any(EnduringConsentRequest.class),
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class),
                 anyString()))
                 .thenReturn(Mono.just(response));
 
@@ -996,7 +1002,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlowAsMono(request,
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(createConsentResponseMono).isNotNull();
@@ -1012,7 +1018,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class)))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -1029,7 +1035,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        CreateConsentResponse actual = client.createEnduringConsentWithDecoupledFlow(request);
+        CreateConsentResponse actual = client.createEnduringConsent(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -1042,7 +1048,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class),
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class),
                 anyString()))
                 .thenReturn(Mono.just(response));
 
@@ -1060,7 +1066,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        CreateConsentResponse actual = client.createEnduringConsentWithDecoupledFlow(request, UUID.randomUUID().toString());
+        CreateConsentResponse actual = client.createEnduringConsent(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -1073,7 +1079,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class)))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -1090,7 +1096,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlowAsMono(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -1105,7 +1111,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(any(EnduringConsentRequest.class),
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class),
                 anyString()))
                 .thenReturn(Mono.just(response));
 
@@ -1123,7 +1129,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlowAsMono(request,
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(createConsentResponseMono).isNotNull();
@@ -1139,7 +1145,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class)))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -1157,7 +1163,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        CreateConsentResponse actual = client.createEnduringConsentWithGatewayFlow(request);
+        CreateConsentResponse actual = client.createEnduringConsent(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -1170,7 +1176,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class), anyString()))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -1188,7 +1194,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        CreateConsentResponse actual = client.createEnduringConsentWithGatewayFlow(request, UUID.randomUUID().toString());
+        CreateConsentResponse actual = client.createEnduringConsent(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -1201,7 +1207,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class)))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -1219,7 +1225,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlowAsMono(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -1234,7 +1240,7 @@ class BlinkDebitClientTest {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
-        when(enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(any(EnduringConsentRequest.class), anyString()))
+        when(enduringConsentsApiClient.createEnduringConsent(any(EnduringConsentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         EnduringConsentRequest request = new EnduringConsentRequest()
@@ -1252,7 +1258,7 @@ class BlinkDebitClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlowAsMono(request,
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(createConsentResponseMono).isNotNull();
@@ -1523,7 +1529,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class)))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1539,7 +1545,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateQuickPaymentResponse actual = client.createQuickPaymentWithRedirectFlow(request);
+        CreateQuickPaymentResponse actual = client.createQuickPayment(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -1553,7 +1559,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class), anyString()))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1569,7 +1575,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateQuickPaymentResponse actual = client.createQuickPaymentWithRedirectFlow(request,
+        CreateQuickPaymentResponse actual = client.createQuickPayment(request,
                 UUID.randomUUID().toString());
 
         assertThat(actual)
@@ -1584,7 +1590,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class)))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1601,7 +1607,7 @@ class BlinkDebitClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithRedirectFlowAsMono(request);
+                client.createQuickPaymentAsMono(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1617,7 +1623,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(any(QuickPaymentRequest.class), anyString()))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1634,7 +1640,7 @@ class BlinkDebitClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithRedirectFlowAsMono(request, UUID.randomUUID().toString());
+                client.createQuickPaymentAsMono(request, UUID.randomUUID().toString());
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1649,7 +1655,7 @@ class BlinkDebitClientTest {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
-        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class)))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1667,7 +1673,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateQuickPaymentResponse actual = client.createQuickPaymentWithDecoupledFlow(request);
+        CreateQuickPaymentResponse actual = client.createQuickPayment(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -1680,7 +1686,7 @@ class BlinkDebitClientTest {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
-        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class), anyString()))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1698,7 +1704,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateQuickPaymentResponse actual = client.createQuickPaymentWithDecoupledFlow(request,
+        CreateQuickPaymentResponse actual = client.createQuickPayment(request,
                 UUID.randomUUID().toString());
 
         assertThat(actual)
@@ -1712,7 +1718,7 @@ class BlinkDebitClientTest {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
-        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class)))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1731,7 +1737,7 @@ class BlinkDebitClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithDecoupledFlowAsMono(request);
+                client.createQuickPaymentAsMono(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1746,7 +1752,7 @@ class BlinkDebitClientTest {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
-        when(quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(any(QuickPaymentRequest.class), anyString()))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1765,7 +1771,7 @@ class BlinkDebitClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithDecoupledFlowAsMono(request, UUID.randomUUID().toString());
+                client.createQuickPaymentAsMono(request, UUID.randomUUID().toString());
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1781,7 +1787,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class)))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1798,7 +1804,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateQuickPaymentResponse actual = client.createQuickPaymentWithGatewayFlow(request);
+        CreateQuickPaymentResponse actual = client.createQuickPayment(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -1812,7 +1818,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class), anyString()))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1829,7 +1835,7 @@ class BlinkDebitClientTest {
                         .code("code")
                         .reference("reference"));
 
-        CreateQuickPaymentResponse actual = client.createQuickPaymentWithGatewayFlow(request,
+        CreateQuickPaymentResponse actual = client.createQuickPayment(request,
                 UUID.randomUUID().toString());
 
         assertThat(actual)
@@ -1844,7 +1850,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class)))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1862,7 +1868,7 @@ class BlinkDebitClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlowAsMono(request);
+                client.createQuickPaymentAsMono(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1878,7 +1884,7 @@ class BlinkDebitClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
-        when(quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(any(QuickPaymentRequest.class), anyString()))
+        when(quickPaymentsApiClient.createQuickPayment(any(QuickPaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -1896,7 +1902,7 @@ class BlinkDebitClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlowAsMono(request, UUID.randomUUID().toString());
+                client.createQuickPaymentAsMono(request, UUID.randomUUID().toString());
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -2219,13 +2225,13 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class)))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID());
 
-        PaymentResponse actual = client.createSinglePayment(request);
+        PaymentResponse actual = client.createPayment(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -2238,13 +2244,13 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class), anyString()))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID());
 
-        PaymentResponse actual = client.createSinglePayment(request, UUID.randomUUID().toString());
+        PaymentResponse actual = client.createPayment(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -2257,13 +2263,13 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class)))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID());
 
-        Mono<PaymentResponse> paymentResponseMono = client.createSinglePaymentAsMono(request);
+        Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -2278,13 +2284,13 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createSinglePayment(any(PaymentRequest.class), anyString()))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID());
 
-        Mono<PaymentResponse> paymentResponseMono = client.createSinglePaymentAsMono(request,
+        Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(paymentResponseMono).isNotNull();
@@ -2300,7 +2306,7 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class)))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
@@ -2314,7 +2320,7 @@ class BlinkDebitClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        PaymentResponse actual = client.createEnduringPayment(request);
+        PaymentResponse actual = client.createPayment(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -2327,7 +2333,7 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class), anyString()))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
@@ -2341,7 +2347,7 @@ class BlinkDebitClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        PaymentResponse actual = client.createEnduringPayment(request, UUID.randomUUID().toString());
+        PaymentResponse actual = client.createPayment(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -2354,7 +2360,7 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class)))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class)))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
@@ -2368,7 +2374,7 @@ class BlinkDebitClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPaymentAsMono(request);
+        Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request);
 
         assertThat(paymentResponseMono).isNotNull();
         PaymentResponse actual = paymentResponseMono.block();
@@ -2383,7 +2389,7 @@ class BlinkDebitClientTest {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
-        when(paymentsApiClient.createEnduringPayment(any(PaymentRequest.class), anyString()))
+        when(paymentsApiClient.createPayment(any(PaymentRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
@@ -2397,7 +2403,7 @@ class BlinkDebitClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        Mono<PaymentResponse> paymentResponseMono = client.createEnduringPaymentAsMono(request,
+        Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(paymentResponseMono).isNotNull();
@@ -2640,7 +2646,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class)))
+        when(refundsApiClient.createRefund(any(FullRefundRequest.class)))
                 .thenReturn(Mono.just(response));
         FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
                 .consentRedirect("https://www.mymerchant.co.nz")
@@ -2650,7 +2656,7 @@ class BlinkDebitClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        RefundResponse actual = client.createFullRefund(request);
+        RefundResponse actual = client.createRefund(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -2663,7 +2669,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class), anyString()))
+        when(refundsApiClient.createRefund(any(FullRefundRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
         FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
                 .consentRedirect("https://www.mymerchant.co.nz")
@@ -2673,7 +2679,7 @@ class BlinkDebitClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        RefundResponse actual = client.createFullRefund(request, UUID.randomUUID().toString());
+        RefundResponse actual = client.createRefund(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -2686,7 +2692,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class)))
+        when(refundsApiClient.createRefund(any(FullRefundRequest.class)))
                 .thenReturn(Mono.just(response));
         FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
                 .consentRedirect("https://www.mymerchant.co.nz")
@@ -2696,7 +2702,7 @@ class BlinkDebitClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createFullRefundAsMono(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefundAsMono(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -2711,7 +2717,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createFullRefund(any(FullRefundRequest.class), anyString()))
+        when(refundsApiClient.createRefund(any(FullRefundRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
         FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
                 .consentRedirect("https://www.mymerchant.co.nz")
@@ -2721,7 +2727,7 @@ class BlinkDebitClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createFullRefundAsMono(request, UUID.randomUUID().toString());
+        Mono<RefundResponse> refundResponseMono = client.createRefundAsMono(request, UUID.randomUUID().toString());
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -2736,7 +2742,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class)))
+        when(refundsApiClient.createRefund(any(PartialRefundRequest.class)))
                 .thenReturn(Mono.just(response));
 
         PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
@@ -2750,7 +2756,7 @@ class BlinkDebitClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        RefundResponse actual = client.createPartialRefund(request);
+        RefundResponse actual = client.createRefund(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -2763,7 +2769,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class), anyString()))
+        when(refundsApiClient.createRefund(any(PartialRefundRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
@@ -2777,7 +2783,7 @@ class BlinkDebitClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        RefundResponse actual = client.createPartialRefund(request, UUID.randomUUID().toString());
+        RefundResponse actual = client.createRefund(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -2790,7 +2796,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class)))
+        when(refundsApiClient.createRefund(any(PartialRefundRequest.class)))
                 .thenReturn(Mono.just(response));
 
         PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
@@ -2804,7 +2810,7 @@ class BlinkDebitClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createPartialRefundAsMono(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefundAsMono(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -2819,7 +2825,7 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createPartialRefund(any(PartialRefundRequest.class), anyString()))
+        when(refundsApiClient.createRefund(any(PartialRefundRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
@@ -2833,7 +2839,7 @@ class BlinkDebitClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createPartialRefundAsMono(request, UUID.randomUUID().toString());
+        Mono<RefundResponse> refundResponseMono = client.createRefundAsMono(request, UUID.randomUUID().toString());
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -2848,13 +2854,13 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class)))
+        when(refundsApiClient.createRefund(any(AccountNumberRefundRequest.class)))
                 .thenReturn(Mono.just(response));
 
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.randomUUID());
 
-        RefundResponse actual = client.createAccountNumberRefund(request);
+        RefundResponse actual = client.createRefund(request);
 
         assertThat(actual)
                 .isNotNull()
@@ -2867,13 +2873,13 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class), anyString()))
+        when(refundsApiClient.createRefund(any(AccountNumberRefundRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.randomUUID());
 
-        RefundResponse actual = client.createAccountNumberRefund(request, UUID.randomUUID().toString());
+        RefundResponse actual = client.createRefund(request, UUID.randomUUID().toString());
 
         assertThat(actual)
                 .isNotNull()
@@ -2886,13 +2892,13 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class)))
+        when(refundsApiClient.createRefund(any(AccountNumberRefundRequest.class)))
                 .thenReturn(Mono.just(response));
 
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefundAsMono(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefundAsMono(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -2907,13 +2913,13 @@ class BlinkDebitClientTest {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
-        when(refundsApiClient.createAccountNumberRefund(any(AccountNumberRefundRequest.class), anyString()))
+        when(refundsApiClient.createRefund(any(AccountNumberRefundRequest.class), anyString()))
                 .thenReturn(Mono.just(response));
 
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.randomUUID());
 
-        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefundAsMono(request,
+        Mono<RefundResponse> refundResponseMono = client.createRefundAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(refundResponseMono).isNotNull();
@@ -3065,6 +3071,6 @@ class BlinkDebitClientTest {
         Properties properties = new Properties();
         properties.load(Files.newBufferedReader(propertiesFile));
 
-        assertThatNoException().isThrownBy(() -> new BlinkDebitClient(properties));
+        assertThatNoException().isThrownBy(() -> new BlinkDebitClient(properties, validator));
     }
 }

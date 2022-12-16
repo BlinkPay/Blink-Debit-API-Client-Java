@@ -118,7 +118,7 @@ class RefundsApiClientIntegrationTest {
                         .reference("reference"));
 
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
+                singleConsentsApiClient.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -133,7 +133,7 @@ class RefundsApiClientIntegrationTest {
                 PaymentRequest paymentRequest = new PaymentRequest()
                         .consentId(consentId);
 
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createSinglePayment(paymentRequest);
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -155,7 +155,7 @@ class RefundsApiClientIntegrationTest {
         AccountNumberRefundRequest refundRequest = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(paymentId);
 
-        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(refundRequest);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(refundRequest);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -207,7 +207,7 @@ class RefundsApiClientIntegrationTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 
         Mono<CreateConsentResponse> createConsentResponseMono =
-                enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(request);
+                enduringConsentsApiClient.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -230,7 +230,7 @@ class RefundsApiClientIntegrationTest {
                                         .code("code")
                                         .reference("reference")));
 
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createEnduringPayment(paymentRequest);
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -252,7 +252,7 @@ class RefundsApiClientIntegrationTest {
         AccountNumberRefundRequest refundRequest = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(paymentId);
 
-        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(refundRequest);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(refundRequest);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -306,7 +306,7 @@ class RefundsApiClientIntegrationTest {
                         .reference("reference"));
 
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
+                singleConsentsApiClient.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -321,7 +321,7 @@ class RefundsApiClientIntegrationTest {
                 PaymentRequest paymentRequest = new PaymentRequest()
                         .consentId(consentId);
 
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createSinglePayment(paymentRequest);
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -348,7 +348,7 @@ class RefundsApiClientIntegrationTest {
                         .reference("reference"))
                 .paymentId(paymentId);
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createFullRefund(refundRequest).block(),
+        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(refundRequest).block(),
                 RuntimeException.class);
 
         assertThat(exception).isNotNull();
@@ -381,7 +381,7 @@ class RefundsApiClientIntegrationTest {
                         .reference("reference"));
 
         Mono<CreateConsentResponse> createConsentResponseMono =
-                singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
+                singleConsentsApiClient.createSingleConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse createConsentResponse = createConsentResponseMono.block();
@@ -396,7 +396,7 @@ class RefundsApiClientIntegrationTest {
                 PaymentRequest paymentRequest = new PaymentRequest()
                         .consentId(consentId);
 
-                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createSinglePayment(paymentRequest);
+                Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(paymentRequest);
 
                 assertThat(paymentResponseMono).isNotNull();
                 PaymentResponse actual = paymentResponseMono.block();
@@ -426,7 +426,7 @@ class RefundsApiClientIntegrationTest {
                         .total("25.50"))
                 .paymentId(paymentId);
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createPartialRefund(refundRequest).block(),
+        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(refundRequest).block(),
                 RuntimeException.class);
 
         assertThat(exception).isNotNull();

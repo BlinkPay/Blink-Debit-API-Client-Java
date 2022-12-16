@@ -47,6 +47,7 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Validator;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,6 +70,9 @@ class RefundsApiClientComponentTest {
     @Autowired
     private ReactorClientHttpConnector connector;
 
+    @Autowired
+    private Validator validator;
+
     @Value("${blinkpay.debit.url}")
     private String debitUrl;
 
@@ -80,7 +84,7 @@ class RefundsApiClientComponentTest {
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
                 System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"));
 
-        client = new RefundsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient));
+        client = new RefundsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator);
     }
 
     @Test
@@ -90,7 +94,7 @@ class RefundsApiClientComponentTest {
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
 
-        Mono<RefundResponse> refundResponseMono = client.createAccountNumberRefund(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -136,7 +140,7 @@ class RefundsApiClientComponentTest {
                         .reference("reference"))
                 .paymentId(UUID.fromString("5de1b67f-0214-462e-aab5-1d8397b2fe67"));
 
-        Mono<RefundResponse> refundResponseMono = client.createFullRefund(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();
@@ -190,7 +194,7 @@ class RefundsApiClientComponentTest {
                         .total("25.00"))
                 .paymentId(UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436"));
 
-        Mono<RefundResponse> refundResponseMono = client.createPartialRefund(request);
+        Mono<RefundResponse> refundResponseMono = client.createRefund(request);
 
         assertThat(refundResponseMono).isNotNull();
         RefundResponse actual = refundResponseMono.block();

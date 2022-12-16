@@ -51,6 +51,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -58,6 +59,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -107,6 +111,9 @@ class QuickPaymentsApiClientTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
 
+    @Spy
+    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
     @InjectMocks
     private QuickPaymentsApiClient client;
 
@@ -114,7 +121,7 @@ class QuickPaymentsApiClientTest {
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithRedirectFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(null).block(), IllegalArgumentException.class);
+                client.createQuickPayment(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -134,7 +141,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -155,33 +162,11 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow detail must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that invalid authorisation flow is handled")
-    void createQuickPaymentWithRedirectFlowAndInvalidAuthorisationFlow() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow()
-                        .detail(new DecoupledFlow()))
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must be a RedirectFlow");
     }
 
     @Test
@@ -200,7 +185,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -225,7 +210,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -246,7 +231,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -269,7 +254,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -294,12 +279,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for quick payment request");
     }
 
     @Test
@@ -314,7 +299,7 @@ class QuickPaymentsApiClientTest {
                         .total("1.25"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -340,7 +325,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -364,7 +349,7 @@ class QuickPaymentsApiClientTest {
                         .reference("merchant reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -375,7 +360,7 @@ class QuickPaymentsApiClientTest {
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithDecoupledFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(null).block(), IllegalArgumentException.class);
+                client.createQuickPayment(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -395,7 +380,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -416,33 +401,11 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow detail must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that invalid authorisation flow is handled")
-    void createQuickPaymentWithDecoupledFlowAndInvalidAuthorisationFlow() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow()
-                        .detail(new GatewayFlow()))
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must be a DecoupledFlow");
     }
 
     @Test
@@ -463,7 +426,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -486,7 +449,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -511,7 +474,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -538,12 +501,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for quick payment request");
     }
 
     @Test
@@ -560,7 +523,7 @@ class QuickPaymentsApiClientTest {
                         .total("1.25"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -588,7 +551,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -614,7 +577,7 @@ class QuickPaymentsApiClientTest {
                         .reference("merchant reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -639,7 +602,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -666,7 +629,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -693,7 +656,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithDecoupledFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -704,7 +667,7 @@ class QuickPaymentsApiClientTest {
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithGatewayFlowAndNullRequest() {
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(null).block(), IllegalArgumentException.class);
+                client.createQuickPayment(null).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -724,7 +687,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -745,33 +708,11 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Authorisation flow detail must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that invalid authorisation flow is handled")
-    void createQuickPaymentWithGatewayFlowAndInvalidAuthorisationFlow() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow()
-                        .detail(new RedirectFlow()))
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must be a GatewayFlow");
     }
 
     @Test
@@ -791,7 +732,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -813,7 +754,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -837,7 +778,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -863,12 +804,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for quick payment request");
     }
 
     @Test
@@ -885,7 +826,7 @@ class QuickPaymentsApiClientTest {
                         .total("1.25"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -912,7 +853,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -937,7 +878,7 @@ class QuickPaymentsApiClientTest {
                         .reference("merchant reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -947,6 +888,23 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null authorisation flow hint is handled")
     void createQuickPaymentWithGatewayFlowAndNullFlowHint() {
+        ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
+        ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
+
+        UUID quickPaymentId = UUID.randomUUID();
+        CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
+                .quickPaymentId(quickPaymentId)
+                .redirectUri(REDIRECT_URI);
+
+        when(webClientBuilder.build()).thenReturn(webClient);
+        when(webClient.post()).thenReturn(requestBodyUriSpec);
+        when(requestBodyUriSpec.uri(QUICK_PAYMENTS_PATH.getValue())).thenReturn(requestBodySpec);
+        when(requestBodySpec.headers(any(Consumer.class))).thenReturn(requestBodySpec);
+        when(requestBodySpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.contentType(MediaType.APPLICATION_JSON)).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any(QuickPaymentRequest.class))).thenReturn(requestHeadersSpec);
+        when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
+
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -959,12 +917,15 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
+                client.createQuickPayment(request);
 
-        assertThat(exception)
+        assertThat(createQuickPaymentResponseMono).isNotNull();
+        CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
+        assertThat(actual)
                 .isNotNull()
-                .hasMessage("Flow hint must not be null");
+                .extracting(CreateQuickPaymentResponse::getQuickPaymentId, CreateQuickPaymentResponse::getRedirectUri)
+                .containsExactly(quickPaymentId, REDIRECT_URI);
     }
 
     @Test
@@ -985,7 +946,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1011,7 +972,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1037,7 +998,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1065,7 +1026,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1094,7 +1055,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1121,7 +1082,7 @@ class QuickPaymentsApiClientTest {
                         .reference("merchant reference"));
 
         IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithGatewayFlow(request).block(), IllegalArgumentException.class);
+                client.createQuickPayment(request).block(), IllegalArgumentException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1146,12 +1107,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPaymentWithRedirectFlow(request).block(), IllegalArgumentException.class);
+        ConstraintViolationException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), ConstraintViolationException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Total is not a valid amount");
+                .hasMessage("Validation failed for quick payment request");
     }
 
     @Test
@@ -1305,7 +1266,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithRedirectFlow(request);
+                client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1350,7 +1311,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithDecoupledFlow(request);
+                client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1395,7 +1356,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlow(request);
+                client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -1441,7 +1402,7 @@ class QuickPaymentsApiClientTest {
                         .reference("reference"));
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlow(request);
+                client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();

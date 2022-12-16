@@ -95,7 +95,7 @@ class EnduringConsentsApiClientIntegrationTest {
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithRedirectFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -237,7 +237,7 @@ class EnduringConsentsApiClientIntegrationTest {
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -357,7 +357,7 @@ class EnduringConsentsApiClientIntegrationTest {
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithGatewayFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();
@@ -480,7 +480,7 @@ class EnduringConsentsApiClientIntegrationTest {
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 
-        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentWithDecoupledFlow(request);
+        Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
         assertThat(createConsentResponseMono).isNotNull();
         CreateConsentResponse actual = createConsentResponseMono.block();

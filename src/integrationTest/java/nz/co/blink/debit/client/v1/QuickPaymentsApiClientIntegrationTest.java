@@ -95,8 +95,7 @@ class QuickPaymentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithRedirectFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -261,8 +260,7 @@ class QuickPaymentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithDecoupledFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -383,8 +381,7 @@ class QuickPaymentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();
@@ -520,8 +517,7 @@ class QuickPaymentsApiClientIntegrationTest {
                         .code("code")
                         .reference("reference"));
 
-        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
-                client.createQuickPaymentWithGatewayFlow(request);
+        Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
         assertThat(createQuickPaymentResponseMono).isNotNull();
         CreateQuickPaymentResponse actual = createQuickPaymentResponseMono.block();

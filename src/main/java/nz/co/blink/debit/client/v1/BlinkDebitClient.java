@@ -1,20 +1,18 @@
 package nz.co.blink.debit.client.v1;
 
 import io.netty.handler.logging.LogLevel;
-import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
 import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
-import nz.co.blink.debit.dto.v1.FullRefundRequest;
-import nz.co.blink.debit.dto.v1.PartialRefundRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.Refund;
+import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
@@ -27,6 +25,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
+import javax.validation.Validator;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
@@ -51,6 +50,8 @@ public class BlinkDebitClient {
 
     private final MetaApiClient metaApiClient;
 
+    private final Validator validator;
+
     /**
      * Default constructor for Spring-based consumer.
      *
@@ -60,26 +61,30 @@ public class BlinkDebitClient {
      * @param paymentsApiClient         the {@link PaymentsApiClient}
      * @param refundsApiClient          the {@link RefundsApiClient}
      * @param metaApiClient             the {@link MetaApiClient}
+     * @param validator                 the {@link Validator}
      */
     @Autowired
     public BlinkDebitClient(SingleConsentsApiClient singleConsentsApiClient,
                             EnduringConsentsApiClient enduringConsentsApiClient,
                             QuickPaymentsApiClient quickPaymentsApiClient, PaymentsApiClient paymentsApiClient,
-                            RefundsApiClient refundsApiClient, MetaApiClient metaApiClient) {
+                            RefundsApiClient refundsApiClient, MetaApiClient metaApiClient, Validator validator) {
         this.singleConsentsApiClient = singleConsentsApiClient;
         this.enduringConsentsApiClient = enduringConsentsApiClient;
         this.quickPaymentsApiClient = quickPaymentsApiClient;
         this.paymentsApiClient = paymentsApiClient;
         this.refundsApiClient = refundsApiClient;
         this.metaApiClient = metaApiClient;
+        this.validator = validator;
     }
 
     /**
      * Constructor for pure Java application.
      *
      * @param properties the {@link Properties} retrieved from
+     * @param validator  the {@link Validator}
      */
-    public BlinkDebitClient(Properties properties) {
+    public BlinkDebitClient(Properties properties, Validator validator) {
+        this.validator = validator;
         int maxConnections = Integer.parseInt(properties.getProperty("blinkpay.max.connections", "10"));
         Duration maxIdleTime = Duration.parse(properties.getProperty("blinkpay.max.idle.time", "PT20S"));
         Duration maxLifeTime = Duration.parse(properties.getProperty("blinkpay.max.life.time", "PT60S"));
@@ -112,24 +117,26 @@ public class BlinkDebitClient {
 
         OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
-        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, this.validator);
+        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
         metaApiClient = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
     }
 
     /**
      * Constructor for pure Java application.
      *
-     * @param debitUrl the Blink Debit URL
-     * @param clientId the client ID
-     * @param clientSecret the client secret
+     * @param debitUrl      the Blink Debit URL
+     * @param clientId      the client ID
+     * @param clientSecret  the client secret
      * @param activeProfile the active profile
+     * @param validator     the {@link Validator}
      */
     public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
-                            final String activeProfile) {
+                            final String activeProfile, Validator validator) {
+        this.validator = validator;
         int maxConnections = 10;
         Duration maxIdleTime = Duration.parse("PT20S");
         Duration maxLifeTime = Duration.parse("PT60S");
@@ -158,11 +165,11 @@ public class BlinkDebitClient {
 
         OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
-        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
-        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
+        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, this.validator);
+        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
         metaApiClient = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
     }
 
@@ -205,135 +212,47 @@ public class BlinkDebitClient {
     }
 
     /**
+     * Creates a single consent.
+     *
+     * @param request the {@link SingleConsentRequest}
+     * @return the {@link CreateConsentResponse}
+     */
+    public CreateConsentResponse createSingleConsent(SingleConsentRequest request) {
+        return createSingleConsentAsMono(request).block();
+    }
+
+    /**
+     * Creates a single consent.
+     *
+     * @param request   the {@link SingleConsentRequest}
+     * @param requestId the optional correlation ID
+     * @return the {@link CreateConsentResponse}
+     */
+    public CreateConsentResponse createSingleConsent(SingleConsentRequest request,
+                                                     final String requestId) {
+        return createSingleConsentAsMono(request, requestId).block();
+    }
+
+    /**
+     * Creates a single consent.
+     *
+     * @param request the {@link SingleConsentRequest}
+     * @return the {@link CreateConsentResponse} {@link Mono}
+     */
+    public Mono<CreateConsentResponse> createSingleConsentAsMono(SingleConsentRequest request) {
+        return singleConsentsApiClient.createSingleConsent(request);
+    }
+
+    /**
      * Creates a single consent with redirect flow.
      *
-     * @param request the {@link SingleConsentRequest}
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createSingleConsentWithRedirectFlow(SingleConsentRequest request) {
-        return createSingleConsentWithRedirectFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates a single consent with redirect flow.
-     *
-     * @param request   the {@link SingleConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createSingleConsentWithRedirectFlow(SingleConsentRequest request,
-                                                                     final String requestId) {
-        return createSingleConsentWithRedirectFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates a single consent with redirect flow.
-     *
-     * @param request the {@link SingleConsentRequest}
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createSingleConsentWithRedirectFlowAsMono(SingleConsentRequest request) {
-        return singleConsentsApiClient.createSingleConsentWithRedirectFlow(request);
-    }
-
-    /**
-     * Creates a single consent with redirect flow.
-     *
      * @param request   the {@link SingleConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
      */
-    public Mono<CreateConsentResponse> createSingleConsentWithRedirectFlowAsMono(SingleConsentRequest request,
-                                                                                 final String requestId) {
-        return singleConsentsApiClient.createSingleConsentWithRedirectFlow(request, requestId);
-    }
-
-    /**
-     * Creates a single consent with decoupled flow.
-     *
-     * @param request the {@link SingleConsentRequest}
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createSingleConsentWithDecoupledFlow(SingleConsentRequest request) {
-        return createSingleConsentWithDecoupledFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates a single consent with decoupled flow.
-     *
-     * @param request   the {@link SingleConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createSingleConsentWithDecoupledFlow(SingleConsentRequest request,
-                                                                      final String requestId) {
-        return createSingleConsentWithDecoupledFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates a single consent with decoupled flow.
-     *
-     * @param request the {@link SingleConsentRequest}
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createSingleConsentWithDecoupledFlowAsMono(SingleConsentRequest request) {
-        return singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request);
-    }
-
-    /**
-     * Creates a single consent with decoupled flow.
-     *
-     * @param request   the {@link SingleConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createSingleConsentWithDecoupledFlowAsMono(SingleConsentRequest request,
-                                                                                  final String requestId) {
-        return singleConsentsApiClient.createSingleConsentWithDecoupledFlow(request, requestId);
-    }
-
-    /**
-     * Creates a single consent with gateway flow.
-     *
-     * @param request the {@link SingleConsentRequest}
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createSingleConsentWithGatewayFlow(SingleConsentRequest request) {
-        return createSingleConsentWithGatewayFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates a single consent with gateway flow.
-     *
-     * @param request   the {@link SingleConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createSingleConsentWithGatewayFlow(SingleConsentRequest request,
-                                                                    final String requestId) {
-        return createSingleConsentWithGatewayFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates a single consent with gateway flow.
-     *
-     * @param request the {@link SingleConsentRequest}
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createSingleConsentWithGatewayFlowAsMono(SingleConsentRequest request) {
-        return singleConsentsApiClient.createSingleConsentWithGatewayFlow(request);
-    }
-
-    /**
-     * Creates a single consent with gateway flow.
-     *
-     * @param request   the {@link SingleConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createSingleConsentWithGatewayFlowAsMono(SingleConsentRequest request,
-                                                                                final String requestId) {
-        return singleConsentsApiClient.createSingleConsentWithGatewayFlow(request, requestId);
+    public Mono<CreateConsentResponse> createSingleConsentAsMono(SingleConsentRequest request,
+                                                                 final String requestId) {
+        return singleConsentsApiClient.createSingleConsent(request, requestId);
     }
 
     /**
@@ -417,135 +336,47 @@ public class BlinkDebitClient {
     }
 
     /**
-     * Creates an enduring consent with redirect flow.
+     * Creates an enduring consent.
      *
      * @param request the {@link EnduringConsentRequest}
      * @return the {@link CreateConsentResponse}
      */
-    public CreateConsentResponse createEnduringConsentWithRedirectFlow(EnduringConsentRequest request) {
-        return createEnduringConsentWithRedirectFlowAsMono(request).block();
+    public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request) {
+        return createEnduringConsentAsMono(request).block();
     }
 
     /**
-     * Creates an enduring consent with redirect flow.
+     * Creates an enduring consent.
      *
      * @param request   the {@link EnduringConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse}
      */
-    public CreateConsentResponse createEnduringConsentWithRedirectFlow(EnduringConsentRequest request,
-                                                                       final String requestId) {
-        return createEnduringConsentWithRedirectFlowAsMono(request, requestId).block();
+    public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request,
+                                                       final String requestId) {
+        return createEnduringConsentAsMono(request, requestId).block();
     }
 
     /**
-     * Creates an enduring consent with redirect flow.
+     * Creates an enduring consent.
      *
      * @param request the {@link EnduringConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
      */
-    public Mono<CreateConsentResponse> createEnduringConsentWithRedirectFlowAsMono(EnduringConsentRequest request) {
-        return enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(request);
+    public Mono<CreateConsentResponse> createEnduringConsentAsMono(EnduringConsentRequest request) {
+        return enduringConsentsApiClient.createEnduringConsent(request);
     }
 
     /**
-     * Creates an enduring consent with redirect flow.
+     * Creates an enduring consent.
      *
      * @param request   the {@link EnduringConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
      */
-    public Mono<CreateConsentResponse> createEnduringConsentWithRedirectFlowAsMono(EnduringConsentRequest request,
-                                                                                   final String requestId) {
-        return enduringConsentsApiClient.createEnduringConsentWithRedirectFlow(request, requestId);
-    }
-
-    /**
-     * Creates an enduring consent with decoupled flow.
-     *
-     * @param request the {@link EnduringConsentRequest}
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createEnduringConsentWithDecoupledFlow(EnduringConsentRequest request) {
-        return createEnduringConsentWithDecoupledFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates an enduring consent with decoupled flow.
-     *
-     * @param request   the {@link EnduringConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createEnduringConsentWithDecoupledFlow(EnduringConsentRequest request,
-                                                                        final String requestId) {
-        return createEnduringConsentWithDecoupledFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates an enduring consent with decoupled flow.
-     *
-     * @param request the {@link EnduringConsentRequest}
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createEnduringConsentWithDecoupledFlowAsMono(EnduringConsentRequest request) {
-        return enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(request);
-    }
-
-    /**
-     * Creates an enduring consent with decoupled flow.
-     *
-     * @param request   the {@link EnduringConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createEnduringConsentWithDecoupledFlowAsMono(EnduringConsentRequest request,
-                                                                                    final String requestId) {
-        return enduringConsentsApiClient.createEnduringConsentWithDecoupledFlow(request, requestId);
-    }
-
-    /**
-     * Creates an enduring consent with gateway flow.
-     *
-     * @param request the {@link EnduringConsentRequest}
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createEnduringConsentWithGatewayFlow(EnduringConsentRequest request) {
-        return createEnduringConsentWithGatewayFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates an enduring consent with gateway flow.
-     *
-     * @param request   the {@link EnduringConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse}
-     */
-    public CreateConsentResponse createEnduringConsentWithGatewayFlow(EnduringConsentRequest request,
-                                                                      final String requestId) {
-        return createEnduringConsentWithGatewayFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates an enduring consent with gateway flow.
-     *
-     * @param request the {@link EnduringConsentRequest}
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createEnduringConsentWithGatewayFlowAsMono(EnduringConsentRequest request) {
-        return enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(request);
-    }
-
-    /**
-     * Creates an enduring consent with gateway flow.
-     *
-     * @param request   the {@link EnduringConsentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateConsentResponse} {@link Mono}
-     */
-    public Mono<CreateConsentResponse> createEnduringConsentWithGatewayFlowAsMono(EnduringConsentRequest request,
-                                                                                  final String requestId) {
-        return enduringConsentsApiClient.createEnduringConsentWithGatewayFlow(request, requestId);
+    public Mono<CreateConsentResponse> createEnduringConsentAsMono(EnduringConsentRequest request,
+                                                                   final String requestId) {
+        return enduringConsentsApiClient.createEnduringConsent(request, requestId);
     }
 
     /**
@@ -629,135 +460,47 @@ public class BlinkDebitClient {
     }
 
     /**
-     * Creates a quick payment with redirect flow.
+     * Creates a quick payment.
      *
      * @param request the {@link QuickPaymentRequest}
      * @return the {@link CreateQuickPaymentResponse}
      */
-    public CreateQuickPaymentResponse createQuickPaymentWithRedirectFlow(QuickPaymentRequest request) {
-        return createQuickPaymentWithRedirectFlowAsMono(request).block();
+    public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request) {
+        return createQuickPaymentAsMono(request).block();
     }
 
     /**
-     * Creates a quick payment with redirect flow.
+     * Creates a quick payment.
      *
      * @param request   the {@link QuickPaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateQuickPaymentResponse}
      */
-    public CreateQuickPaymentResponse createQuickPaymentWithRedirectFlow(QuickPaymentRequest request,
-                                                                         final String requestId) {
-        return createQuickPaymentWithRedirectFlowAsMono(request, requestId).block();
+    public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request,
+                                                         final String requestId) {
+        return createQuickPaymentAsMono(request, requestId).block();
     }
 
     /**
-     * Creates a quick payment with redirect flow.
+     * Creates a quick payment.
      *
      * @param request the {@link QuickPaymentRequest}
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
      */
-    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithRedirectFlowAsMono(QuickPaymentRequest request) {
-        return quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(request);
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentAsMono(QuickPaymentRequest request) {
+        return quickPaymentsApiClient.createQuickPayment(request);
     }
 
     /**
-     * Creates a quick payment with redirect flow.
+     * Creates a quick payment.
      *
      * @param request   the {@link QuickPaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
      */
-    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithRedirectFlowAsMono(QuickPaymentRequest request,
-                                                                                     final String requestId) {
-        return quickPaymentsApiClient.createQuickPaymentWithRedirectFlow(request, requestId);
-    }
-
-    /**
-     * Creates a quick payment with decoupled flow.
-     *
-     * @param request the {@link QuickPaymentRequest}
-     * @return the {@link CreateQuickPaymentResponse}
-     */
-    public CreateQuickPaymentResponse createQuickPaymentWithDecoupledFlow(QuickPaymentRequest request) {
-        return createQuickPaymentWithDecoupledFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates a quick payment with decoupled flow.
-     *
-     * @param request   the {@link QuickPaymentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateQuickPaymentResponse}
-     */
-    public CreateQuickPaymentResponse createQuickPaymentWithDecoupledFlow(QuickPaymentRequest request,
-                                                                          final String requestId) {
-        return createQuickPaymentWithDecoupledFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates a quick payment with decoupled flow.
-     *
-     * @param request the {@link QuickPaymentRequest}
-     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     */
-    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithDecoupledFlowAsMono(QuickPaymentRequest request) {
-        return quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(request);
-    }
-
-    /**
-     * Creates a quick payment with decoupled flow.
-     *
-     * @param request   the {@link QuickPaymentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     */
-    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithDecoupledFlowAsMono(QuickPaymentRequest request,
-                                                                                      final String requestId) {
-        return quickPaymentsApiClient.createQuickPaymentWithDecoupledFlow(request, requestId);
-    }
-
-    /**
-     * Creates a quick payment with gateway flow.
-     *
-     * @param request the {@link QuickPaymentRequest}
-     * @return the {@link CreateQuickPaymentResponse}
-     */
-    public CreateQuickPaymentResponse createQuickPaymentWithGatewayFlow(QuickPaymentRequest request) {
-        return createQuickPaymentWithGatewayFlowAsMono(request).block();
-    }
-
-    /**
-     * Creates a quick payment with gateway flow.
-     *
-     * @param request   the {@link QuickPaymentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateQuickPaymentResponse}
-     */
-    public CreateQuickPaymentResponse createQuickPaymentWithGatewayFlow(QuickPaymentRequest request,
-                                                                        final String requestId) {
-        return createQuickPaymentWithGatewayFlowAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates a quick payment with gateway flow.
-     *
-     * @param request the {@link QuickPaymentRequest}
-     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     */
-    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithGatewayFlowAsMono(QuickPaymentRequest request) {
-        return quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(request);
-    }
-
-    /**
-     * Creates a quick payment with gateway flow.
-     *
-     * @param request   the {@link QuickPaymentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     */
-    public Mono<CreateQuickPaymentResponse> createQuickPaymentWithGatewayFlowAsMono(QuickPaymentRequest request,
-                                                                                    final String requestId) {
-        return quickPaymentsApiClient.createQuickPaymentWithGatewayFlow(request, requestId);
+    public Mono<CreateQuickPaymentResponse> createQuickPaymentAsMono(QuickPaymentRequest request,
+                                                                     final String requestId) {
+        return quickPaymentsApiClient.createQuickPayment(request, requestId);
     }
 
     /**
@@ -841,92 +584,50 @@ public class BlinkDebitClient {
     }
 
     /**
-     * Creates a single payment.
+     * Creates a payment.
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse}
      */
-    public PaymentResponse createSinglePayment(PaymentRequest request) {
-        return createSinglePaymentAsMono(request).block();
+    public PaymentResponse createPayment(PaymentRequest request) {
+        return createPaymentAsMono(request).block();
     }
 
     /**
-     * Creates a single payment.
+     * Creates a payment.
      *
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse}
      */
-    public PaymentResponse createSinglePayment(PaymentRequest request, final String requestId) {
-        return createSinglePaymentAsMono(request, requestId).block();
+    public PaymentResponse createPayment(PaymentRequest request, final String requestId) {
+        return createPaymentAsMono(request, requestId).block();
     }
 
     /**
-     * Creates a single payment.
+     * Creates a payment.
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
      */
-    public Mono<PaymentResponse> createSinglePaymentAsMono(PaymentRequest request) {
-        return paymentsApiClient.createSinglePayment(request);
+    public Mono<PaymentResponse> createPaymentAsMono(PaymentRequest request) {
+        return paymentsApiClient.createPayment(request);
     }
 
     /**
-     * Creates a single payment.
+     * Creates a payment.
      *
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
      */
-    public Mono<PaymentResponse> createSinglePaymentAsMono(PaymentRequest request, final String requestId) {
-        return paymentsApiClient.createSinglePayment(request, requestId);
-    }
-
-    /**
-     * Creates an enduring payment.
-     *
-     * @param request the {@link PaymentRequest}
-     * @return the {@link PaymentResponse}
-     */
-    public PaymentResponse createEnduringPayment(PaymentRequest request) {
-        return createEnduringPaymentAsMono(request).block();
-    }
-
-    /**
-     * Creates an enduring payment.
-     *
-     * @param request   the {@link PaymentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link PaymentResponse}
-     */
-    public PaymentResponse createEnduringPayment(PaymentRequest request, final String requestId) {
-        return createEnduringPaymentAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates an enduring payment.
-     *
-     * @param request the {@link PaymentRequest}
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createEnduringPaymentAsMono(PaymentRequest request) {
-        return paymentsApiClient.createEnduringPayment(request);
-    }
-
-    /**
-     * Creates an enduring payment.
-     *
-     * @param request   the {@link PaymentRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link PaymentResponse} {@link Mono}
-     */
-    public Mono<PaymentResponse> createEnduringPaymentAsMono(PaymentRequest request, final String requestId) {
-        return paymentsApiClient.createEnduringPayment(request, requestId);
+    public Mono<PaymentResponse> createPaymentAsMono(PaymentRequest request, final String requestId) {
+        return paymentsApiClient.createPayment(request, requestId);
     }
 
     /**
      * Creates a Westpac payment. Once Westpac enables their Open Banking API, this can be replaced with
-     * {@link #createSinglePayment(PaymentRequest)}.
+     * {@link #createPayment(PaymentRequest)}.
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse}
@@ -937,7 +638,7 @@ public class BlinkDebitClient {
 
     /**
      * Creates a Westpac payment. Once Westpac enables their Open Banking API, this can be replaced with
-     * {@link #createSinglePayment(PaymentRequest, String)}.
+     * {@link #createPayment(PaymentRequest, String)}.
      *
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
@@ -949,7 +650,7 @@ public class BlinkDebitClient {
 
     /**
      * Creates a Westpac payment. Once Westpac enables their Open Banking API, this can be replaced with
-     * {@link #createSinglePayment(PaymentRequest)}.
+     * {@link #createPayment(PaymentRequest)}.
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
@@ -960,7 +661,7 @@ public class BlinkDebitClient {
 
     /**
      * Creates a Westpac payment. Once Westpac enables their Open Banking API, this can be replaced with
-     * {@link #createSinglePayment(PaymentRequest, String)}.
+     * {@link #createPayment(PaymentRequest, String)}.
      *
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
@@ -1013,130 +714,45 @@ public class BlinkDebitClient {
     }
 
     /**
-     * Creates a full refund.
+     * Creates a refund.
      *
-     * @param request the {@link FullRefundRequest}
+     * @param request the {@link RefundDetail}
      * @return the {@link RefundResponse}
      */
-    public RefundResponse createFullRefund(FullRefundRequest request) {
-        return createFullRefundAsMono(request).block();
+    public RefundResponse createRefund(RefundDetail request) {
+        return createRefundAsMono(request).block();
     }
 
     /**
-     * Creates a full refund.
+     * Creates a refund.
      *
-     * @param request   the {@link FullRefundRequest}
+     * @param request   the {@link RefundDetail}
      * @param requestId the optional correlation ID
      * @return the {@link RefundResponse}
      */
-    public RefundResponse createFullRefund(FullRefundRequest request, final String requestId) {
-        return createFullRefundAsMono(request, requestId).block();
+    public RefundResponse createRefund(RefundDetail request, final String requestId) {
+        return createRefundAsMono(request, requestId).block();
     }
 
     /**
-     * Creates a full refund.
+     * Creates a refund.
      *
-     * @param request the {@link FullRefundRequest}
+     * @param request the {@link RefundDetail}
      * @return the {@link RefundResponse} {@link Mono}
      */
-    public Mono<RefundResponse> createFullRefundAsMono(FullRefundRequest request) {
-        return refundsApiClient.createFullRefund(request);
+    public Mono<RefundResponse> createRefundAsMono(RefundDetail request) {
+        return refundsApiClient.createRefund(request);
     }
 
     /**
-     * Creates a full refund.
+     * Creates a refund.
      *
-     * @param request   the {@link FullRefundRequest}
+     * @param request   the {@link RefundDetail}
      * @param requestId the optional correlation ID
      * @return the {@link RefundResponse} {@link Mono}
      */
-    public Mono<RefundResponse> createFullRefundAsMono(FullRefundRequest request, final String requestId) {
-        return refundsApiClient.createFullRefund(request, requestId);
-    }
-
-    /**
-     * Creates a partial refund.
-     *
-     * @param request the {@link PartialRefundRequest}
-     * @return the {@link RefundResponse}
-     */
-    public RefundResponse createPartialRefund(PartialRefundRequest request) {
-        return createPartialRefundAsMono(request).block();
-    }
-
-    /**
-     * Creates a partial refund.
-     *
-     * @param request   the {@link PartialRefundRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link RefundResponse}
-     */
-    public RefundResponse createPartialRefund(PartialRefundRequest request, final String requestId) {
-        return createPartialRefundAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates a partial refund.
-     *
-     * @param request the {@link PartialRefundRequest}
-     * @return the {@link RefundResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createPartialRefundAsMono(PartialRefundRequest request) {
-        return refundsApiClient.createPartialRefund(request);
-    }
-
-    /**
-     * Creates a partial refund.
-     *
-     * @param request   the {@link PartialRefundRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link RefundResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createPartialRefundAsMono(PartialRefundRequest request, final String requestId) {
-        return refundsApiClient.createPartialRefund(request, requestId);
-    }
-
-    /**
-     * Creates an account number refund.
-     *
-     * @param request the {@link AccountNumberRefundRequest}
-     * @return the {@link RefundResponse}
-     */
-    public RefundResponse createAccountNumberRefund(AccountNumberRefundRequest request) {
-        return createAccountNumberRefundAsMono(request).block();
-    }
-
-    /**
-     * Creates an account number refund.
-     *
-     * @param request   the {@link AccountNumberRefundRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link RefundResponse}
-     */
-    public RefundResponse createAccountNumberRefund(AccountNumberRefundRequest request, final String requestId) {
-        return createAccountNumberRefundAsMono(request, requestId).block();
-    }
-
-    /**
-     * Creates an account number refund.
-     *
-     * @param request the {@link AccountNumberRefundRequest}
-     * @return the {@link RefundResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createAccountNumberRefundAsMono(AccountNumberRefundRequest request) {
-        return refundsApiClient.createAccountNumberRefund(request);
-    }
-
-    /**
-     * Creates an account number refund.
-     *
-     * @param request   the {@link AccountNumberRefundRequest}
-     * @param requestId the optional correlation ID
-     * @return the {@link RefundResponse} {@link Mono}
-     */
-    public Mono<RefundResponse> createAccountNumberRefundAsMono(AccountNumberRefundRequest request,
-                                                                final String requestId) {
-        return refundsApiClient.createAccountNumberRefund(request, requestId);
+    public Mono<RefundResponse> createRefundAsMono(RefundDetail request, final String requestId) {
+        return refundsApiClient.createRefund(request, requestId);
     }
 
     /**
