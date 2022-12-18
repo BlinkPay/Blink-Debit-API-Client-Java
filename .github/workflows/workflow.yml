@@ -49,21 +49,17 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Sonar to inspect code
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          args:
-            -Dsonar.projectKey=blink-debit-api-client-java
-            -Dsonar.organization=blinkpay
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.junit.reportPaths=target/surefire-reports
-            -Dsonar.coverage.plugin=jacoco
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/coverage-reports/jacoco-ut/jacoco.xml
-#            -Dsonar.inclusions=src/main/**
-#            -Dsonar.test.exclusions=src/test/**,src/componentTest/**,src/integrationTest/**
+        run: >
+          SPRING_PROFILES_ACTIVE=test mvn -s settings.xml clean verify sonar:sonar
+          -Dgroups=unit test
+          -Dsonar.projectKey=blink-debit-api-client-java
+          -Dsonar.organization=blinkpay
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.junit.reportPaths=target/surefire-reports
+          -Dsonar.coverage.plugin=jacoco
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/coverage-reports/jacoco-ut/jacoco.xml
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
 
   publish:
     runs-on: ubuntu-latest
