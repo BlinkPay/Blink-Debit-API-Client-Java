@@ -50,7 +50,7 @@ jobs:
 
       - name: Run Sonar to inspect code
         run: >
-          SPRING_PROFILES_ACTIVE=test mvn -s settings.xml clean verify sonar:sonar
+          SPRING_PROFILES_ACTIVE=test mvn clean verify sonar:sonar
           -Dgroups=unit test
           -Dsonar.projectKey=blink-debit-api-client-java
           -Dsonar.organization=blinkpay
