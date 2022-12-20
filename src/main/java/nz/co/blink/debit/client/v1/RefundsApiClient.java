@@ -21,6 +21,8 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import io.github.resilience4j.reactor.retry.RetryOperator;
+import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
 import nz.co.blink.debit.dto.v1.PartialRefundRequest;
@@ -29,6 +31,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
+import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +53,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REFUNDS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -68,6 +72,8 @@ public class RefundsApiClient {
 
     private final Validator validator;
 
+    private final Retry retry;
+
     private WebClient.Builder webClientBuilder;
 
     /**
@@ -77,15 +83,17 @@ public class RefundsApiClient {
      * @param debitUrl           the Blink Debit URL
      * @param accessTokenHandler the {@link AccessTokenHandler}
      * @param validator          the {@link Validator}
+     * @param retry              the {@link Retry} instance
      */
     @Autowired
     public RefundsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                             @Value("${blinkpay.debit.url:}") final String debitUrl,
-                            AccessTokenHandler accessTokenHandler, Validator validator) {
+                            AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;
         this.debitUrl = debitUrl;
         this.accessTokenHandler = accessTokenHandler;
         this.validator = validator;
+        this.retry = retry;
     }
 
     /**
@@ -175,8 +183,11 @@ public class RefundsApiClient {
                         .path(REFUNDS_PATH.getValue() + "/{refundId}")
                         .build(refundId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
-                .exchangeToMono(ResponseHandler.getResponseMono(Refund.class));
+                .headers(httpHeaders -> {
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                })
+                .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
     }
 
     private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) {
@@ -188,9 +199,13 @@ public class RefundsApiClient {
                 .uri(REFUNDS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
+                .headers(httpHeaders -> {
+                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
+                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                })
                 .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(RefundResponse.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(RefundResponse.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) {
@@ -200,7 +215,7 @@ public class RefundsApiClient {
 
         return WebClient.builder()
                 .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, "Java/Blink SDK 1.0")
+                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
                 .baseUrl(debitUrl)
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }

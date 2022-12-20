@@ -38,6 +38,7 @@ import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
+import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -108,7 +109,7 @@ class EnduringConsentsApiClientIntegrationTest {
                 .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
                         + "?scope=openid%20payments&response_type=code%20id_token")
                 .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=https%3A%2F%2Fsandbox.debit.blinkpay.co.nz%2Fbank%2F1.0%2Freturn")
+                .contains("&redirect_uri=")
                 .contains("&client_id=");
     }
 
@@ -192,33 +193,41 @@ class EnduringConsentsApiClientIntegrationTest {
     void getRejectedEnduringConsentWithRedirectFlowFromPnz() {
         Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("f0b5fc9e-afa2-441f-a9e7-e2131952b835"));
 
-        Consent actual = consentMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REJECTED, null, Collections.emptySet());
-        assertThat(actual.getCreationTimestamp()).isNotNull();
-        assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
-        assertThat(actual.getDetail())
-                .isNotNull()
-                .isInstanceOf(EnduringConsentRequest.class);
-        EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
-        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.ENDURING);
-        assertThat(detail.getFlow()).isNotNull();
-        assertThat(detail.getFlow().getDetail())
-                .isNotNull()
-                .isInstanceOf(RedirectFlow.class);
-        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
-        assertThat(flow)
-                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
-                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
-        assertThat(detail.getPeriod()).isEqualTo(Period.FORTNIGHTLY);
-        assertThat(detail.getFromTimestamp()).isNotNull();
-        assertThat(detail.getExpiryTimestamp()).isNotNull();
-        assertThat(detail.getMaximumAmountPeriod())
-                .isNotNull()
-                .extracting(Amount::getCurrency, Amount::getTotal)
-                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        assertThat(consentMono).isNotNull();
+
+        try {
+            Consent actual = consentMono.block();
+            assertThat(actual)
+                    .isNotNull()
+                    .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                    .containsExactly(Consent.StatusEnum.REJECTED, null, Collections.emptySet());
+            assertThat(actual.getCreationTimestamp()).isNotNull();
+            assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
+            assertThat(actual.getDetail())
+                    .isNotNull()
+                    .isInstanceOf(EnduringConsentRequest.class);
+            EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
+            assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.ENDURING);
+            assertThat(detail.getFlow()).isNotNull();
+            assertThat(detail.getFlow().getDetail())
+                    .isNotNull()
+                    .isInstanceOf(RedirectFlow.class);
+            RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+            assertThat(flow)
+                    .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                    .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+            assertThat(detail.getPeriod()).isEqualTo(Period.FORTNIGHTLY);
+            assertThat(detail.getFromTimestamp()).isNotNull();
+            assertThat(detail.getExpiryTimestamp()).isNotNull();
+            assertThat(detail.getMaximumAmountPeriod())
+                    .isNotNull()
+                    .extracting(Amount::getCurrency, Amount::getTotal)
+                    .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        } catch (RuntimeException e) {
+            assertThat(e.getCause())
+                    .isInstanceOf(BlinkResourceNotFoundException.class)
+                    .hasMessage("Consent with ID [f0b5fc9e-afa2-441f-a9e7-e2131952b835] does not exist");
+        }
     }
 
     @Test
@@ -248,7 +257,7 @@ class EnduringConsentsApiClientIntegrationTest {
 
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .isEqualTo("https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=" + consentId);
+                .endsWith("/gateway/pay?id=" + consentId);
     }
 
     @Test
@@ -368,7 +377,7 @@ class EnduringConsentsApiClientIntegrationTest {
 
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .isEqualTo("https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=" + consentId);
+                .endsWith("/gateway/pay?id=" + consentId);
     }
 
     @Test

@@ -21,8 +21,11 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import io.github.resilience4j.reactor.retry.RetryOperator;
+import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
+import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +57,8 @@ public class OAuthApiClient {
 
     private final String clientSecret;
 
+    private final Retry retry;
+
     private WebClient.Builder webClientBuilder;
 
     /**
@@ -63,13 +68,15 @@ public class OAuthApiClient {
      * @param debitUrl     the Blink Debit URL
      * @param clientId     the client ID
      * @param clientSecret the client secret
+     * @param retry        the {@link Retry} instance
      */
     @Autowired
     public OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                           @Value("${blinkpay.debit.url:}") final String debitUrl,
                           @Value("${blinkpay.client.id:}") final String clientId,
-                          @Value("${blinkpay.client.secret:}") final String clientSecret) {
+                          @Value("${blinkpay.client.secret:}") final String clientSecret, Retry retry) {
         this.connector = connector;
+        this.retry = retry;
         this.debitUrl = debitUrl;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
@@ -111,7 +118,8 @@ public class OAuthApiClient {
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
                 .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(AccessTokenResponse.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(AccessTokenResponse.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private WebClient.Builder getWebClientBuilder() {
@@ -121,7 +129,7 @@ public class OAuthApiClient {
 
         return WebClient.builder()
                 .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, "Java/Blink SDK 1.0")
+                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
                 .baseUrl(debitUrl);
     }
 }

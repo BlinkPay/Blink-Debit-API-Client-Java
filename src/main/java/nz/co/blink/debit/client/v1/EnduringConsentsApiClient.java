@@ -21,6 +21,8 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import io.github.resilience4j.reactor.retry.RetryOperator;
+import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
@@ -33,6 +35,7 @@ import nz.co.blink.debit.dto.v1.FlowHint;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
+import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +76,8 @@ public class EnduringConsentsApiClient {
 
     private final Validator validator;
 
+    private final Retry retry;
+
     private WebClient.Builder webClientBuilder;
 
     /**
@@ -82,15 +87,17 @@ public class EnduringConsentsApiClient {
      * @param debitUrl           the Blink Debit URL
      * @param accessTokenHandler the {@link AccessTokenHandler}
      * @param validator          the {@link Validator}
+     * @param retry              the {@link Retry} instance
      */
     @Autowired
     public EnduringConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                                      @Value("${blinkpay.debit.url:}") final String debitUrl,
-                                     AccessTokenHandler accessTokenHandler, Validator validator) {
+                                     AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;
         this.debitUrl = debitUrl;
         this.accessTokenHandler = accessTokenHandler;
         this.validator = validator;
+        this.retry = retry;
     }
 
     /**
@@ -245,7 +252,7 @@ public class EnduringConsentsApiClient {
                     httpHeaders.add(REQUEST_ID.getValue(), correlationId);
                     httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
-                .exchangeToMono(ResponseHandler.getResponseMono(Consent.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class));
     }
 
     /**
@@ -281,7 +288,8 @@ public class EnduringConsentsApiClient {
                     httpHeaders.add(REQUEST_ID.getValue(), correlationId);
                     httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
-                .exchangeToMono(ResponseHandler.getResponseMono(Void.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Void.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private Mono<CreateConsentResponse> createEnduringConsentMono(EnduringConsentRequest request, String requestId) {
@@ -298,7 +306,8 @@ public class EnduringConsentsApiClient {
                     httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
                 })
                 .bodyValue(request)
-                .exchangeToMono(ResponseHandler.getResponseMono(CreateConsentResponse.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(CreateConsentResponse.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) {
@@ -308,7 +317,7 @@ public class EnduringConsentsApiClient {
 
         return WebClient.builder()
                 .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, "Java/Blink SDK 1.0")
+                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
                 .baseUrl(debitUrl)
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }

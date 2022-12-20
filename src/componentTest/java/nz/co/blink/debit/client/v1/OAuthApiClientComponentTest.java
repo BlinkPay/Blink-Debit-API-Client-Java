@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -59,6 +60,9 @@ class OAuthApiClientComponentTest {
 
     @Autowired
     private OAuthApiClient client;
+
+    @Autowired
+    private Retry retry;
 
     @Test
     @DisplayName("Verify that access token is generated")

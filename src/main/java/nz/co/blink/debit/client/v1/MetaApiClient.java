@@ -22,6 +22,7 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.dto.v1.BankMetadata;
+import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -94,7 +95,7 @@ public class MetaApiClient {
                 .uri(METADATA_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
-                .exchangeToFlux(ResponseHandler.getResponseFlux(BankMetadata.class));
+                .exchangeToFlux(ResponseHandler.handleResponseFlux(BankMetadata.class));
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) {
@@ -104,7 +105,7 @@ public class MetaApiClient {
 
         return WebClient.builder()
                 .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, "Java/Blink SDK 1.0")
+                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
                 .baseUrl(debitUrl)
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }

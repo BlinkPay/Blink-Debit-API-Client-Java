@@ -41,8 +41,7 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.ApiError;
-import nz.co.blink.debit.exception.ApiException;
+import nz.co.blink.debit.exception.BlinkNotImplementedException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -53,7 +52,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 
@@ -178,8 +176,12 @@ class RefundsApiClientIntegrationTest {
         Refund actual = refundMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Refund::getRefundId, Refund::getStatus, Refund::getAccountNumber)
-                .containsExactly(refundId, Refund.StatusEnum.COMPLETED, "99-6121-6242460-00");
+                .extracting(Refund::getRefundId, Refund::getStatus)
+                .containsExactly(refundId, Refund.StatusEnum.COMPLETED);
+        assertThat(actual.getAccountNumber())
+                .isNotBlank()
+                .startsWith("99-")
+                .endsWith("-00");
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         RefundDetail refundDetail = (RefundDetail) actual.getDetail();
@@ -275,8 +277,12 @@ class RefundsApiClientIntegrationTest {
         Refund actual = refundMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Refund::getRefundId, Refund::getStatus, Refund::getAccountNumber)
-                .containsExactly(refundId, Refund.StatusEnum.COMPLETED, "99-6121-6242460-00");
+                .extracting(Refund::getRefundId, Refund::getStatus)
+                .containsExactly(refundId, Refund.StatusEnum.COMPLETED);
+        assertThat(actual.getAccountNumber())
+                .isNotBlank()
+                .startsWith("99-")
+                .endsWith("-00");
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         RefundDetail refundDetail = (RefundDetail) actual.getDetail();
@@ -352,12 +358,10 @@ class RefundsApiClientIntegrationTest {
                 RuntimeException.class);
 
         assertThat(exception).isNotNull();
-        assertThat(((ApiException) exception.getCause()).getApiError())
+        assertThat(exception.getCause())
                 .isNotNull()
-                .extracting(ApiError::getStatus, ApiError::getCode, ApiError::getReason, ApiError::getCause,
-                        ApiError::getDescription)
-                .containsExactly(HttpStatus.NOT_IMPLEMENTED, null, "NOT_IMPLEMENTED", null,
-                        "Full refund is not yet implemented");
+                .isInstanceOf(BlinkNotImplementedException.class)
+                .hasMessage("Full refund is not yet implemented");
     }
 
     @Test
@@ -430,11 +434,9 @@ class RefundsApiClientIntegrationTest {
                 RuntimeException.class);
 
         assertThat(exception).isNotNull();
-        assertThat(((ApiException) exception.getCause()).getApiError())
+        assertThat(exception.getCause())
                 .isNotNull()
-                .extracting(ApiError::getStatus, ApiError::getCode, ApiError::getReason, ApiError::getCause,
-                        ApiError::getDescription)
-                .containsExactly(HttpStatus.NOT_IMPLEMENTED, null, "NOT_IMPLEMENTED", null,
-                        "Partial refund is not yet implemented");
+                .isInstanceOf(BlinkNotImplementedException.class)
+                .hasMessage("Partial refund is not yet implemented");
     }
 }

@@ -23,12 +23,20 @@ package nz.co.blink.debit.helpers;
 
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.dto.v1.DetailErrorResponseModel;
-import nz.co.blink.debit.exception.ApiException;
+import nz.co.blink.debit.exception.BlinkClientException;
+import nz.co.blink.debit.exception.BlinkForbiddenException;
+import nz.co.blink.debit.exception.BlinkNotImplementedException;
+import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
+import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
+import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
+import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.function.Function;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
@@ -38,6 +46,10 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
  */
 @Slf4j
 public final class ResponseHandler {
+
+    private static final String ENCOUNTERED_ERROR = "{} | Encountered: {}";
+
+    private static final String ENCOUNTERED_UNKNOWN_ERROR = "{} | Encountered an unknown error: {}";
 
     /**
      * Private constructor.
@@ -53,28 +65,93 @@ public final class ResponseHandler {
      * @param <T>   the type
      * @return the {@link Function}
      */
-    public static <T> Function<ClientResponse, Mono<T>> getResponseMono(Class<T> clazz) {
+    public static <T> Function<ClientResponse, Mono<T>> handleResponseMono(Class<T> clazz) {
         return clientResponse -> {
             if (clientResponse.statusCode().is2xxSuccessful()) {
                 return clientResponse
                         .bodyToMono(clazz);
-            } else if (clientResponse.statusCode().isError()) {
+            } else if (HttpStatus.UNAUTHORIZED == clientResponse.statusCode()) {
                 return clientResponse
                         .bodyToMono(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new ApiException(clientResponse.statusCode(), null, null, null)))
+                        .switchIfEmpty(Mono.error(new BlinkUnauthorisedException()))
                         .flatMap(body -> {
-                            log.error("{} | Encountered: {}", clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
                                     body.getMessage());
-                            return Mono.error(new ApiException(HttpStatus.valueOf(body.getStatus()), body.getError(),
-                                    null, body.getMessage(), body.getCode()));
+                            return Mono.error(new BlinkUnauthorisedException(body.getMessage()));
+                        });
+            } else if (HttpStatus.FORBIDDEN == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkForbiddenException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkForbiddenException(body.getMessage()));
+                        });
+            } else if (HttpStatus.NOT_FOUND == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkResourceNotFoundException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkResourceNotFoundException(body.getMessage()));
+                        });
+            } else if (HttpStatus.REQUEST_TIMEOUT == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkRequestTimeoutException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkRequestTimeoutException(body.getMessage()));
+                        });
+            } else if (HttpStatus.TOO_MANY_REQUESTS == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkRateLimitExceededException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkRateLimitExceededException(body.getMessage()));
+                        });
+            } else if (HttpStatus.NOT_IMPLEMENTED == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkNotImplementedException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkNotImplementedException(body.getMessage()));
+                        });
+            } else if (clientResponse.statusCode().is4xxClientError()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkClientException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkClientException(body.getMessage()));
+                        });
+            } else if (clientResponse.statusCode().is5xxServerError()) {
+                return clientResponse
+                        .bodyToMono(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkServiceException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkServiceException(body.getMessage()));
                         });
             } else {
                 return clientResponse
                         .createException()
                         .flatMap(error -> {
-                            log.error("{} | Encountered an unknown error: {}",
-                                    clientResponse.headers().header(REQUEST_ID.getValue()), error.getMessage());
-                            return Mono.error(error);
+                            List<String> correlationIdHeader = clientResponse.headers().header(REQUEST_ID.getValue());
+                            String errorMessage = error.getMessage();
+                            log.error(ENCOUNTERED_UNKNOWN_ERROR, correlationIdHeader, errorMessage, error);
+                            return Mono.error(new BlinkServiceException("Service call to Blink Debit failed with error: "
+                                    + errorMessage + ", please contact BlinkPay with the correlation ID: "
+                                    + correlationIdHeader));
                         });
             }
         };
@@ -87,29 +164,94 @@ public final class ResponseHandler {
      * @param <T>   the type
      * @return the {@link Function}
      */
-    public static <T> Function<ClientResponse, Flux<T>> getResponseFlux(Class<T> clazz) {
+    public static <T> Function<ClientResponse, Flux<T>> handleResponseFlux(Class<T> clazz) {
         return clientResponse -> {
             if (clientResponse.statusCode().is2xxSuccessful()) {
                 return clientResponse
                         .bodyToFlux(clazz);
-            } else if (clientResponse.statusCode().isError()) {
+            } else if (HttpStatus.UNAUTHORIZED == clientResponse.statusCode()) {
                 return clientResponse
                         .bodyToFlux(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new ApiException(clientResponse.statusCode(), null, null, null)))
+                        .switchIfEmpty(Mono.error(new BlinkUnauthorisedException()))
                         .flatMap(body -> {
-                            log.error("{} | Encountered: {}", clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
                                     body.getMessage());
-                            return Mono.error(new ApiException(HttpStatus.valueOf(body.getStatus()), body.getError(),
-                                    null, body.getMessage(), body.getCode()));
+                            return Mono.error(new BlinkUnauthorisedException(body.getMessage()));
+                        });
+            } else if (HttpStatus.FORBIDDEN == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkForbiddenException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkForbiddenException(body.getMessage()));
+                        });
+            } else if (HttpStatus.NOT_FOUND == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkResourceNotFoundException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkResourceNotFoundException(body.getMessage()));
+                        });
+            } else if (HttpStatus.REQUEST_TIMEOUT == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkRequestTimeoutException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkRequestTimeoutException(body.getMessage()));
+                        });
+            } else if (HttpStatus.TOO_MANY_REQUESTS == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkRateLimitExceededException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkRateLimitExceededException(body.getMessage()));
+                        });
+            } else if (HttpStatus.NOT_IMPLEMENTED == clientResponse.statusCode()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkNotImplementedException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkNotImplementedException(body.getMessage()));
+                        });
+            } else if (clientResponse.statusCode().is4xxClientError()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkClientException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkClientException(body.getMessage()));
+                        });
+            } else if (clientResponse.statusCode().is5xxServerError()) {
+                return clientResponse
+                        .bodyToFlux(DetailErrorResponseModel.class)
+                        .switchIfEmpty(Mono.error(new BlinkServiceException()))
+                        .flatMap(body -> {
+                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                                    body.getMessage());
+                            return Mono.error(new BlinkServiceException(body.getMessage()));
                         });
             } else {
                 return clientResponse
                         .createException()
                         .flux()
                         .flatMap(error -> {
-                            log.error("{} | Encountered an unknown error: {}",
-                                    clientResponse.headers().header(REQUEST_ID.getValue()), error.getMessage());
-                            return Mono.error(error);
+                            List<String> correlationIdHeader = clientResponse.headers().header(REQUEST_ID.getValue());
+                            String errorMessage = error.getMessage();
+                            log.error(ENCOUNTERED_UNKNOWN_ERROR, correlationIdHeader, errorMessage, error);
+                            return Mono.error(new BlinkServiceException("Service call to Blink Debit failed with error: "
+                                    + errorMessage + ", please contact BlinkPay with the correlation ID: "
+                                    + correlationIdHeader));
                         });
             }
         };

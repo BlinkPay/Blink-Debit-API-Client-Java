@@ -44,7 +44,9 @@ public enum BlinkDebitConstant {
 
     PAYMENTS_PATH("/payments/v1/payments"),
 
-    REFUNDS_PATH("/payments/v1/refunds");
+    REFUNDS_PATH("/payments/v1/refunds"),
+
+    USER_AGENT_VALUE("Java/Blink SDK 1.0");
 
     private final String value;
 

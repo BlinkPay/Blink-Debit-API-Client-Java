@@ -21,6 +21,7 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
@@ -97,6 +98,9 @@ class RefundsApiClientTest {
 
     @Spy
     private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    @Spy
+    private Retry retry = Retry.ofDefaults("retry");
 
     @InjectMocks
     private RefundsApiClient client;

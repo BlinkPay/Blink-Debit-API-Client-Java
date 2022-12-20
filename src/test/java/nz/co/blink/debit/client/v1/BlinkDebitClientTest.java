@@ -3071,6 +3071,6 @@ class BlinkDebitClientTest {
         Properties properties = new Properties();
         properties.load(Files.newBufferedReader(propertiesFile));
 
-        assertThatNoException().isThrownBy(() -> new BlinkDebitClient(properties, validator));
+        assertThatNoException().isThrownBy(() -> new BlinkDebitClient(properties));
     }
 }

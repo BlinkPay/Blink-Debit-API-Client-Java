@@ -40,6 +40,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -108,7 +109,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
                         + "?scope=openid%20payments&response_type=code%20id_token")
                 .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=https%3A%2F%2Fsandbox.debit.blinkpay.co.nz%2Fbank%2F1.0%2Freturn")
+                .contains("&redirect_uri=")
                 .contains("&client_id=");
     }
 
@@ -206,39 +207,46 @@ class QuickPaymentsApiClientIntegrationTest {
                 client.getQuickPayment(UUID.fromString("057a08f7-4ee1-499d-8726-e4fe802d64fc"));
 
         assertThat(quickPaymentResponseMono).isNotNull();
-        QuickPaymentResponse actual = quickPaymentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(QuickPaymentResponse::getQuickPaymentId)
-                .isEqualTo(UUID.fromString("057a08f7-4ee1-499d-8726-e4fe802d64fc"));
-        Consent consent = actual.getConsent();
-        assertThat(consent)
-                .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REJECTED, null, Collections.emptySet());
-        assertThat(consent.getCreationTimestamp()).isNotNull();
-        assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
-        assertThat(consent.getDetail())
-                .isNotNull()
-                .isInstanceOf(SingleConsentRequest.class);
-        SingleConsentRequest detail = (SingleConsentRequest) consent.getDetail();
-        assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
-        assertThat(detail.getFlow()).isNotNull();
-        assertThat(detail.getFlow().getDetail())
-                .isNotNull()
-                .isInstanceOf(RedirectFlow.class);
-        RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
-        assertThat(flow)
-                .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
-                .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
-        assertThat(detail.getPcr())
-                .isNotNull()
-                .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
-                .containsExactly("particulars", "code", "reference");
-        assertThat(detail.getAmount())
-                .isNotNull()
-                .extracting(Amount::getCurrency, Amount::getTotal)
-                .containsExactly(Amount.CurrencyEnum.NZD, "1.50");
+
+        try {
+            QuickPaymentResponse actual = quickPaymentResponseMono.block();
+            assertThat(actual)
+                    .isNotNull()
+                    .extracting(QuickPaymentResponse::getQuickPaymentId)
+                    .isEqualTo(UUID.fromString("057a08f7-4ee1-499d-8726-e4fe802d64fc"));
+            Consent consent = actual.getConsent();
+            assertThat(consent)
+                    .isNotNull()
+                    .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
+                    .containsExactly(Consent.StatusEnum.REJECTED, null, Collections.emptySet());
+            assertThat(consent.getCreationTimestamp()).isNotNull();
+            assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
+            assertThat(consent.getDetail())
+                    .isNotNull()
+                    .isInstanceOf(SingleConsentRequest.class);
+            SingleConsentRequest detail = (SingleConsentRequest) consent.getDetail();
+            assertThat(detail.getType()).isEqualTo(ConsentDetail.TypeEnum.SINGLE);
+            assertThat(detail.getFlow()).isNotNull();
+            assertThat(detail.getFlow().getDetail())
+                    .isNotNull()
+                    .isInstanceOf(RedirectFlow.class);
+            RedirectFlow flow = (RedirectFlow) detail.getFlow().getDetail();
+            assertThat(flow)
+                    .extracting(RedirectFlow::getType, RedirectFlow::getBank, RedirectFlow::getRedirectUri)
+                    .containsExactly(AuthFlowDetail.TypeEnum.REDIRECT, Bank.PNZ, REDIRECT_URI);
+            assertThat(detail.getPcr())
+                    .isNotNull()
+                    .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
+                    .containsExactly("particulars", "code", "reference");
+            assertThat(detail.getAmount())
+                    .isNotNull()
+                    .extracting(Amount::getCurrency, Amount::getTotal)
+                    .containsExactly(Amount.CurrencyEnum.NZD, "1.50");
+        } catch (RuntimeException e) {
+            assertThat(e.getCause())
+                    .isInstanceOf(BlinkResourceNotFoundException.class)
+                    .hasMessage("Consent with ID [057a08f7-4ee1-499d-8726-e4fe802d64fc] does not exist");
+        }
     }
 
     @Test
@@ -392,7 +400,7 @@ class QuickPaymentsApiClientIntegrationTest {
 
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .isEqualTo("https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=" + quickPaymentId);
+                .endsWith("/gateway/pay?id=" + quickPaymentId);
     }
 
     @Test
@@ -528,7 +536,7 @@ class QuickPaymentsApiClientIntegrationTest {
 
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .isEqualTo("https://sandbox.secure.blinkpay.co.nz/gateway/pay?id=" + quickPaymentId);
+                .endsWith("/gateway/pay?id=" + quickPaymentId);
     }
 
     @Test

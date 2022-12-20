@@ -21,18 +21,33 @@
  */
 package nz.co.blink.debit.config;
 
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
+import nz.co.blink.debit.exception.BlinkClientException;
+import nz.co.blink.debit.exception.BlinkConsentFailureException;
+import nz.co.blink.debit.exception.BlinkForbiddenException;
+import nz.co.blink.debit.exception.BlinkNotImplementedException;
+import nz.co.blink.debit.exception.BlinkPaymentFailureException;
+import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
+import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
+import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
+import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
+import java.net.ConnectException;
 import java.time.Duration;
 import java.util.regex.Pattern;
 
@@ -62,6 +77,9 @@ public class BlinkDebitConfiguration {
 
     @Value("${spring.profiles.active:test}")
     private String activeProfile;
+
+    @Value("${blinkpay.retry.enabled:true}")
+    private Boolean retryEnabled;
 
     /**
      * Returns the {@link ReactorClientHttpConnector}.
@@ -99,5 +117,43 @@ public class BlinkDebitConfiguration {
     @Bean
     public Validator validator() {
         return Validation.buildDefaultValidatorFactory().getValidator();
+    }
+
+    /**
+     * Returns the {@link Retry} instance.
+     *
+     * @return the {@link Retry} instance
+     */
+    @Bean
+    public Retry retry() {
+        if (Boolean.FALSE.equals(retryEnabled)) {
+            return null;
+        }
+
+        RetryConfig retryConfig = RetryConfig.custom()
+                // allow up to 2 retries after the original request (3 attempts in total)
+                .maxAttempts(3)
+                // wait 2 seconds and then 5 seconds (or thereabouts)
+                .intervalFunction(IntervalFunction
+                        .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
+                // retries are triggered for 408 (request timeout) and 5xx exceptions
+                // and for network errors thrown by WebFlux if the request didn't get to the server at all
+                .retryExceptions(BlinkRequestTimeoutException.class,
+                        BlinkServiceException.class,
+                        ConnectException.class,
+                        WebClientRequestException.class)
+                // ignore 4xx and 501 (not implemented) exceptions
+                .ignoreExceptions(BlinkConsentFailureException.class,
+                        BlinkPaymentFailureException.class,
+                        BlinkUnauthorisedException.class,
+                        BlinkForbiddenException.class,
+                        BlinkResourceNotFoundException.class,
+                        BlinkRateLimitExceededException.class,
+                        BlinkNotImplementedException.class,
+                        BlinkClientException.class)
+                .failAfterMaxAttempts(true)
+                .build();
+
+        return Retry.of("retry", retryConfig);
     }
 }

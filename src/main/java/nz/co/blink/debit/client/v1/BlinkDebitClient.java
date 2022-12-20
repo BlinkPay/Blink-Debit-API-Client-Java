@@ -1,5 +1,8 @@
 package nz.co.blink.debit.client.v1;
 
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.dto.v1.Consent;
@@ -15,17 +18,30 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkClientException;
+import nz.co.blink.debit.exception.BlinkConsentFailureException;
+import nz.co.blink.debit.exception.BlinkForbiddenException;
+import nz.co.blink.debit.exception.BlinkNotImplementedException;
+import nz.co.blink.debit.exception.BlinkPaymentFailureException;
+import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
+import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
+import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
+import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
+import javax.validation.Validation;
 import javax.validation.Validator;
+import java.net.ConnectException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
@@ -52,6 +68,8 @@ public class BlinkDebitClient {
 
     private final Validator validator;
 
+    private final Retry retry;
+
     /**
      * Default constructor for Spring-based consumer.
      *
@@ -62,12 +80,14 @@ public class BlinkDebitClient {
      * @param refundsApiClient          the {@link RefundsApiClient}
      * @param metaApiClient             the {@link MetaApiClient}
      * @param validator                 the {@link Validator}
+     * @param retry                     the {@link Retry}
      */
     @Autowired
     public BlinkDebitClient(SingleConsentsApiClient singleConsentsApiClient,
                             EnduringConsentsApiClient enduringConsentsApiClient,
                             QuickPaymentsApiClient quickPaymentsApiClient, PaymentsApiClient paymentsApiClient,
-                            RefundsApiClient refundsApiClient, MetaApiClient metaApiClient, Validator validator) {
+                            RefundsApiClient refundsApiClient, MetaApiClient metaApiClient, Validator validator,
+                            Retry retry) {
         this.singleConsentsApiClient = singleConsentsApiClient;
         this.enduringConsentsApiClient = enduringConsentsApiClient;
         this.quickPaymentsApiClient = quickPaymentsApiClient;
@@ -75,16 +95,15 @@ public class BlinkDebitClient {
         this.refundsApiClient = refundsApiClient;
         this.metaApiClient = metaApiClient;
         this.validator = validator;
+        this.retry = retry;
     }
 
     /**
      * Constructor for pure Java application.
      *
-     * @param properties the {@link Properties} retrieved from
-     * @param validator  the {@link Validator}
+     * @param properties the {@link Properties} retrieved from the configuration file
      */
-    public BlinkDebitClient(Properties properties, Validator validator) {
-        this.validator = validator;
+    public BlinkDebitClient(Properties properties) {
         int maxConnections = Integer.parseInt(properties.getProperty("blinkpay.max.connections", "10"));
         Duration maxIdleTime = Duration.parse(properties.getProperty("blinkpay.max.idle.time", "PT20S"));
         Duration maxLifeTime = Duration.parse(properties.getProperty("blinkpay.max.life.time", "PT60S"));
@@ -115,13 +134,46 @@ public class BlinkDebitClient {
 
         ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(client);
 
-        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+        RetryConfig retryConfig = RetryConfig.custom()
+                // allow up to 2 retries after the original request (3 attempts in total)
+                .maxAttempts(3)
+                // wait 2 seconds and then 5 seconds (or thereabouts)
+                .intervalFunction(IntervalFunction
+                        .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
+                // retries are triggered for 408 (request timeout) and 5xx exceptions
+                // and for network errors thrown by WebFlux if the request didn't get to the server at all
+                .retryExceptions(BlinkRequestTimeoutException.class,
+                        BlinkServiceException.class,
+                        ConnectException.class,
+                        WebClientRequestException.class)
+                // ignore 4xx and 501 (not implemented) exceptions
+                .ignoreExceptions(BlinkConsentFailureException.class,
+                        BlinkPaymentFailureException.class,
+                        BlinkUnauthorisedException.class,
+                        BlinkForbiddenException.class,
+                        BlinkResourceNotFoundException.class,
+                        BlinkRateLimitExceededException.class,
+                        BlinkNotImplementedException.class,
+                        BlinkClientException.class)
+                .failAfterMaxAttempts(true)
+                .build();
+        retry = Retry.of("retry", retryConfig);
+
+        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret,
+                retry);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
-        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
-        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, this.validator);
-        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
-        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
-        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler,
+                validator, retry);
+        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl,
+                accessTokenHandler, validator, retry);
+        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler,
+                validator, retry);
+        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator,
+                retry);
+        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator,
+                retry);
         metaApiClient = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
     }
 
@@ -132,11 +184,9 @@ public class BlinkDebitClient {
      * @param clientId      the client ID
      * @param clientSecret  the client secret
      * @param activeProfile the active profile
-     * @param validator     the {@link Validator}
      */
     public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
-                            final String activeProfile, Validator validator) {
-        this.validator = validator;
+                            final String activeProfile) {
         int maxConnections = 10;
         Duration maxIdleTime = Duration.parse("PT20S");
         Duration maxLifeTime = Duration.parse("PT60S");
@@ -163,13 +213,46 @@ public class BlinkDebitClient {
 
         ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(client);
 
-        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret);
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+        RetryConfig retryConfig = RetryConfig.custom()
+                // allow up to 2 retries after the original request (3 attempts in total)
+                .maxAttempts(3)
+                // wait 2 seconds and then 5 seconds (or thereabouts)
+                .intervalFunction(IntervalFunction
+                        .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
+                // retries are triggered for 408 (request timeout) and 5xx exceptions
+                // and for network errors thrown by WebFlux if the request didn't get to the server at all
+                .retryExceptions(BlinkRequestTimeoutException.class,
+                        BlinkServiceException.class,
+                        ConnectException.class,
+                        WebClientRequestException.class)
+                // ignore 4xx and 501 (not implemented) exceptions
+                .ignoreExceptions(BlinkConsentFailureException.class,
+                        BlinkPaymentFailureException.class,
+                        BlinkUnauthorisedException.class,
+                        BlinkForbiddenException.class,
+                        BlinkResourceNotFoundException.class,
+                        BlinkRateLimitExceededException.class,
+                        BlinkNotImplementedException.class,
+                        BlinkClientException.class)
+                .failAfterMaxAttempts(true)
+                .build();
+        retry = Retry.of("retry", retryConfig);
+
+        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, debitUrl, clientId, clientSecret,
+                retry);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
-        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
-        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, this.validator);
-        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
-        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
-        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator);
+        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler,
+                validator, retry);
+        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, debitUrl,
+                accessTokenHandler, validator, retry);
+        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler,
+                validator, retry);
+        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator,
+                retry);
+        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler, validator,
+                retry);
         metaApiClient = new MetaApiClient(reactorClientHttpConnector, debitUrl, accessTokenHandler);
     }
 

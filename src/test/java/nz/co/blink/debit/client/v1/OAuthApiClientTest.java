@@ -21,6 +21,7 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -39,8 +40,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -77,7 +76,7 @@ class OAuthApiClientTest {
     private ReactorClientHttpConnector connector;
 
     @Spy
-    private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private Retry retry = Retry.ofDefaults("retry");
 
     @InjectMocks
     private OAuthApiClient client;
