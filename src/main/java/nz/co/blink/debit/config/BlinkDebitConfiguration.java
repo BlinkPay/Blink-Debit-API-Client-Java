@@ -26,10 +26,8 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
 import nz.co.blink.debit.exception.BlinkClientException;
-import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkForbiddenException;
 import nz.co.blink.debit.exception.BlinkNotImplementedException;
-import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
 import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
@@ -143,9 +141,7 @@ public class BlinkDebitConfiguration {
                         ConnectException.class,
                         WebClientRequestException.class)
                 // ignore 4xx and 501 (not implemented) exceptions
-                .ignoreExceptions(BlinkConsentFailureException.class,
-                        BlinkPaymentFailureException.class,
-                        BlinkUnauthorisedException.class,
+                .ignoreExceptions(BlinkUnauthorisedException.class,
                         BlinkForbiddenException.class,
                         BlinkResourceNotFoundException.class,
                         BlinkRateLimitExceededException.class,
