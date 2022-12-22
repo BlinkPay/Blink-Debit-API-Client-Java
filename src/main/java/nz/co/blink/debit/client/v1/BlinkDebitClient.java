@@ -25,6 +25,7 @@ import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
+import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
@@ -40,8 +41,14 @@ import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.exception.BlinkClientException;
+import nz.co.blink.debit.exception.BlinkConsentFailureException;
+import nz.co.blink.debit.exception.BlinkConsentRejectedException;
+import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
 import nz.co.blink.debit.exception.BlinkForbiddenException;
 import nz.co.blink.debit.exception.BlinkNotImplementedException;
+import nz.co.blink.debit.exception.BlinkPaymentFailureException;
+import nz.co.blink.debit.exception.BlinkPaymentRejectedException;
+import nz.co.blink.debit.exception.BlinkPaymentTimeoutException;
 import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
 import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
@@ -52,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
@@ -67,10 +75,14 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import static nz.co.blink.debit.dto.v1.Consent.StatusEnum.AUTHORISED;
+import static nz.co.blink.debit.dto.v1.Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED;
+
 /**
  * The facade for accessing all client methods from one place.
  */
 @Component
+@Slf4j
 public class BlinkDebitClient {
 
     private final SingleConsentsApiClient singleConsentsApiClient;
@@ -396,6 +408,115 @@ public class BlinkDebitClient {
     }
 
     /**
+     * Retrieves an authorised single consent by ID within the specified time.
+     * Timeout and other exceptions are wrapped in a {@link RuntimeException}.
+     *
+     * @param consentId      the consent ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Consent}
+     */
+    public Consent awaitAuthorisedSingleConsent(UUID consentId, int maxWaitSeconds) {
+        Mono<Consent> consentMono = getSingleConsentAsMono(consentId);
+
+        return consentMono
+                .flatMap(consent -> {
+                    Consent.StatusEnum status = consent.getStatus();
+                    log.debug("The last status polled was: {} \tfor Single Consent ID: {}", status,
+                            consentId);
+
+                    if (AUTHORISED == status) {
+                        return consentMono;
+                    }
+
+                    return Mono.error(new BlinkConsentFailureException());
+                }).retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkConsentFailureException.class::isInstance)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        })
+                ).block();
+    }
+
+    /**
+     * Retrieves an authorised single consent by ID within the specified time.
+     *
+     * @param consentId      the consent ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Consent}
+     * @throws BlinkConsentFailureException thrown when a consent exception occurs
+     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     */
+    public Consent awaitAuthorisedSingleConsentOrThrowException(UUID consentId, int maxWaitSeconds)
+            throws BlinkConsentFailureException, BlinkServiceException {
+        try {
+            return awaitAuthorisedSingleConsentAsMono(consentId, maxWaitSeconds).block();
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof BlinkConsentFailureException) {
+                throw (BlinkConsentFailureException) cause;
+            } else if (cause instanceof BlinkServiceException) {
+                throw (BlinkServiceException) cause;
+            }
+
+            throw e;
+        }
+    }
+
+    /**
+     * Retrieves an authorised single consent by ID within the specified time.
+     * The consent statuses are handled accordingly.
+     *
+     * @param consentId      the consent ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Mono} containing the {@link Consent}
+     */
+    public Mono<Consent> awaitAuthorisedSingleConsentAsMono(UUID consentId, int maxWaitSeconds) {
+        Mono<Consent> consentMono = getSingleConsentAsMono(consentId);
+
+        return consentMono
+                .flatMap(consent -> {
+                    Consent.StatusEnum status = consent.getStatus();
+                    log.debug("The last status polled was: {} \tfor Single Consent ID: {}", status,
+                            consentId);
+
+                    switch (status) {
+                        case AUTHORISED:
+                        case CONSUMED:
+                            break;
+                        case REJECTED:
+                        case REVOKED:
+                            BlinkConsentRejectedException exception1 =
+                                    new BlinkConsentRejectedException("Single consent [" + consentId
+                                            + "] has been rejected or revoked");
+                            return Mono.error(exception1);
+                        case GATEWAYTIMEOUT:
+                            BlinkConsentTimeoutException exception2 =
+                                    new BlinkConsentTimeoutException("Gateway timed out for single consent ["
+                                            + consentId + "]");
+                            return Mono.error(exception2);
+                        case GATEWAYAWAITINGSUBMISSION:
+                        case AWAITINGAUTHORISATION:
+                            BlinkConsentFailureException exception3 =
+                                    new BlinkConsentFailureException("Single consent [" + consentId
+                                            + "] is waiting for authorisation");
+                            return Mono.error(exception3);
+                    }
+
+                    log.debug("Single consent completed for ID: {}", consentId);
+                    return consentMono;
+                })
+                .retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkDebitClient::filterConsentException)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        }));
+    }
+
+    /**
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
@@ -520,6 +641,134 @@ public class BlinkDebitClient {
     }
 
     /**
+     * Retrieves an authorised enduring consent by ID within the specified time.
+     * Timeout and other exceptions are wrapped in a {@link RuntimeException}.
+     *
+     * @param consentId      the consent ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Consent}
+     */
+    public Consent awaitAuthorisedEnduringConsent(UUID consentId, int maxWaitSeconds) {
+        Mono<Consent> consentMono = getEnduringConsentAsMono(consentId);
+
+        return consentMono
+                .flatMap(consent -> {
+                    Consent.StatusEnum status = consent.getStatus();
+                    log.debug("The last status polled was: {} \tfor Enduring Consent ID: {}", status,
+                            consentId);
+
+                    if (AUTHORISED == status) {
+                        return consentMono;
+                    }
+
+                    return Mono.error(new BlinkConsentFailureException());
+                }).retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkConsentFailureException.class::isInstance)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        })
+                ).block();
+    }
+
+    /**
+     * Retrieves an authorised enduring consent by ID within the specified time.
+     *
+     * @param consentId      the consent ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Consent}
+     * @throws BlinkConsentFailureException thrown when a consent exception occurs
+     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     */
+    public Consent awaitAuthorisedEnduringConsentOrThrowException(UUID consentId, int maxWaitSeconds)
+            throws BlinkConsentFailureException, BlinkServiceException {
+        try {
+            return awaitAuthorisedEnduringConsentAsMono(consentId, maxWaitSeconds).block();
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof BlinkConsentFailureException) {
+                throw (BlinkConsentFailureException) cause;
+            } else if (cause instanceof BlinkServiceException) {
+                throw (BlinkServiceException) cause;
+            }
+
+            throw e;
+        }
+    }
+
+    /**
+     * Retrieves an authorised enduring consent by ID within the specified time.
+     * The consent statuses are handled accordingly.
+     *
+     * @param consentId      the consent ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Mono} containing the {@link Consent}
+     */
+    public Mono<Consent> awaitAuthorisedEnduringConsentAsMono(UUID consentId, int maxWaitSeconds) {
+        try {
+            Mono<Consent> consentMono = getEnduringConsentAsMono(consentId);
+
+            return consentMono
+                    .flatMap(consent -> {
+                        Consent.StatusEnum status = consent.getStatus();
+                        log.debug("The last status polled was: {} \tfor Enduring Consent ID: {}", status,
+                                consentId);
+
+                        switch (status) {
+                            case AUTHORISED:
+                            case CONSUMED:
+                                break;
+                            case REJECTED:
+                            case REVOKED:
+                                BlinkConsentRejectedException exception1 =
+                                        new BlinkConsentRejectedException("Enduring consent [" + consentId
+                                                + "] has been rejected or revoked");
+                                return Mono.error(exception1);
+                            case GATEWAYTIMEOUT:
+                                BlinkConsentTimeoutException exception2 =
+                                        new BlinkConsentTimeoutException("Gateway timed out for enduring consent ["
+                                                + consentId + "]");
+                                return Mono.error(exception2);
+                            case GATEWAYAWAITINGSUBMISSION:
+                            case AWAITINGAUTHORISATION:
+                                BlinkConsentFailureException exception3 =
+                                        new BlinkConsentFailureException("Enduring consent [" + consentId
+                                                + "] is waiting for authorisation");
+                                return Mono.error(exception3);
+                        }
+
+                        log.debug("Enduring consent completed for ID: {}", consentId);
+                        return consentMono;
+                    })
+                    .retryWhen(reactor.util.retry.Retry
+                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .filter(BlinkDebitClient::filterConsentException)
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                                try {
+                                    revokeEnduringConsentAsMono(consentId).then();
+                                    log.info("The max wait time was reached while waiting for the enduring consent to complete and the payment has been revoked with the server. Enduring consent ID: {}", consentId);
+                                } catch (Throwable revokeException) {
+                                    log.error("Waiting for the enduring consent was not successful and it was also not able to be revoked with the server due to: {}. Enduring consent ID: {}", revokeException.getLocalizedMessage(), consentId);
+                                    awaitException.addSuppressed(revokeException);
+                                }
+
+                                throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                            }));
+        } catch (Throwable awaitException) {
+            try {
+                revokeEnduringConsent(consentId);
+                log.info("The max wait time was reached while waiting for the enduring consent to complete and the payment has been revoked with the server. Enduring consent ID: {}", consentId);
+            } catch (Throwable revokeException) {
+                log.error("Waiting for the enduring consent was not successful and it was also not able to be revoked with the server due to: {}. Enduring consent ID: {}", revokeException.getLocalizedMessage(), consentId);
+                awaitException.addSuppressed(revokeException);
+            }
+            throw awaitException;
+        }
+    }
+
+    /**
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
@@ -641,6 +890,124 @@ public class BlinkDebitClient {
      */
     public Mono<QuickPaymentResponse> getQuickPaymentAsMono(UUID quickPaymentId, String requestId) {
         return quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId);
+    }
+
+    /**
+     * Retrieves a successful quick payment by ID within the specified time.
+     * Timeout and other exceptions are wrapped in a {@link RuntimeException}.
+     *
+     * @param quickPaymentId the quick payment ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link QuickPaymentResponse}
+     */
+    public QuickPaymentResponse awaitSuccessfulQuickPayment(UUID quickPaymentId, int maxWaitSeconds) {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = getQuickPaymentAsMono(quickPaymentId);
+
+        return quickPaymentResponseMono
+                .flatMap(quickPaymentResponse -> {
+                    Consent.StatusEnum status = quickPaymentResponse.getConsent().getStatus();
+                    log.debug("The last status polled was: {} \tfor Quick Payment ID: {}", status, quickPaymentId);
+
+                    if (AUTHORISED == status) {
+                        return quickPaymentResponseMono;
+                    }
+
+                    return Mono.error(new BlinkConsentFailureException());
+                }).retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkConsentFailureException.class::isInstance)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        })
+                ).block();
+    }
+
+    /**
+     * Retrieves a successful quick payment by ID within the specified time.
+     *
+     * @param quickPaymentId the quick payment ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link QuickPaymentResponse}
+     * @throws BlinkConsentFailureException thrown when a consent exception occurs
+     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     */
+    public QuickPaymentResponse awaitSuccessfulQuickPaymentOrThrowException(UUID quickPaymentId, int maxWaitSeconds)
+            throws BlinkConsentFailureException, BlinkServiceException {
+        try {
+            return awaitSuccessfulQuickPaymentAsMono(quickPaymentId, maxWaitSeconds).block();
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof BlinkConsentFailureException) {
+                throw (BlinkConsentFailureException) cause;
+            } else if (cause instanceof BlinkServiceException) {
+                throw (BlinkServiceException) cause;
+            }
+
+            throw e;
+        }
+    }
+
+    /**
+     * Retrieves a successful quick payment by ID within the specified time.
+     * The consent statuses are handled accordingly.
+     *
+     * @param quickPaymentId the quick payment ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Mono} containing the {@link QuickPaymentResponse}
+     */
+    public Mono<QuickPaymentResponse> awaitSuccessfulQuickPaymentAsMono(UUID quickPaymentId,
+                                                                        int maxWaitSeconds) {
+        Mono<QuickPaymentResponse> quickPaymentResponseMono = getQuickPaymentAsMono(quickPaymentId);
+
+        return quickPaymentResponseMono
+                .flatMap(quickPaymentResponse -> {
+                    Consent.StatusEnum status = quickPaymentResponse.getConsent().getStatus();
+                    log.debug("The last status polled was: {} \tfor Quick Payment ID: {}", status, quickPaymentId);
+
+                    switch (status) {
+                        case AUTHORISED:
+                        case CONSUMED:
+                            break;
+                        case REJECTED:
+                        case REVOKED:
+                            BlinkConsentRejectedException exception1 =
+                                    new BlinkConsentRejectedException("Quick payment [" + quickPaymentId
+                                            + "] has been rejected or revoked");
+                            return Mono.error(exception1);
+                        case GATEWAYTIMEOUT:
+                            BlinkConsentTimeoutException exception2 =
+                                    new BlinkConsentTimeoutException("Gateway timed out for quick payment ["
+                                            + quickPaymentId + "]");
+                            return Mono.error(exception2);
+                        case GATEWAYAWAITINGSUBMISSION:
+                        case AWAITINGAUTHORISATION:
+                            BlinkConsentFailureException exception3 =
+                                    new BlinkConsentFailureException("Quick payment [" + quickPaymentId
+                                            + "] is waiting for authorisation");
+                            return Mono.error(exception3);
+                    }
+
+                    // a successful quick payment will always have the consent status of consumed
+                    log.debug("Quick Payment completed for ID: {}", quickPaymentId);
+                    return quickPaymentResponseMono;
+                })
+                .retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkDebitClient::filterConsentException)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            // Gateway timed out. Revoke so it can't be used anymore
+                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                            try {
+                                revokeQuickPaymentAsMono(quickPaymentId).then();
+                                log.info("The max wait time was reached while waiting for the quick payment to complete and the payment has been revoked with the server. Quick payment ID: {}", quickPaymentId);
+                            } catch (Throwable revokeException) {
+                                log.error("Waiting for the quick payment was not successful and it was also not able to be revoked with the server due to: {}. Quick payment ID: {}", revokeException.getLocalizedMessage(), quickPaymentId);
+                                awaitException.addSuppressed(revokeException);
+                            }
+
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        }));
     }
 
     /**
@@ -812,6 +1179,106 @@ public class BlinkDebitClient {
     }
 
     /**
+     * Retrieves a successful payment by ID within the specified time.
+     * Timeout and other exceptions are wrapped in a {@link RuntimeException}.
+     *
+     * @param paymentId      the payment ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Payment}
+     */
+    public Payment awaitSuccessfulPayment(UUID paymentId, int maxWaitSeconds) {
+        Mono<Payment> paymentMono = getPaymentAsMono(paymentId);
+
+        return paymentMono
+                .flatMap(payment -> {
+                    Payment.StatusEnum status = payment.getStatus();
+                    log.debug("The last status polled was: {} \tfor Payment ID: {}", status, paymentId);
+
+                    if (ACCEPTEDSETTLEMENTCOMPLETED == status) {
+                        return paymentMono;
+                    }
+
+                    return Mono.error(new BlinkPaymentFailureException());
+                }).retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkPaymentFailureException.class::isInstance)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        })
+                ).block();
+    }
+
+    /**
+     * Retrieves a successful payment by ID within the specified time.
+     *
+     * @param paymentId      the payment ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Payment}
+     * @throws BlinkPaymentFailureException thrown when a payment exception occurs
+     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     */
+    public Payment awaitSuccessfulPaymentOrThrowException(UUID paymentId, int maxWaitSeconds)
+            throws BlinkPaymentFailureException, BlinkServiceException {
+        try {
+            return awaitSuccessfulPaymentAsMono(paymentId, maxWaitSeconds).block();
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof BlinkPaymentFailureException) {
+                throw (BlinkPaymentFailureException) cause;
+            } else if (cause instanceof BlinkServiceException) {
+                throw (BlinkServiceException) cause;
+            }
+
+            throw e;
+        }
+    }
+
+    /**
+     * Retrieves a successful payment by ID within the specified time.
+     * The payment statuses are handled accordingly.
+     *
+     * @param paymentId      the payment ID
+     * @param maxWaitSeconds the number of seconds to wait
+     * @return the {@link Mono} containing the {@link Consent}
+     */
+    public Mono<Payment> awaitSuccessfulPaymentAsMono(UUID paymentId, int maxWaitSeconds) {
+        Mono<Payment> paymentMono = getPaymentAsMono(paymentId);
+
+        return paymentMono
+                .flatMap(payment -> {
+                    Payment.StatusEnum status = payment.getStatus();
+                    log.debug("The last status polled was: {} \tfor Payment ID: {}", status, paymentId);
+
+                    switch (status) {
+                        case ACCEPTEDSETTLEMENTCOMPLETED:
+                            break;
+                        case REJECTED:
+                            BlinkPaymentRejectedException exception1 =
+                                    new BlinkPaymentRejectedException("Payment [" + paymentId
+                                            + "] has been rejected");
+                            return Mono.error(exception1);
+                        case ACCEPTEDSETTLEMENTINPROCESS:
+                        case PENDING:
+                            BlinkPaymentFailureException exception3 =
+                                    new BlinkPaymentFailureException("Payment [" + paymentId
+                                            + "] is pending or being processed");
+                            return Mono.error(exception3);
+                    }
+
+                    log.debug("Payment completed for ID: {}", paymentId);
+                    return paymentMono;
+                })
+                .retryWhen(reactor.util.retry.Retry
+                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .filter(BlinkDebitClient::filterPaymentException)
+                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                            BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
+                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                        }));
+    }
+
+    /**
      * Creates a refund.
      *
      * @param request the {@link RefundDetail}
@@ -893,5 +1360,17 @@ public class BlinkDebitClient {
      */
     public Mono<Refund> getRefundAsMono(UUID refundId, final String requestId) {
         return refundsApiClient.getRefund(refundId, requestId);
+    }
+
+    private static boolean filterConsentException(Throwable throwable) {
+        return !(throwable instanceof BlinkConsentRejectedException
+                || throwable instanceof BlinkConsentTimeoutException
+                || throwable instanceof BlinkServiceException);
+    }
+
+    private static boolean filterPaymentException(Throwable throwable) {
+        return !(throwable instanceof BlinkPaymentRejectedException
+                || throwable instanceof BlinkPaymentTimeoutException
+                || throwable instanceof BlinkServiceException);
     }
 }
