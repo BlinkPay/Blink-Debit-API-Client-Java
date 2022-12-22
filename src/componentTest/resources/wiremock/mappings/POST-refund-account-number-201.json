@@ -1,0 +1,22 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "POST",
+    "url": "/payments/v1/refunds",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.type",
+          "contains": "account_number"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "refund-account-number-201.json"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "POST",
+    "url": "/payments/v1/enduring-consents",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.flow.detail.type",
+          "contains": "gateway"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "enduring-consent-gateway-flow-201.json"
+  }
+}

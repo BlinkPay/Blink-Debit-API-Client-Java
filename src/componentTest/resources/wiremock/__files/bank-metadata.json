@@ -1,0 +1,56 @@
+[
+  {
+    "name": "BNZ",
+    "features": {
+      "decoupled_flow": {
+        "enabled": true,
+        "available_identifiers": [
+          {
+            "type": "consent_id",
+            "name": "Consent ID"
+          }
+        ],
+        "request_timeout": "PT4M"
+      }
+    },
+    "redirect_flow": {
+      "enabled": true,
+      "request_timeout": "PT5M"
+    }
+  },
+  {
+    "name": "PNZ",
+    "features": {
+      "enduring_consent": {
+        "enabled": true,
+        "consent_indefinite": true
+      },
+      "decoupled_flow": {
+        "enabled": true,
+        "available_identifiers": [
+          {
+            "type": "phone_number",
+            "name": "Phone Number"
+          },
+          {
+            "type": "mobile_number",
+            "name": "Mobile Number"
+          }
+        ],
+        "request_timeout": "PT3M"
+      }
+    },
+    "redirect_flow": {
+      "enabled": true,
+      "request_timeout": "PT10M"
+    }
+  },
+  {
+    "name": "Westpac",
+    "features": {},
+    "redirect_flow": {
+      "enabled": true,
+      "request_timeout": "PT10M"
+    }
+  }
+]

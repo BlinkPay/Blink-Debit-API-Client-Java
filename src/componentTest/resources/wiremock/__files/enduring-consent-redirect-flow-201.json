@@ -1,0 +1,4 @@
+{
+  "consent_id": "8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458",
+  "redirect_uri": "https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize?scope=openid%20payments&response_type=code%20id_token&request=header.payload.signature&state=8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458&nonce=b53c608b-bee8-4d31-9962-d8c566994f73&redirect_uri=https%3A%2F%2Fsandbox.debit.blinkpay.co.nz%2Fbank%2F1.0%2Freturn&client_id=clientId"
+}

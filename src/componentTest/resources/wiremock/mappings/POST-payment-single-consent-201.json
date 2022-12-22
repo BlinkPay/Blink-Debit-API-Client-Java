@@ -1,0 +1,22 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "POST",
+    "url": "/payments/v1/payments",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.consent_id",
+          "contains": "c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "payment-single-consent-201.json"
+  }
+}
