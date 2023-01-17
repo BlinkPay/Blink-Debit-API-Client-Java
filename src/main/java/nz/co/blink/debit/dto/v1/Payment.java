@@ -98,6 +98,8 @@ public class Payment {
 
         ACCEPTEDSETTLEMENTCOMPLETED("AcceptedSettlementCompleted"),
 
+        ACCEPTED("Accepted"),
+
         REJECTED("Rejected");
 
         private String value;
