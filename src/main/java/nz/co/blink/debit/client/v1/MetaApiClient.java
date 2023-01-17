@@ -63,7 +63,7 @@ public class MetaApiClient {
      * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    public MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    protected MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                          @Value("${blinkpay.debit.url:}") final String debitUrl,
                          AccessTokenHandler accessTokenHandler) {
         this.connector = connector;

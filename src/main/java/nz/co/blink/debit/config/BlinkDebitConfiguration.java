@@ -85,7 +85,7 @@ public class BlinkDebitConfiguration {
      * @return the {@link ReactorClientHttpConnector}
      */
     @Bean
-    public ReactorClientHttpConnector blinkDebitClientHttpConnector() {
+    protected ReactorClientHttpConnector blinkDebitClientHttpConnector() {
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
                 .maxConnections(maxConnections)
                 .maxIdleTime(maxIdleTime)

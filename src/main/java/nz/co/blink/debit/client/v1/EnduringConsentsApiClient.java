@@ -90,7 +90,7 @@ public class EnduringConsentsApiClient {
      * @param retry              the {@link Retry} instance
      */
     @Autowired
-    public EnduringConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    protected EnduringConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                                      @Value("${blinkpay.debit.url:}") final String debitUrl,
                                      AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;

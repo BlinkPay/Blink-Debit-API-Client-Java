@@ -91,7 +91,7 @@ public class QuickPaymentsApiClient {
      * @param retry              the {@link Retry} instance
      */
     @Autowired
-    public QuickPaymentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    protected QuickPaymentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                                   @Value("${blinkpay.debit.url:}") final String debitUrl,
                                   AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;

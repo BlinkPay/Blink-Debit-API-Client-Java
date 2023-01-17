@@ -115,7 +115,7 @@ public class BlinkDebitClient {
      * @param retry                     the {@link Retry}
      */
     @Autowired
-    public BlinkDebitClient(SingleConsentsApiClient singleConsentsApiClient,
+    protected BlinkDebitClient(SingleConsentsApiClient singleConsentsApiClient,
                             EnduringConsentsApiClient enduringConsentsApiClient,
                             QuickPaymentsApiClient quickPaymentsApiClient, PaymentsApiClient paymentsApiClient,
                             RefundsApiClient refundsApiClient, MetaApiClient metaApiClient, Validator validator,

@@ -71,7 +71,7 @@ public class OAuthApiClient {
      * @param retry        the {@link Retry} instance
      */
     @Autowired
-    public OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    protected OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                           @Value("${blinkpay.debit.url:}") final String debitUrl,
                           @Value("${blinkpay.client.id:}") final String clientId,
                           @Value("${blinkpay.client.secret:}") final String clientSecret, Retry retry) {
