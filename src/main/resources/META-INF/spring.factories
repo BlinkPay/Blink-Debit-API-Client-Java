@@ -1,0 +1,1 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=nz.co.blink.debit.config.BlinkDebitAutoConfiguration

@@ -43,6 +43,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -101,16 +102,17 @@ class QuickPaymentsApiClientComponentTest {
     @BeforeEach
     void setUp() {
         // use real host to generate valid access token
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz", System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry
-        );
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
+                System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry);
 
-        client = new QuickPaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator, retry);
+        client = new QuickPaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator,
+                retry);
     }
 
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created")
     @Order(1)
-    void createQuickPaymentWithRedirectFlow() {
+    void createQuickPaymentWithRedirectFlow() throws BlinkInvalidValueException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -138,7 +140,7 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is retrieved")
     @Order(2)
-    void getQuickPaymentWithRedirectFlow() {
+    void getQuickPaymentWithRedirectFlow() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.fromString("2ea80e7a-ef5e-4431-8b47-cbae9c246414");
         Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
 
@@ -188,7 +190,7 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
     @Order(4)
-    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() {
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -217,7 +219,7 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created")
     @Order(5)
-    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() {
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -248,7 +250,7 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is retrieved")
     @Order(6)
-    void getQuickPaymentWithGatewayFlow() {
+    void getQuickPaymentWithGatewayFlow() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.fromString("04157088-47ed-46ea-820e-6f726365b092");
         Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
 
@@ -298,7 +300,7 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created")
     @Order(7)
-    void createQuickPaymentWithDecoupledFlow() {
+    void createQuickPaymentWithDecoupledFlow() throws BlinkInvalidValueException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -327,7 +329,7 @@ class QuickPaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
     @Order(8)
-    void getQuickPaymentWithDecoupledFlow() {
+    void getQuickPaymentWithDecoupledFlow() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.fromString("b9d04c2f-eea2-44cb-bf9f-72c834a3250b");
         Mono<QuickPaymentResponse> consentMono = client.getQuickPayment(quickPaymentId);
 

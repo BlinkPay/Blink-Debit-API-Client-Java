@@ -40,6 +40,7 @@ import nz.co.blink.debit.dto.v1.OneOfconsentDetail;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -59,7 +60,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.time.OffsetDateTime;
@@ -125,8 +125,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createEnduringConsentWithRedirectFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -144,8 +144,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -164,8 +164,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -186,8 +186,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -208,8 +208,8 @@ class EnduringConsentsApiClientTest {
                 .period(Period.MONTHLY)
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -228,8 +228,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -250,8 +250,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -275,12 +275,12 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for enduring consent request");
+                .hasMessageStartingWith("Validation failed for enduring consent request");
     }
 
     @Test
@@ -297,8 +297,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -321,8 +321,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -332,8 +332,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createEnduringConsentWithDecoupledFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -351,8 +351,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -371,8 +371,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -395,8 +395,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -419,8 +419,8 @@ class EnduringConsentsApiClientTest {
                 .period(Period.MONTHLY)
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -441,8 +441,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -465,8 +465,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -492,12 +492,12 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for enduring consent request");
+                .hasMessageStartingWith("Validation failed for enduring consent request");
     }
 
     @Test
@@ -516,8 +516,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -540,8 +540,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -566,8 +566,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -592,8 +592,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -603,8 +603,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createEnduringConsentWithGatewayFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -622,8 +622,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -642,8 +642,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -665,8 +665,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -688,8 +688,8 @@ class EnduringConsentsApiClientTest {
                 .period(Period.MONTHLY)
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -709,8 +709,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -732,8 +732,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -758,12 +758,12 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for enduring consent request");
+                .hasMessageStartingWith("Validation failed for enduring consent request");
     }
 
     @Test
@@ -781,8 +781,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -791,7 +791,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and null flow hint is created")
-    void createEnduringConsentWithGatewayFlowAndNullFlowHint() {
+    void createEnduringConsentWithGatewayFlowAndNullFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -846,8 +846,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -871,8 +871,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -896,8 +896,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -923,8 +923,8 @@ class EnduringConsentsApiClientTest {
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -934,8 +934,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void getEnduringConsentWithNullConsentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.getEnduringConsent(null).block(),
-                IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.getEnduringConsent(null).block(),
+                BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -944,7 +944,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent is retrieved")
-    void getEnduringConsent() {
+    void getEnduringConsent() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1008,8 +1008,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void revokeEnduringConsentWithNullConsentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.revokeEnduringConsent(null).block(),
-                IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeEnduringConsent(null).block(),
+                BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1035,7 +1035,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created")
-    void createEnduringConsentWithRedirectFlow() {
+    void createEnduringConsentWithRedirectFlow() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1077,7 +1077,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created")
-    void createEnduringConsentWithDecoupledFlow() {
+    void createEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1120,7 +1120,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created")
-    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() {
+    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1163,7 +1163,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created")
-    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() {
+    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

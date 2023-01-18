@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +64,7 @@ public class MetaApiClient {
      * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
-    protected MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    public MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                          @Value("${blinkpay.debit.url:}") final String debitUrl,
                          AccessTokenHandler accessTokenHandler) {
         this.connector = connector;
@@ -75,8 +76,9 @@ public class MetaApiClient {
      * Returns the {@link BankMetadata} {@link Flux}.
      *
      * @return the {@link BankMetadata} {@link Flux}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Flux<BankMetadata> getMeta() {
+    public Flux<BankMetadata> getMeta() throws BlinkInvalidValueException {
         return getMeta(null);
     }
 
@@ -85,8 +87,9 @@ public class MetaApiClient {
      *
      * @param requestId the optional correlation ID
      * @return the {@link BankMetadata} {@link Flux}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Flux<BankMetadata> getMeta(final String requestId) {
+    public Flux<BankMetadata> getMeta(final String requestId) throws BlinkInvalidValueException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -98,7 +101,7 @@ public class MetaApiClient {
                 .exchangeToFlux(ResponseHandler.handleResponseFlux(BankMetadata.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

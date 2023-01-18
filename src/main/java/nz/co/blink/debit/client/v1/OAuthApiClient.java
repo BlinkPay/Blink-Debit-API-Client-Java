@@ -26,6 +26,7 @@ import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,7 @@ public class OAuthApiClient {
      * @param retry        the {@link Retry} instance
      */
     @Autowired
-    protected OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    public OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                           @Value("${blinkpay.debit.url:}") final String debitUrl,
                           @Value("${blinkpay.client.id:}") final String clientId,
                           @Value("${blinkpay.client.secret:}") final String clientSecret, Retry retry) {
@@ -86,8 +87,9 @@ public class OAuthApiClient {
      * Generates an access token valid for 1 day.
      *
      * @return the {@link AccessTokenResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<AccessTokenResponse> generateAccessToken() {
+    public Mono<AccessTokenResponse> generateAccessToken() throws BlinkInvalidValueException {
         return generateAccessToken(null);
     }
 
@@ -96,10 +98,11 @@ public class OAuthApiClient {
      *
      * @param requestId the optional correlation ID
      * @return the {@link AccessTokenResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<AccessTokenResponse> generateAccessToken(final String requestId) {
+    public Mono<AccessTokenResponse> generateAccessToken(final String requestId) throws BlinkInvalidValueException {
         if (StringUtils.isBlank(clientId) || StringUtils.isBlank(clientSecret)) {
-            throw new IllegalArgumentException("Client ID and client secret must not be blank");
+            throw new BlinkInvalidValueException("Client ID and client secret must not be blank");
         }
 
         AccessTokenRequest request = AccessTokenRequest.builder()

@@ -30,6 +30,7 @@ import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +45,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import java.util.HashSet;
 import java.util.Set;
@@ -84,7 +84,7 @@ public class PaymentsApiClient {
      * @param retry              the {@link Retry} instance
      */
     @Autowired
-    protected PaymentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    public PaymentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                              @Value("${blinkpay.debit.url:}") final String debitUrl,
                              AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;
@@ -99,8 +99,9 @@ public class PaymentsApiClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<PaymentResponse> createPayment(PaymentRequest request) {
+    public Mono<PaymentResponse> createPayment(PaymentRequest request) throws BlinkInvalidValueException {
         return createPayment(request, null);
     }
 
@@ -110,39 +111,41 @@ public class PaymentsApiClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<PaymentResponse> createPayment(PaymentRequest request, final String requestId) {
+    public Mono<PaymentResponse> createPayment(PaymentRequest request, final String requestId)
+            throws BlinkInvalidValueException {
         if (request == null) {
-            throw new IllegalArgumentException("Payment request must not be null");
+            throw new BlinkInvalidValueException("Payment request must not be null");
         }
 
         if (request.getConsentId() == null) {
-            throw new IllegalArgumentException("Consent ID must not be null");
+            throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
         EnduringPaymentRequest enduringPayment = request.getEnduringPayment();
         if (enduringPayment != null) {
             Pcr pcr = enduringPayment.getPcr();
             if (pcr == null) {
-                throw new IllegalArgumentException("PCR must not be null");
+                throw new BlinkInvalidValueException("PCR must not be null");
             }
 
             if (StringUtils.isBlank(pcr.getParticulars())) {
-                throw new IllegalArgumentException("Particulars must have at least 1 character");
+                throw new BlinkInvalidValueException("Particulars must have at least 1 character");
             }
 
             if (StringUtils.length(pcr.getParticulars()) > 12
                     || StringUtils.length(pcr.getCode()) > 12
                     || StringUtils.length(pcr.getReference()) > 12) {
-                throw new IllegalArgumentException("PCR must not exceed 12 characters");
+                throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
             }
 
             if (enduringPayment.getAmount() == null) {
-                throw new IllegalArgumentException("Amount must not be null");
+                throw new BlinkInvalidValueException("Amount must not be null");
             }
 
             if (enduringPayment.getAmount().getCurrency() == null) {
-                throw new IllegalArgumentException("Currency must not be null");
+                throw new BlinkInvalidValueException("Currency must not be null");
             }
         }
 
@@ -152,7 +155,8 @@ public class PaymentsApiClient {
                     .map(cv -> cv == null ? "null" : cv.getPropertyPath() + ": " + cv.getMessage())
                     .collect(Collectors.joining(", "));
             log.error("Validation failed for payment request: {}", constraintViolations);
-            throw new ConstraintViolationException("Validation failed for payment request", violations);
+            throw new BlinkInvalidValueException(String.format("Validation failed for payment request: %s",
+                    violations));
         }
 
         return createPaymentMono(request, requestId);
@@ -164,8 +168,9 @@ public class PaymentsApiClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request) {
+    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request) throws BlinkInvalidValueException {
         return createWestpacPayment(request, null);
     }
 
@@ -176,18 +181,20 @@ public class PaymentsApiClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request, final String requestId) {
+    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request, final String requestId)
+            throws BlinkInvalidValueException {
         if (request == null) {
-            throw new IllegalArgumentException("Payment request must not be null");
+            throw new BlinkInvalidValueException("Payment request must not be null");
         }
 
         if (request.getConsentId() == null) {
-            throw new IllegalArgumentException("Consent ID must not be null");
+            throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
         if (request.getAccountReferenceId() == null) {
-            throw new IllegalArgumentException("Account reference ID must not be null");
+            throw new BlinkInvalidValueException("Account reference ID must not be null");
         }
 
         Set<ConstraintViolation<PaymentRequest>> violations = new HashSet<>(validator.validate(request));
@@ -196,7 +203,8 @@ public class PaymentsApiClient {
                     .map(cv -> cv == null ? "null" : cv.getPropertyPath() + ": " + cv.getMessage())
                     .collect(Collectors.joining(", "));
             log.error("Validation failed for payment request: {}", constraintViolations);
-            throw new ConstraintViolationException("Validation failed for payment request", violations);
+            throw new BlinkInvalidValueException(String.format("Validation failed for payment request: %s",
+                    violations));
         }
 
         return createPaymentMono(request, requestId);
@@ -207,8 +215,9 @@ public class PaymentsApiClient {
      *
      * @param paymentId the payment ID
      * @return the {@link Payment} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Payment> getPayment(UUID paymentId) {
+    public Mono<Payment> getPayment(UUID paymentId) throws BlinkInvalidValueException {
         return getPayment(paymentId, null);
     }
 
@@ -218,10 +227,11 @@ public class PaymentsApiClient {
      * @param paymentId the payment ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Payment> getPayment(UUID paymentId, final String requestId) {
+    public Mono<Payment> getPayment(UUID paymentId, final String requestId) throws BlinkInvalidValueException {
         if (paymentId == null) {
-            throw new IllegalArgumentException("Payment ID must not be null");
+            throw new BlinkInvalidValueException("Payment ID must not be null");
         }
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -240,7 +250,8 @@ public class PaymentsApiClient {
                 .exchangeToMono(ResponseHandler.handleResponseMono(Payment.class));
     }
 
-    private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, String requestId) {
+    private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, String requestId)
+            throws BlinkInvalidValueException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -258,7 +269,7 @@ public class PaymentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

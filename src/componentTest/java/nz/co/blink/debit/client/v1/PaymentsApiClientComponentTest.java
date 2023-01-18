@@ -29,6 +29,7 @@ import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -84,8 +85,8 @@ class PaymentsApiClientComponentTest {
     @BeforeEach
     void setUp() {
         // use real host to generate valid access token
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz", System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry
-        );
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
+                System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry);
 
         client = new PaymentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator, retry);
     }
@@ -93,7 +94,7 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for single consent is created")
     @Order(1)
-    void createSinglePayment() {
+    void createSinglePayment() throws BlinkInvalidValueException {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"));
 
@@ -110,7 +111,7 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for single consent is retrieved")
     @Order(2)
-    void getPaymentForSingleConsent() {
+    void getPaymentForSingleConsent() throws BlinkInvalidValueException {
         UUID paymentId = UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e");
         Mono<Payment> paymentMono = client.getPayment(paymentId);
 
@@ -134,7 +135,7 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for enduring consent is created")
     @Order(3)
-    void createEnduringPayment() {
+    void createEnduringPayment() throws BlinkInvalidValueException {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"))
                 .enduringPayment(new EnduringPaymentRequest()
@@ -159,7 +160,7 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for enduring consent is retrieved")
     @Order(4)
-    void getPaymentForEnduringConsent() {
+    void getPaymentForEnduringConsent() throws BlinkInvalidValueException {
         UUID paymentId = UUID.fromString("12fd4aa2-629f-463d-9114-15b095448a79");
         Mono<Payment> paymentMono = client.getPayment(paymentId);
 
@@ -192,7 +193,7 @@ class PaymentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that payment for single consent is created in Westpac")
     @Order(5)
-    void createWestpacPayment() {
+    void createWestpacPayment() throws BlinkInvalidValueException {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"))
                 .accountReferenceId(UUID.randomUUID());

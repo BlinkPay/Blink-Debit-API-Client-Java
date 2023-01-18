@@ -32,6 +32,7 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import java.util.HashSet;
 import java.util.Set;
@@ -86,7 +86,7 @@ public class RefundsApiClient {
      * @param retry              the {@link Retry} instance
      */
     @Autowired
-    protected RefundsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    public RefundsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                             @Value("${blinkpay.debit.url:}") final String debitUrl,
                             AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;
@@ -101,8 +101,9 @@ public class RefundsApiClient {
      *
      * @param request the {@link PartialRefundRequest}
      * @return the {@link RefundResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<RefundResponse> createRefund(RefundDetail request) {
+    public Mono<RefundResponse> createRefund(RefundDetail request) throws BlinkInvalidValueException {
         return createRefund(request, null);
     }
 
@@ -112,14 +113,16 @@ public class RefundsApiClient {
      * @param request   the {@link RefundDetail}
      * @param requestId the optional correlation ID
      * @return the {@link RefundResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<RefundResponse> createRefund(RefundDetail request, final String requestId) {
+    public Mono<RefundResponse> createRefund(RefundDetail request, final String requestId)
+            throws BlinkInvalidValueException {
         if (request == null) {
-            throw new IllegalArgumentException("Refund request must not be null");
+            throw new BlinkInvalidValueException("Refund request must not be null");
         }
 
         if (request.getPaymentId() == null) {
-            throw new IllegalArgumentException("Payment ID must not be null");
+            throw new BlinkInvalidValueException("Payment ID must not be null");
         }
 
         if (request instanceof PartialRefundRequest) {
@@ -128,11 +131,11 @@ public class RefundsApiClient {
             validatePcr(partialRefundRequest.getPcr());
 
             if (partialRefundRequest.getAmount() == null) {
-                throw new IllegalArgumentException("Amount must not be null");
+                throw new BlinkInvalidValueException("Amount must not be null");
             }
 
             if (partialRefundRequest.getAmount().getCurrency() == null) {
-                throw new IllegalArgumentException("Currency must not be null");
+                throw new BlinkInvalidValueException("Currency must not be null");
             }
         } else if (request instanceof FullRefundRequest) {
             FullRefundRequest fullRefundRequest = (FullRefundRequest) request;
@@ -146,7 +149,8 @@ public class RefundsApiClient {
                     .map(cv -> cv == null ? "null" : cv.getPropertyPath() + ": " + cv.getMessage())
                     .collect(Collectors.joining(", "));
             log.error("Validation failed for refund request: {}", constraintViolations);
-            throw new ConstraintViolationException("Validation failed for refund request", violations);
+            throw new BlinkInvalidValueException(String.format("Validation failed for refund request: %s",
+                    violations));
         }
 
         return createRefundMono(request, requestId);
@@ -157,8 +161,9 @@ public class RefundsApiClient {
      *
      * @param refundId the refund ID
      * @return the {@link Payment} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Refund> getRefund(UUID refundId) {
+    public Mono<Refund> getRefund(UUID refundId) throws BlinkInvalidValueException {
         return getRefund(refundId, null);
     }
 
@@ -168,10 +173,11 @@ public class RefundsApiClient {
      * @param refundId  the refund ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Refund> getRefund(UUID refundId, final String requestId) {
+    public Mono<Refund> getRefund(UUID refundId, final String requestId) throws BlinkInvalidValueException {
         if (refundId == null) {
-            throw new IllegalArgumentException("Refund ID must not be null");
+            throw new BlinkInvalidValueException("Refund ID must not be null");
         }
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -190,7 +196,7 @@ public class RefundsApiClient {
                 .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
     }
 
-    private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) {
+    private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) throws BlinkInvalidValueException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -208,7 +214,7 @@ public class RefundsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -220,19 +226,19 @@ public class RefundsApiClient {
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }
 
-    private static void validatePcr(Pcr pcr) {
+    private static void validatePcr(Pcr pcr) throws BlinkInvalidValueException {
         if (pcr == null) {
-            throw new IllegalArgumentException("PCR must not be null");
+            throw new BlinkInvalidValueException("PCR must not be null");
         }
 
         if (StringUtils.isBlank(pcr.getParticulars())) {
-            throw new IllegalArgumentException("Particulars must have at least 1 character");
+            throw new BlinkInvalidValueException("Particulars must have at least 1 character");
         }
 
         if (StringUtils.length(pcr.getParticulars()) > 12
                 || StringUtils.length(pcr.getCode()) > 12
                 || StringUtils.length(pcr.getReference()) > 12) {
-            throw new IllegalArgumentException("PCR must not exceed 12 characters");
+            throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
         }
     }
 }

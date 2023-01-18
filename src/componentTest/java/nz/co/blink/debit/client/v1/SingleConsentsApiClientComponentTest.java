@@ -38,6 +38,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -96,8 +97,8 @@ class SingleConsentsApiClientComponentTest {
     @BeforeEach
     void setUp() {
         // use real host to generate valid access token
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz", System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry
-        );
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
+                System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry);
 
         client = new SingleConsentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator,
                 retry);
@@ -106,7 +107,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with redirect flow is created")
     @Order(1)
-    void createSingleConsentWithRedirectFlow() {
+    void createSingleConsentWithRedirectFlow() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -134,7 +135,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with redirect flow is retrieved")
     @Order(2)
-    void getSingleConsentWithRedirectFlow() {
+    void getSingleConsentWithRedirectFlow() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(
                 UUID.fromString("5ccf243a-af8a-4c75-99b7-671c02cf8566"), UUID.randomUUID().toString());
 
@@ -181,7 +182,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is created")
     @Order(4)
-    void createSingleConsentWithDecoupledFlow() {
+    void createSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -210,7 +211,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is retrieved")
     @Order(5)
-    void getSingleConsentWithDecoupledFlow() {
+    void getSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(
                 UUID.fromString("b4a0de42-6c9a-4ec6-898d-dee18280a7b5"), UUID.randomUUID().toString());
 
@@ -251,7 +252,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created")
     @Order(6)
-    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() {
+    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -280,7 +281,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created")
     @Order(7)
-    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() {
+    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -311,7 +312,7 @@ class SingleConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow is retrieved")
     @Order(8)
-    void getSingleConsentWithGatewayFlow() {
+    void getSingleConsentWithGatewayFlow() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(
                 UUID.fromString("58ed876d-5419-405c-a416-f1d77177f93f"), UUID.randomUUID().toString());
 

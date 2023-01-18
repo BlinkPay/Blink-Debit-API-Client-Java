@@ -37,6 +37,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +52,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import java.util.HashSet;
 import java.util.Set;
@@ -91,7 +91,7 @@ public class SingleConsentsApiClient {
      * @param retry              the {@link Retry} instance
      */
     @Autowired
-    protected SingleConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+    public SingleConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                                    @Value("${blinkpay.debit.url:}") final String debitUrl,
                                    AccessTokenHandler accessTokenHandler, Validator validator, Retry retry) {
         this.connector = connector;
@@ -106,8 +106,10 @@ public class SingleConsentsApiClient {
      *
      * @param request the {@link SingleConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<CreateConsentResponse> createSingleConsent(SingleConsentRequest request) {
+    public Mono<CreateConsentResponse> createSingleConsent(SingleConsentRequest request)
+            throws BlinkInvalidValueException {
         return createSingleConsent(request, null);
     }
 
@@ -117,73 +119,75 @@ public class SingleConsentsApiClient {
      * @param request   the {@link SingleConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<CreateConsentResponse> createSingleConsent(SingleConsentRequest request, final String requestId) {
+    public Mono<CreateConsentResponse> createSingleConsent(SingleConsentRequest request, final String requestId)
+            throws BlinkInvalidValueException {
         if (request == null) {
-            throw new IllegalArgumentException("Single consent request must not be null");
+            throw new BlinkInvalidValueException("Single consent request must not be null");
         }
 
         AuthFlow flow = request.getFlow();
         if (flow == null) {
-            throw new IllegalArgumentException("Authorisation flow must not be null");
+            throw new BlinkInvalidValueException("Authorisation flow must not be null");
         }
 
         OneOfauthFlowDetail detail = flow.getDetail();
         if (detail == null) {
-            throw new IllegalArgumentException("Authorisation flow detail must not be null");
+            throw new BlinkInvalidValueException("Authorisation flow detail must not be null");
         }
 
         if (detail instanceof RedirectFlow) {
             RedirectFlow redirectFlow = (RedirectFlow) flow.getDetail();
             if (redirectFlow.getBank() == null) {
-                throw new IllegalArgumentException("Bank must not be null");
+                throw new BlinkInvalidValueException("Bank must not be null");
             }
 
             if (StringUtils.isBlank(redirectFlow.getRedirectUri())) {
-                throw new IllegalArgumentException("Redirect URI must not be blank");
+                throw new BlinkInvalidValueException("Redirect URI must not be blank");
             }
         } else if (detail instanceof DecoupledFlow) {
             DecoupledFlow decoupledFlow = (DecoupledFlow) flow.getDetail();
             if (decoupledFlow.getBank() == null) {
-                throw new IllegalArgumentException("Bank must not be null");
+                throw new BlinkInvalidValueException("Bank must not be null");
             }
 
             if (decoupledFlow.getIdentifierType() == null) {
-                throw new IllegalArgumentException("Identifier type must not be null");
+                throw new BlinkInvalidValueException("Identifier type must not be null");
             }
 
             if (StringUtils.isBlank(decoupledFlow.getIdentifierValue())) {
-                throw new IllegalArgumentException("Identifier value must not be blank");
+                throw new BlinkInvalidValueException("Identifier value must not be blank");
             }
 
             if (StringUtils.isBlank(decoupledFlow.getCallbackUrl())) {
-                throw new IllegalArgumentException("Callback/webhook URL must not be blank");
+                throw new BlinkInvalidValueException("Callback/webhook URL must not be blank");
             }
         } else if (detail instanceof GatewayFlow) {
             GatewayFlow gatewayFlow = (GatewayFlow) flow.getDetail();
             if (StringUtils.isBlank(gatewayFlow.getRedirectUri())) {
-                throw new IllegalArgumentException("Redirect URI must not be blank");
+                throw new BlinkInvalidValueException("Redirect URI must not be blank");
             }
 
             FlowHint flowHint = gatewayFlow.getFlowHint();
             if (flowHint != null) {
                 if (flowHint.getBank() == null) {
-                    throw new IllegalArgumentException("Bank must not be null");
+                    throw new BlinkInvalidValueException("Bank must not be null");
                 }
 
                 FlowHint.TypeEnum flowHintType = flowHint.getType();
                 if (flowHintType == null) {
-                    throw new IllegalArgumentException("Flow hint type must not be null");
+                    throw new BlinkInvalidValueException("Flow hint type must not be null");
                 }
 
                 if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
                     DecoupledFlowHint decoupledFlowHint = (DecoupledFlowHint) flowHint;
                     if (decoupledFlowHint.getIdentifierType() == null) {
-                        throw new IllegalArgumentException("Identifier type must not be null");
+                        throw new BlinkInvalidValueException("Identifier type must not be null");
                     }
 
                     if (StringUtils.isBlank(decoupledFlowHint.getIdentifierValue())) {
-                        throw new IllegalArgumentException("Identifier value must not be blank");
+                        throw new BlinkInvalidValueException("Identifier value must not be blank");
                     }
                 }
             }
@@ -191,26 +195,26 @@ public class SingleConsentsApiClient {
 
         Pcr pcr = request.getPcr();
         if (pcr == null) {
-            throw new IllegalArgumentException("PCR must not be null");
+            throw new BlinkInvalidValueException("PCR must not be null");
         }
 
         if (StringUtils.isBlank(pcr.getParticulars())) {
-            throw new IllegalArgumentException("Particulars must have at least 1 character");
+            throw new BlinkInvalidValueException("Particulars must have at least 1 character");
         }
 
         if (StringUtils.length(pcr.getParticulars()) > 12
                 || StringUtils.length(pcr.getCode()) > 12
                 || StringUtils.length(pcr.getReference()) > 12) {
-            throw new IllegalArgumentException("PCR must not exceed 12 characters");
+            throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
         }
 
         Amount amount = request.getAmount();
         if (amount == null) {
-            throw new IllegalArgumentException("Amount must not be null");
+            throw new BlinkInvalidValueException("Amount must not be null");
         }
 
         if (amount.getCurrency() == null) {
-            throw new IllegalArgumentException("Currency must not be null");
+            throw new BlinkInvalidValueException("Currency must not be null");
         }
 
         Set<ConstraintViolation<SingleConsentRequest>> violations = new HashSet<>(validator.validate(request));
@@ -219,7 +223,8 @@ public class SingleConsentsApiClient {
                     .map(cv -> cv == null ? "null" : cv.getPropertyPath() + ": " + cv.getMessage())
                     .collect(Collectors.joining(", "));
             log.error("Validation failed for single consent request: {}", constraintViolations);
-            throw new ConstraintViolationException("Validation failed for single consent request", violations);
+            throw new BlinkInvalidValueException(String.format("Validation failed for single consent request: %s",
+                    violations));
         }
 
         return createSingleConsentMono(request, requestId);
@@ -230,8 +235,9 @@ public class SingleConsentsApiClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Consent> getSingleConsent(UUID consentId) {
+    public Mono<Consent> getSingleConsent(UUID consentId) throws BlinkInvalidValueException {
         return getSingleConsent(consentId, null);
     }
 
@@ -241,10 +247,11 @@ public class SingleConsentsApiClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent} {@link Mono}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Consent> getSingleConsent(UUID consentId, String requestId) {
+    public Mono<Consent> getSingleConsent(UUID consentId, String requestId) throws BlinkInvalidValueException {
         if (consentId == null) {
-            throw new IllegalArgumentException("Consent ID must not be null");
+            throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -267,8 +274,9 @@ public class SingleConsentsApiClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Void> revokeSingleConsent(UUID consentId) {
+    public Mono<Void> revokeSingleConsent(UUID consentId) throws BlinkInvalidValueException {
         return revokeSingleConsent(consentId, null);
     }
 
@@ -277,10 +285,11 @@ public class SingleConsentsApiClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public Mono<Void> revokeSingleConsent(UUID consentId, final String requestId) {
+    public Mono<Void> revokeSingleConsent(UUID consentId, final String requestId) throws BlinkInvalidValueException {
         if (consentId == null) {
-            throw new IllegalArgumentException("Consent ID must not be null");
+            throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -300,7 +309,7 @@ public class SingleConsentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request, String requestId) {
+    private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request, String requestId) throws BlinkInvalidValueException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -318,7 +327,7 @@ public class SingleConsentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

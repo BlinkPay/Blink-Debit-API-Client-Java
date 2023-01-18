@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ class OAuthApiClientIntegrationTest {
 
     @Test
     @DisplayName("Verify that access token is generated")
-    void generateAccessToken() {
+    void generateAccessToken() throws BlinkInvalidValueException {
         Mono<AccessTokenResponse> accessTokenResponseMono = client.generateAccessToken(UUID.randomUUID().toString());
 
         assertThat(accessTokenResponseMono).isNotNull();

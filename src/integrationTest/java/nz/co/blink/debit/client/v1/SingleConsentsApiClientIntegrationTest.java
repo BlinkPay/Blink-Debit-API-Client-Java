@@ -38,6 +38,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -80,7 +81,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with redirect flow is created in PNZ")
     @Order(1)
-    void createSingleConsentWithRedirectFlowInPnz() {
+    void createSingleConsentWithRedirectFlowInPnz() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -114,7 +115,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with redirect flow is retrieved from PNZ")
     @Order(2)
-    void getSingleConsentWithRedirectFlowFromPnz() {
+    void getSingleConsentWithRedirectFlowFromPnz() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
 
         Consent actual = consentMono.block();
@@ -150,7 +151,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with redirect flow is revoked in PNZ")
     @Order(3)
-    void revokeSingleConsentWithRedirectFlowInPnz() {
+    void revokeSingleConsentWithRedirectFlowInPnz() throws BlinkInvalidValueException {
         assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
@@ -189,7 +190,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that rejected/timed out single consent with redirect flow is retrieved from PNZ")
     @Order(4)
-    void getRejectedSingleConsentWithRedirectFlowFromPnz() {
+    void getRejectedSingleConsentWithRedirectFlowFromPnz() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(UUID.fromString("0a52bdff-4d63-4c21-ae4f-8ef438d74532"));
 
         assertThat(consentMono).isNotNull();
@@ -233,7 +234,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is created in PNZ")
     @Order(5)
-    void createSingleConsentWithDecoupledFlowInPnz() {
+    void createSingleConsentWithDecoupledFlowInPnz() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -263,7 +264,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is retrieved from PNZ")
     @Order(6)
-    void getSingleConsentWithDecoupledFlowFromPnz() {
+    void getSingleConsentWithDecoupledFlowFromPnz() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
 
         Consent actual = consentMono.block();
@@ -301,7 +302,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is revoked in PNZ")
     @Order(7)
-    void revokeSingleConsentWithDecoupledFlowInPnz() {
+    void revokeSingleConsentWithDecoupledFlowInPnz() throws BlinkInvalidValueException {
         assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
@@ -342,7 +343,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created in PNZ")
     @Order(8)
-    void createSingleConsentWithGatewayFlowAndRedirectFlowHintInPnz() {
+    void createSingleConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -373,7 +374,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is retrieved from PNZ")
     @Order(9)
-    void getSingleConsentWithGatewayFlowAndRedirectFlowHintFromPnz() {
+    void getSingleConsentWithGatewayFlowAndRedirectFlowHintFromPnz() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
 
         Consent actual = consentMono.block();
@@ -417,7 +418,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is revoked in PNZ")
     @Order(10)
-    void revokeSingleConsentWithGatewayFlowAndRedirectFlowHintInPnz() {
+    void revokeSingleConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkInvalidValueException {
         assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
@@ -464,7 +465,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created in PNZ")
     @Order(11)
-    void createSingleConsentWithGatewayFlowAndDecoupledFlowHintInPnz() {
+    void createSingleConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -497,7 +498,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is retrieved from PNZ")
     @Order(12)
-    void getSingleConsentWithGatewayFlowAndDecoupledFlowHintFromPnz() {
+    void getSingleConsentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws BlinkInvalidValueException {
         Mono<Consent> consentMono = client.getSingleConsent(consentId);
 
         Consent actual = consentMono.block();
@@ -542,7 +543,7 @@ class SingleConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(13)
-    void revokeSingleConsentWithGatewayFlowAndDecoupledFlowHintInPnz() {
+    void revokeSingleConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkInvalidValueException {
         assertThatNoException().isThrownBy(() -> client.revokeSingleConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getSingleConsent(consentId);

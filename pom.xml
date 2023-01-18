@@ -34,23 +34,19 @@
             src/integrationTest/**
         </sonar.test.exclusions>
 
-        <spring.version>2.7.6</spring.version>
+        <spring.boot.version>2.7.7</spring.boot.version>
         <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.5</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>1.7.1</resilience4j.version>
         <lombok.version>1.18.24</lombok.version>
-        <validation.api.version>2.0.1.Final</validation.api.version>
-        <hibernate.validator.version>6.2.5.Final</hibernate.validator.version>
-        <javax.el.version>3.0.0</javax.el.version>
-        <swagger.version>2.2.7</swagger.version>
-        <java.jwt.version>4.2.1</java.jwt.version>
+        <swagger.version>2.2.8</swagger.version>
+        <java.jwt.version>4.2.2</java.jwt.version>
         <commons.lang.version>3.12.0</commons.lang.version>
-        <netty.version>4.1.85.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
+        <netty.version>4.1.87.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
 
-        <junit.version>5.9.1</junit.version>
-        <spring.boot.starter.test.version>2.7.6</spring.boot.starter.test.version>
+        <junit.version>5.9.2</junit.version>
         <spring.cloud.contract.wiremock.version>3.1.5</spring.cloud.contract.wiremock.version>
-        <reactor.test.version>3.5.1</reactor.test.version>
-        <assertj.version>3.23.1</assertj.version>
+        <reactor.test.version>3.5.2</reactor.test.version>
+        <assertj.version>3.24.2</assertj.version>
     </properties>
 
     <dependencies>
@@ -58,7 +54,18 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
-            <version>${spring.version}</version>
+            <version>${spring.boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <version>${spring.boot.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
@@ -105,23 +112,6 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
-        </dependency>
-
-        <!-- Bean Validation API support -->
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>${validation.api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${hibernate.validator.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.el</artifactId>
-            <version>${javax.el.version}</version>
         </dependency>
 
         <!-- Swagger dependencies -->
@@ -174,7 +164,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring.boot.starter.test.version}</version>
+            <version>${spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

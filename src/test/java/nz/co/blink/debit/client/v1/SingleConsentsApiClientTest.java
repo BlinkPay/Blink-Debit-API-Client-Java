@@ -40,6 +40,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -59,7 +60,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.time.OffsetDateTime;
@@ -123,8 +123,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createSingleConsentWithRedirectFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -143,8 +143,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -164,8 +164,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -187,8 +187,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -212,8 +212,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -233,8 +233,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -256,8 +256,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -282,12 +282,12 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for single consent request");
+                .hasMessageStartingWith("Validation failed for single consent request");
     }
 
     @Test
@@ -301,8 +301,8 @@ class SingleConsentsApiClientTest {
                 .amount(new Amount()
                         .total("1.25"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -327,8 +327,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -351,8 +351,8 @@ class SingleConsentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -362,8 +362,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createSingleConsentWithDecoupledFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -382,8 +382,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -403,8 +403,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -428,8 +428,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -451,8 +451,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -476,8 +476,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -504,12 +504,12 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for single consent request");
+                .hasMessageStartingWith("Validation failed for single consent request");
     }
 
     @Test
@@ -526,8 +526,8 @@ class SingleConsentsApiClientTest {
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -554,8 +554,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -580,8 +580,8 @@ class SingleConsentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -605,8 +605,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -632,8 +632,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -659,8 +659,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -670,8 +670,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createSingleConsentWithGatewayFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -690,8 +690,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -711,8 +711,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -735,8 +735,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -757,8 +757,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -781,8 +781,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -808,12 +808,12 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for single consent request");
+                .hasMessageStartingWith("Validation failed for single consent request");
     }
 
     @Test
@@ -829,8 +829,8 @@ class SingleConsentsApiClientTest {
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -856,8 +856,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -881,8 +881,8 @@ class SingleConsentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -891,7 +891,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and null flow hint is created")
-    void createSingleConsentWithGatewayFlowAndNullFlowHint() {
+    void createSingleConsentWithGatewayFlowAndNullFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -947,8 +947,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -973,8 +973,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -999,8 +999,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1027,8 +1027,8 @@ class SingleConsentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1038,8 +1038,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void getSingleConsentWithNullConsentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.getSingleConsent(null).block(),
-                IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.getSingleConsent(null).block(),
+                BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1048,7 +1048,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent is retrieved")
-    void getSingleConsent() {
+    void getSingleConsent() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1115,8 +1115,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void revokeSingleConsentWithNullConsentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.revokeSingleConsent(null).block(),
-                IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeSingleConsent(null).block(),
+                BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1142,7 +1142,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with redirect flow is created")
-    void createSingleConsentWithRedirectFlow() {
+    void createSingleConsentWithRedirectFlow() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1185,7 +1185,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with decoupled flow is created")
-    void createSingleConsentWithDecoupledFlow() {
+    void createSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1229,7 +1229,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created")
-    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() {
+    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1272,7 +1272,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created")
-    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() {
+    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1314,6 +1314,4 @@ class SingleConsentsApiClientTest {
                 .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
                 .containsExactly(consentId, null);
     }
-
-    // FIXME retry
 }

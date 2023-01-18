@@ -41,6 +41,7 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkNotImplementedException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -99,7 +100,7 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that account refund for single consent with decoupled flow is created")
     @Order(1)
-    void createAccountNumberRefundForSingleConsentWithDecoupledFlow() throws InterruptedException {
+    void createAccountNumberRefundForSingleConsentWithDecoupledFlow() throws InterruptedException, BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -165,7 +166,7 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that account number refund for single consent with decoupled flow is retrieved")
     @Order(2)
-    void getAccountNumberRefundForSingleConsentWithDecoupledFlow() {
+    void getAccountNumberRefundForSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         if (refundId == null) {
             fail("Refund ID from single consent with decoupled flow is null");
         }
@@ -194,7 +195,7 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that account number refund for enduring consent with decoupled flow is created")
     @Order(3)
-    void createAccountNumberRefundForEnduringConsentWithDecoupledFlow() throws InterruptedException {
+    void createAccountNumberRefundForEnduringConsentWithDecoupledFlow() throws InterruptedException, BlinkInvalidValueException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -266,7 +267,7 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that account number refund for enduring consent with decoupled flow is retrieved")
     @Order(4)
-    void getAccountNumberRefundForEnduringConsentWithDecoupledFlow() {
+    void getAccountNumberRefundForEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         if (refundId == null) {
             fail("Refund ID from enduring consent with decoupled flow is null");
         }
@@ -295,7 +296,7 @@ class RefundsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that full refund for single consent with decoupled flow is handled")
     @Order(5)
-    void createFullRefundForSingleConsentWithDecoupledFlow() throws InterruptedException {
+    void createFullRefundForSingleConsentWithDecoupledFlow() throws InterruptedException, BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -368,7 +369,7 @@ class RefundsApiClientIntegrationTest {
     @DisplayName("Verify that partial refund for single consent with decoupled flow is handled")
     @Order(6)
     void createPartialRefundForSingleConsentWithDecoupledFlow()
-            throws InterruptedException {
+            throws InterruptedException, BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()

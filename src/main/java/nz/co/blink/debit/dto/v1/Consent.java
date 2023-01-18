@@ -1,16 +1,16 @@
 /**
  * Copyright (c) 2022 BlinkPay
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeDeserializer;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeSerializer;
 import org.springframework.validation.annotation.Validated;
@@ -88,11 +89,11 @@ public class Consent {
         }
 
         @JsonCreator
-        public static StatusEnum fromValue(String status) {
+        public static StatusEnum fromValue(String status) throws BlinkInvalidValueException {
             return Arrays.stream(StatusEnum.values())
                     .filter(statusEnum -> String.valueOf(statusEnum.value).equals(status))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown status: " + status));
+                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown status: " + status));
         }
     }
 

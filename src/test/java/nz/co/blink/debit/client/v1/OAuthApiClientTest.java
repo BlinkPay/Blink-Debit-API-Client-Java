@@ -24,6 +24,7 @@ package nz.co.blink.debit.client.v1;
 import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class OAuthApiClientTest {
 
     @Test
     @DisplayName("Verify that access token is generated")
-    void generateAccessToken() {
+    void generateAccessToken() throws BlinkInvalidValueException {
         // GIVEN
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -132,8 +133,8 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", clientId);
         ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(UUID.randomUUID().toString()).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -147,8 +148,8 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", "BLINKPAY_CLIENT_ID");
         ReflectionTestUtils.setField(client, "clientSecret", clientSecret);
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(UUID.randomUUID().toString()).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()

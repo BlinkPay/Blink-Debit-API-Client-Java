@@ -23,6 +23,7 @@ package nz.co.blink.debit.helpers;
 
 import nz.co.blink.debit.client.v1.OAuthApiClient;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -59,7 +60,7 @@ class AccessTokenHandlerTest {
 
     @Test
     @DisplayName("Verify that new access token is generated")
-    void setAccessTokenOnFirstRequest() {
+    void setAccessTokenOnFirstRequest() throws BlinkInvalidValueException {
         AccessTokenResponse accessTokenResponse = new AccessTokenResponse();
         accessTokenResponse.setAccessToken("header.payload.signature");
         when(client.generateAccessToken(any(String.class)))
@@ -86,7 +87,7 @@ class AccessTokenHandlerTest {
     @Test
     @DisplayName("Verify that existing access token is reused")
     @Disabled("Replace ACCESS_TOKEN environment variable value before running")
-    void setAccessTokenWhenAccessTokenExists() {
+    void setAccessTokenWhenAccessTokenExists() throws BlinkInvalidValueException {
         // ACCESS_TOKEN environment variable value must not be expired
         handler.setAccessTokenAtomicReference(System.getenv("ACCESS_TOKEN"));
 

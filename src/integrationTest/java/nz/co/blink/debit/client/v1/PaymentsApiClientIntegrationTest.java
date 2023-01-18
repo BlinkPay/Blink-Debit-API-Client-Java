@@ -36,6 +36,7 @@ import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -88,7 +89,7 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for single consent with decoupled flow is created")
     @Order(1)
-    void createPaymentForSingleConsentWithDecoupledFlow() throws InterruptedException {
+    void createPaymentForSingleConsentWithDecoupledFlow() throws InterruptedException, BlinkInvalidValueException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -143,7 +144,7 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for single consent with decoupled flow is retrieved")
     @Order(2)
-    void getPaymentForSingleConsentWithDecoupledFlow() {
+    void getPaymentForSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         if (paymentId == null) {
             fail("Payment ID from single consent with decoupled flow is null");
         }
@@ -170,7 +171,7 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for enduring consent with decoupled flow is created")
     @Order(3)
-    void createPaymentForEnduringConsentWithDecoupledFlow() throws InterruptedException {
+    void createPaymentForEnduringConsentWithDecoupledFlow() throws InterruptedException, BlinkInvalidValueException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -231,7 +232,7 @@ class PaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment for enduring consent with decoupled flow is retrieved")
     @Order(4)
-    void getPaymentForEnduringConsentWithDecoupledFlow() {
+    void getPaymentForEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         if (paymentId == null) {
             fail("Payment ID from enduring consent with decoupled flow is null");
         }

@@ -19,20 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package nz.co.blink.debit.dto.v1;
-
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+package nz.co.blink.debit.exception;
 
 /**
- * OneOfrefundRequest
+ * The exception thrown when the argument is invalid.
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = AccountNumberRefundRequest.class, name = "account_number"),
-        @JsonSubTypes.Type(value = PartialRefundRequest.class, name = "partial_refund"),
-        @JsonSubTypes.Type(value = FullRefundRequest.class, name = "full_refund")
-})
-public interface OneOfrefundRequest {
+public class BlinkInvalidValueException extends BlinkClientException {
 
+    public BlinkInvalidValueException() {
+    }
+
+    public BlinkInvalidValueException(String message) {
+        super(message);
+    }
+
+    public BlinkInvalidValueException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

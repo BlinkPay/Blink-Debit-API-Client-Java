@@ -60,6 +60,7 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -193,7 +194,7 @@ class BlinkDebitClientTest {
                             .requestTimeout("PT3M")));
 
     @Test
-    void getMeta() {
+    void getMeta() throws BlinkInvalidValueException {
         when(metaApiClient.getMeta())
                 .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
 
@@ -206,7 +207,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getMetaWithRequestId() {
+    void getMetaWithRequestId() throws BlinkInvalidValueException {
         when(metaApiClient.getMeta(anyString()))
                 .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
 
@@ -219,7 +220,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getMetaAsFlux() {
+    void getMetaAsFlux() throws BlinkInvalidValueException {
         when(metaApiClient.getMeta())
                 .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
 
@@ -241,7 +242,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getMetaAsFluxWithRequestId() {
+    void getMetaAsFluxWithRequestId() throws BlinkInvalidValueException {
         when(metaApiClient.getMeta(anyString()))
                 .thenReturn(Flux.just(BNZ, PNZ, WESTPAC, ASB, ANZ));
 
@@ -263,7 +264,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithRedirectFlow() {
+    void createSingleConsentWithRedirectFlow() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -293,7 +294,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithRedirectFlowAndRequestId() {
+    void createSingleConsentWithRedirectFlowAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -323,7 +324,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithRedirectFlowAsMono() {
+    void createSingleConsentWithRedirectFlowAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -355,7 +356,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithRedirectFlowAsMonoAndRequestId() {
+    void createSingleConsentWithRedirectFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -388,7 +389,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithDecoupledFlow() {
+    void createSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -419,7 +420,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithDecoupledFlowAndRequestId() {
+    void createSingleConsentWithDecoupledFlowAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -450,7 +451,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithDecoupledFlowAsMono() {
+    void createSingleConsentWithDecoupledFlowAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -483,7 +484,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithDecoupledFlowAsMonoAndRequestId() {
+    void createSingleConsentWithDecoupledFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -517,7 +518,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithGatewayFlow() {
+    void createSingleConsentWithGatewayFlow() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -547,7 +548,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithGatewayFlowAndRequestId() {
+    void createSingleConsentWithGatewayFlowAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -577,7 +578,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithGatewayFlowAsMono() {
+    void createSingleConsentWithGatewayFlowAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -609,7 +610,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSingleConsentWithGatewayFlowAsMonoAndRequestId() {
+    void createSingleConsentWithGatewayFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -642,7 +643,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getSingleConsent() {
+    void getSingleConsent() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         Consent consent = new Consent()
                 .consentId(consentId)
@@ -698,7 +699,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getSingleConsentWithRequestId() {
+    void getSingleConsentWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         Consent consent = new Consent()
@@ -755,7 +756,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getSingleConsentAsMono() {
+    void getSingleConsentAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         Consent consent = new Consent()
                 .consentId(consentId)
@@ -812,7 +813,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getSingleConsentAsMonoWithRequestId() {
+    void getSingleConsentAsMonoWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         Consent consent = new Consent()
@@ -870,7 +871,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeSingleConsent() {
+    void revokeSingleConsent() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         when(singleConsentsApiClient.revokeSingleConsent(consentId))
                 .thenReturn(Mono.empty());
@@ -879,7 +880,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeSingleConsentWithRequestId() {
+    void revokeSingleConsentWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         when(singleConsentsApiClient.revokeSingleConsent(consentId, requestId))
@@ -889,7 +890,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeSingleConsentAsMono() {
+    void revokeSingleConsentAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         when(singleConsentsApiClient.revokeSingleConsent(consentId))
                 .thenReturn(Mono.empty());
@@ -898,7 +899,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeSingleConsentAsMonoWithRequestId() {
+    void revokeSingleConsentAsMonoWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         when(singleConsentsApiClient.revokeSingleConsent(consentId, requestId))
@@ -908,7 +909,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithRedirectFlow() {
+    void createEnduringConsentWithRedirectFlow() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -938,7 +939,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithRedirectFlowAndRequestId() {
+    void createEnduringConsentWithRedirectFlowAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -969,7 +970,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithRedirectFlowAsMono() {
+    void createEnduringConsentWithRedirectFlowAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -1001,7 +1002,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithRedirectFlowAsMonoAndRequestId() {
+    void createEnduringConsentWithRedirectFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId)
@@ -1035,7 +1036,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithDecoupledFlow() {
+    void createEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1065,7 +1066,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithDecoupledFlowAndRequestId() {
+    void createEnduringConsentWithDecoupledFlowAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1096,7 +1097,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithDecoupledFlowAsMono() {
+    void createEnduringConsentWithDecoupledFlowAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1128,7 +1129,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithDecoupledFlowAsMonoAndRequestId() {
+    void createEnduringConsentWithDecoupledFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1162,7 +1163,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithGatewayFlow() {
+    void createEnduringConsentWithGatewayFlow() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1193,7 +1194,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithGatewayFlowAndRequestId() {
+    void createEnduringConsentWithGatewayFlowAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1224,7 +1225,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithGatewayFlowAsMono() {
+    void createEnduringConsentWithGatewayFlowAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1257,7 +1258,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringConsentWithGatewayFlowAsMonoAndRequestId() {
+    void createEnduringConsentWithGatewayFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
@@ -1291,7 +1292,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getEnduringConsent() {
+    void getEnduringConsent() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
         Consent consent = new Consent()
@@ -1344,7 +1345,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getEnduringConsentWithRequestId() {
+    void getEnduringConsentWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -1398,7 +1399,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getEnduringConsentAsMono() {
+    void getEnduringConsentAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
         Consent consent = new Consent()
@@ -1452,7 +1453,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getEnduringConsentAsMonoWithRequestId() {
+    void getEnduringConsentAsMonoWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -1507,7 +1508,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeEnduringConsent() {
+    void revokeEnduringConsent() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         when(enduringConsentsApiClient.revokeEnduringConsent(consentId))
                 .thenReturn(Mono.empty());
@@ -1516,7 +1517,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeEnduringConsentWithRequestId() {
+    void revokeEnduringConsentWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         when(enduringConsentsApiClient.revokeEnduringConsent(consentId, requestId))
@@ -1526,7 +1527,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeEnduringConsentAsMono() {
+    void revokeEnduringConsentAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         when(enduringConsentsApiClient.revokeEnduringConsent(consentId))
                 .thenReturn(Mono.empty());
@@ -1535,7 +1536,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeEnduringConsentAsMonoWithRequestId() {
+    void revokeEnduringConsentAsMonoWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         when(enduringConsentsApiClient.revokeEnduringConsent(consentId, requestId))
@@ -1545,7 +1546,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithRedirectFlow() {
+    void createQuickPaymentWithRedirectFlow() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1575,7 +1576,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithRedirectFlowAndRequestId() {
+    void createQuickPaymentWithRedirectFlowAndRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1606,7 +1607,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithRedirectFlowAsMono() {
+    void createQuickPaymentWithRedirectFlowAsMono() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1639,7 +1640,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithRedirectFlowAsMonoAndRequestId() {
+    void createQuickPaymentWithRedirectFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1672,7 +1673,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithDecoupledFlow() {
+    void createQuickPaymentWithDecoupledFlow() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
@@ -1703,7 +1704,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithDecoupledFlowAndRequestId() {
+    void createQuickPaymentWithDecoupledFlowAndRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
@@ -1735,7 +1736,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithDecoupledFlowAsMono() {
+    void createQuickPaymentWithDecoupledFlowAsMono() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
@@ -1769,7 +1770,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithDecoupledFlowAsMonoAndRequestId() {
+    void createQuickPaymentWithDecoupledFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
@@ -1803,7 +1804,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithGatewayFlow() {
+    void createQuickPaymentWithGatewayFlow() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1834,7 +1835,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithGatewayFlowAndRequestId() {
+    void createQuickPaymentWithGatewayFlowAndRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1866,7 +1867,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithGatewayFlowAsMono() {
+    void createQuickPaymentWithGatewayFlowAsMono() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1900,7 +1901,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createQuickPaymentWithGatewayFlowAsMonoAndRequestId() {
+    void createQuickPaymentWithGatewayFlowAsMonoAndRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId)
@@ -1934,7 +1935,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getQuickPayment() {
+    void getQuickPayment() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
 
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -2000,7 +2001,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getQuickPaymentWithRequestId() {
+    void getQuickPaymentWithRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         String requestId = UUID.randomUUID().toString();
 
@@ -2067,7 +2068,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getQuickPaymentAsMono() {
+    void getQuickPaymentAsMono() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
 
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -2135,7 +2136,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getQuickPaymentAsMonoWithRequestId() {
+    void getQuickPaymentAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         String requestId = UUID.randomUUID().toString();
 
@@ -2204,7 +2205,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeQuickPayment() {
+    void revokeQuickPayment() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId))
                 .thenReturn(Mono.empty());
@@ -2213,7 +2214,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeQuickPaymentWithRequestId() {
+    void revokeQuickPaymentWithRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         String requestId = UUID.randomUUID().toString();
         when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId, requestId))
@@ -2223,7 +2224,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeQuickPaymentAsMono() {
+    void revokeQuickPaymentAsMono() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId))
                 .thenReturn(Mono.empty());
@@ -2232,7 +2233,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void revokeQuickPaymentAsMonoWithRequestId() {
+    void revokeQuickPaymentAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID quickPaymentId = UUID.randomUUID();
         String requestId = UUID.randomUUID().toString();
         when(quickPaymentsApiClient.revokeQuickPayment(quickPaymentId, requestId))
@@ -2242,7 +2243,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSinglePayment() {
+    void createSinglePayment() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2261,7 +2262,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSinglePaymentWithRequestId() {
+    void createSinglePaymentWithRequestId() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2280,7 +2281,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSinglePaymentAsMono() {
+    void createSinglePaymentAsMono() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2301,7 +2302,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createSinglePaymentAsMonoWithRequestId() {
+    void createSinglePaymentAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2323,7 +2324,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringPayment() {
+    void createEnduringPayment() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2350,7 +2351,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringPaymentWithRequestId() {
+    void createEnduringPaymentWithRequestId() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2377,7 +2378,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringPaymentAsMono() {
+    void createEnduringPaymentAsMono() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2406,7 +2407,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createEnduringPaymentAsMonoWithRequestId() {
+    void createEnduringPaymentAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2436,7 +2437,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createWestpacPayment() {
+    void createWestpacPayment() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2456,7 +2457,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createWestpacPaymentWithRequestId() {
+    void createWestpacPaymentWithRequestId() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2476,7 +2477,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createWestpacPaymentAsMono() {
+    void createWestpacPaymentAsMono() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2498,7 +2499,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createWestpacPaymentAsMonoWithRequestId() {
+    void createWestpacPaymentAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
@@ -2521,7 +2522,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getPayment() {
+    void getPayment() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -2555,7 +2556,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getPaymentWithRequestId() {
+    void getPaymentWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
@@ -2590,7 +2591,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getPaymentAsMono() {
+    void getPaymentAsMono() throws BlinkInvalidValueException {
         UUID consentId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -2626,7 +2627,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getPaymentAsMonoWithRequestId() {
+    void getPaymentAsMonoWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID consentId = UUID.randomUUID();
         UUID paymentId = UUID.randomUUID();
@@ -2663,7 +2664,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createFullRefund() {
+    void createFullRefund() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2686,7 +2687,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createFullRefundWithRequestId() {
+    void createFullRefundWithRequestId() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2709,7 +2710,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createFullRefundAsMono() {
+    void createFullRefundAsMono() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2734,7 +2735,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createFullRefundAsMonoWithRequestId() {
+    void createFullRefundAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2759,7 +2760,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createPartialRefund() {
+    void createPartialRefund() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2786,7 +2787,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createPartialRefundWithRequestId() {
+    void createPartialRefundWithRequestId() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2813,7 +2814,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createPartialRefundAsMono() {
+    void createPartialRefundAsMono() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2842,7 +2843,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createPartialRefundAsMonoWithRequestId() {
+    void createPartialRefundAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2871,7 +2872,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createAccountNumberRefund() {
+    void createAccountNumberRefund() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2890,7 +2891,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createAccountNumberRefundWithRequestId() {
+    void createAccountNumberRefundWithRequestId() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2909,7 +2910,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createAccountNumberRefundAsMono() {
+    void createAccountNumberRefundAsMono() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2930,7 +2931,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void createAccountNumberRefundAsMonoWithRequestId() {
+    void createAccountNumberRefundAsMonoWithRequestId() throws BlinkInvalidValueException {
         UUID refundId = UUID.randomUUID();
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
@@ -2952,7 +2953,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getRefund() {
+    void getRefund() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         UUID refundId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -2984,7 +2985,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getRefundWithRequestId() {
+    void getRefundWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID paymentId = UUID.randomUUID();
         UUID refundId = UUID.randomUUID();
@@ -3017,7 +3018,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getRefundAsMono() {
+    void getRefundAsMono() throws BlinkInvalidValueException {
         UUID paymentId = UUID.randomUUID();
         UUID refundId = UUID.randomUUID();
         OffsetDateTime now = OffsetDateTime.now(ZoneId.of("Pacific/Auckland"));
@@ -3051,7 +3052,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void getRefundAsMonoWithRequestId() {
+    void getRefundAsMonoWithRequestId() throws BlinkInvalidValueException {
         String requestId = UUID.randomUUID().toString();
         UUID paymentId = UUID.randomUUID();
         UUID refundId = UUID.randomUUID();

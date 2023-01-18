@@ -70,18 +70,73 @@ blinkpay.pending.acquire.timeout=${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
 blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
 ```
 
+> For non-Spring consumer, substitute the correct values. Property placeholders only work for Spring consumer by substituting the corresponding environment variables.
+```properties
+blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
+blinkpay.client.id=<BLINKPAY_CLIENT_ID>
+blinkpay.client.secret=<BLINKPAY_CLIENT_SECRET>
+# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
+blinkpay.active.profile=test
+
+# Optional configuration values below
+blinkpay.max.connections=10
+blinkpay.max.idle.time=PT20S
+blinkpay.max.life.time=PT60S
+blinkpay.pending.acquire.timeout=PT10S
+blinkpay.eviction.interval=PT60S
+```
+
 ## Client creation
 ### Java
-Pure Java clients code can load the contents of `blinkdebit.properties` into Properties.
+Pure Java client code can load the contents of `blinkdebit.properties` into Properties:
 ```java
 Properties properties = new Properties();
 properties.load(getClass().getClassLoader().getResourceAsStream("blinkdebit.properties"));
 
 BlinkDebitClient client = new BlinkDebitClient(properties);
 ```
-Or they can supply the required properties on object creation
+Or they can supply the required properties on object creation:
 ```java
 BlinkDebitClient client = new BlinkDebitClient(blinkpayUrl, clientId, clientSecret, "production");
+```
+Or they can load the contents of `blinkdebit.yaml` into Properties, with some additional logic using SnakeYAML:
+```java
+public static void main(String[] args) {
+    Properties properties = new Properties();
+    Yaml yaml = new Yaml();
+    InputStream inputStream = getClass().getClassLoader().getResourceAsStream("blinkdebit.yaml");
+    properties.putAll(getFlattenedMap(yaml.load(inputStream)));
+
+    BlinkDebitClient client = new BlinkDebitClient(properties);
+}
+
+private static Map<String, Object> getFlattenedMap(Map<String, Object> source) {
+    Map<String, Object> result = new LinkedHashMap<>();
+    buildFlattenedMap(result, source, null);
+    return result;
+}
+
+@SuppressWarnings("unchecked")
+private static void buildFlattenedMap(Map<String, Object> result, Map<String, Object> source, String path) {
+    source.forEach((key, value) -> {
+            if (StringUtils.isNotBlank(path)) {
+                key = path + (key.startsWith("[") ? key : '.' + key);
+            }
+        
+            if (value instanceof String) {
+                result.put(key, value);
+            } else if (value instanceof Map) {
+                buildFlattenedMap(result, (Map<String, Object>) value, key);
+            } else if (value instanceof Collection) {
+                int count = 0;
+                for (Object object : (Collection<?>) value) {
+                    buildFlattenedMap(result, Collections.singletonMap("[" + (count++) + "]", object), key);
+                }
+            } else {
+                result.put(key, value != null ? value : "");
+            }
+        });
+}
 ```
 
 ### Spring

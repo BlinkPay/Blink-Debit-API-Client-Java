@@ -41,6 +41,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -60,7 +61,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import java.time.OffsetDateTime;
@@ -124,8 +124,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithRedirectFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -144,8 +144,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -165,8 +165,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -188,8 +188,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -213,8 +213,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -234,8 +234,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -257,8 +257,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -283,12 +283,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for quick payment request");
+                .hasMessageStartingWith("Validation failed for quick payment request");
     }
 
     @Test
@@ -302,8 +302,8 @@ class QuickPaymentsApiClientTest {
                 .amount(new Amount()
                         .total("1.25"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -328,8 +328,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -352,8 +352,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -363,8 +363,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithDecoupledFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -383,8 +383,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -404,8 +404,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -429,8 +429,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -452,8 +452,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -477,8 +477,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -505,12 +505,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for quick payment request");
+                .hasMessageStartingWith("Validation failed for quick payment request");
     }
 
     @Test
@@ -526,8 +526,8 @@ class QuickPaymentsApiClientTest {
                 .amount(new Amount()
                         .total("1.25"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -554,8 +554,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -580,8 +580,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -605,8 +605,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -632,8 +632,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -659,8 +659,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -670,8 +670,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithGatewayFlowAndNullRequest() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -690,8 +690,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -711,8 +711,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -735,8 +735,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -757,8 +757,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -781,8 +781,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -808,12 +808,12 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for quick payment request");
+                .hasMessageStartingWith("Validation failed for quick payment request");
     }
 
     @Test
@@ -829,8 +829,8 @@ class QuickPaymentsApiClientTest {
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -856,8 +856,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -881,8 +881,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -891,7 +891,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow hint is handled")
-    void createQuickPaymentWithGatewayFlowAndNullFlowHint() {
+    void createQuickPaymentWithGatewayFlowAndNullFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -949,8 +949,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -975,8 +975,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1001,8 +1001,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1029,8 +1029,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1058,8 +1058,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1085,8 +1085,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        IllegalArgumentException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1111,20 +1111,20 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        ConstraintViolationException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), ConstraintViolationException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Validation failed for quick payment request");
+                .hasMessageStartingWith("Validation failed for quick payment request");
     }
 
     @Test
     @DisplayName("Verify that null quick payment ID is handled")
     void getQuickPaymentWithNullQuickPaymentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() ->
+        BlinkInvalidValueException exception = catchThrowableOfType(() ->
                         client.getQuickPayment(null).block(),
-                IllegalArgumentException.class);
+                BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1133,7 +1133,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment is retrieved")
-    void getQuickPayment() {
+    void getQuickPayment() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1211,8 +1211,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null quick payment ID is handled")
     void revokeQuickPaymentWithNullQuickPaymentId() {
-        IllegalArgumentException exception = catchThrowableOfType(() -> client.revokeQuickPayment(null).block(),
-                IllegalArgumentException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeQuickPayment(null).block(),
+                BlinkInvalidValueException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1238,7 +1238,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created")
-    void createQuickPaymentWithRedirectFlow() {
+    void createQuickPaymentWithRedirectFlow() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1282,7 +1282,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created")
-    void createQuickPaymentWithDecoupledFlow() {
+    void createQuickPaymentWithDecoupledFlow() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1327,7 +1327,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
-    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() {
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1372,7 +1372,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created")
-    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() {
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

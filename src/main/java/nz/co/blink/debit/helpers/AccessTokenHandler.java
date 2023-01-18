@@ -26,6 +26,7 @@ import com.auth0.jwt.exceptions.JWTDecodeException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import nz.co.blink.debit.client.v1.OAuthApiClient;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +66,7 @@ public class AccessTokenHandler {
      *
      * @param accessToken the access token
      */
-    @Value("${blinkpay.access.token}")
+    @Value("${blinkpay.access.token:}")
     public void setAccessTokenAtomicReference(final String accessToken) {
         if (StringUtils.isNotBlank(accessToken)) {
             accessTokenAtomicReference.set(accessToken);
@@ -78,8 +79,9 @@ public class AccessTokenHandler {
      *
      * @param requestId the correlation ID
      * @return the {@link ExchangeFilterFunction}
+     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
      */
-    public ExchangeFilterFunction setAccessToken(final String requestId) {
+    public ExchangeFilterFunction setAccessToken(final String requestId) throws BlinkInvalidValueException {
         String currentAccessToken = accessTokenAtomicReference.get();
         if (StringUtils.isNotBlank(currentAccessToken)) {
             try {
