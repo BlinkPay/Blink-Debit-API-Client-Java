@@ -22,6 +22,7 @@
 package nz.co.blink.debit.client.v1;
 
 import io.github.resilience4j.retry.Retry;
+import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
@@ -107,6 +108,9 @@ class SingleConsentsApiClientTest {
 
     @Mock
     private ReactorClientHttpConnector connector;
+
+    @Spy
+    private BlinkPayProperties properties = new BlinkPayProperties();
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;

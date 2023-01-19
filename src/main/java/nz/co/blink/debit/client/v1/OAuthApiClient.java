@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import io.github.resilience4j.reactor.retry.RetryOperator;
 import io.github.resilience4j.retry.Retry;
+import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
@@ -31,7 +32,6 @@ import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -65,22 +65,18 @@ public class OAuthApiClient {
     /**
      * Default constructor.
      *
-     * @param connector    the {@link ReactorClientHttpConnector}
-     * @param debitUrl     the Blink Debit URL
-     * @param clientId     the client ID
-     * @param clientSecret the client secret
-     * @param retry        the {@link Retry} instance
+     * @param connector  the {@link ReactorClientHttpConnector}
+     * @param properties the {@link BlinkPayProperties}
+     * @param retry      the {@link Retry} instance
      */
     @Autowired
     public OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
-                          @Value("${blinkpay.debit.url:}") final String debitUrl,
-                          @Value("${blinkpay.client.id:}") final String clientId,
-                          @Value("${blinkpay.client.secret:}") final String clientSecret, Retry retry) {
+                          BlinkPayProperties properties, Retry retry) {
         this.connector = connector;
         this.retry = retry;
-        this.debitUrl = debitUrl;
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
+        debitUrl = properties.getDebit().getUrl();
+        clientId = properties.getClient().getId();
+        clientSecret = properties.getClient().getSecret();
     }
 
     /**

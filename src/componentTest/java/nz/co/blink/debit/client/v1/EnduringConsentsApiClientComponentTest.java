@@ -23,6 +23,7 @@ package nz.co.blink.debit.client.v1;
 
 import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
+import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
@@ -93,18 +94,21 @@ class EnduringConsentsApiClientComponentTest {
     @Autowired
     private Retry retry;
 
-    @Value("${blinkpay.debit.url}")
-    private String debitUrl;
+    @Autowired
+    private BlinkPayProperties properties;
 
     private EnduringConsentsApiClient client;
 
     @BeforeEach
     void setUp() {
         // use real host to generate valid access token
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, "https://sandbox.debit.blinkpay.co.nz",
-                System.getenv("BLINKPAY_CLIENT_ID"), System.getenv("BLINKPAY_CLIENT_SECRET"), retry);
+        BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
+        blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
+        blinkPayProperties.getClient().setId(System.getenv("BLINKPAY_CLIENT_ID"));
+        blinkPayProperties.getClient().setSecret(System.getenv("BLINKPAY_CLIENT_SECRET"));
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties, retry);
 
-        client = new EnduringConsentsApiClient(connector, debitUrl, new AccessTokenHandler(oauthApiClient), validator,
+        client = new EnduringConsentsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), validator,
                 retry);
     }
 

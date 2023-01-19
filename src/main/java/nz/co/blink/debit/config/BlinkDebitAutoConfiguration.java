@@ -33,10 +33,13 @@ import nz.co.blink.debit.client.v1.SingleConsentsApiClient;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 
 import javax.validation.Validator;
@@ -45,69 +48,91 @@ import javax.validation.Validator;
  * The {@link AutoConfiguration} for Spring-based consumers.
  */
 @AutoConfiguration
+@PropertySource(value = "classpath:blinkdebit.properties", ignoreResourceNotFound = true)
+@PropertySource(value = "classpath:blinkdebit.yaml", ignoreResourceNotFound = true,
+        factory = YamlPropertySourceFactory.class)
+@PropertySource(value = "classpath:blinkdebit.yml", ignoreResourceNotFound = true,
+        factory = YamlPropertySourceFactory.class)
 @Import(BlinkDebitConfiguration.class)
+@EnableConfigurationProperties(BlinkPayProperties.class)
+@ConditionalOnClass(BlinkDebitClient.class)
 public class BlinkDebitAutoConfiguration {
 
+    private final ReactorClientHttpConnector connector;
+
+    private final Validator validator;
+
+    private final Retry retry;
+
+    private final BlinkPayProperties properties;
+
+    /**
+     * Default constructor.
+     *
+     * @param connector  the {@link ReactorClientHttpConnector}
+     * @param validator  the {@link Validator}
+     * @param retry      the {@link Retry}
+     * @param properties the {@link BlinkPayProperties}
+     */
     @Autowired
-    @Qualifier("blinkDebitClientHttpConnector")
-    private ReactorClientHttpConnector connector;
-
-    @Value("${blinkpay.debit.url:}")
-    private String debitUrl;
-
-    @Value("${blinkpay.client.id:}")
-    private String clientId;
-
-    @Value("${blinkpay.client.secret:}")
-    private String clientSecret;
-
-    @Autowired
-    private Validator validator;
-
-    @Autowired
-    private Retry retry;
-
-    @Bean
-    private OAuthApiClient oauthApiClient() {
-        return new OAuthApiClient(connector, debitUrl, clientId, clientSecret, retry);
+    public BlinkDebitAutoConfiguration(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
+                                       Validator validator, Retry retry, BlinkPayProperties properties) {
+        this.connector = connector;
+        this.validator = validator;
+        this.retry = retry;
+        this.properties = properties;
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    private OAuthApiClient oauthApiClient() {
+        return new OAuthApiClient(connector, properties, retry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
     private AccessTokenHandler accessTokenHandler() {
         return new AccessTokenHandler(oauthApiClient());
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public SingleConsentsApiClient singleConsentsApiClient() {
-        return new SingleConsentsApiClient(connector, debitUrl, accessTokenHandler(), validator, retry);
+        return new SingleConsentsApiClient(connector, properties, accessTokenHandler(), validator, retry);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public EnduringConsentsApiClient enduringConsentsApiClient() {
-        return new EnduringConsentsApiClient(connector, debitUrl, accessTokenHandler(), validator, retry);
+        return new EnduringConsentsApiClient(connector, properties, accessTokenHandler(), validator, retry);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public QuickPaymentsApiClient quickPaymentsApiClient() {
-        return new QuickPaymentsApiClient(connector, debitUrl, accessTokenHandler(), validator, retry);
+        return new QuickPaymentsApiClient(connector, properties, accessTokenHandler(), validator, retry);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public PaymentsApiClient paymentsApiClient() {
-        return new PaymentsApiClient(connector, debitUrl, accessTokenHandler(), validator, retry);
+        return new PaymentsApiClient(connector, properties, accessTokenHandler(), validator, retry);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public RefundsApiClient refundsApiClient() {
-        return new RefundsApiClient(connector, debitUrl, accessTokenHandler(), validator, retry);
+        return new RefundsApiClient(connector, properties, accessTokenHandler(), validator, retry);
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public MetaApiClient metaApiClient() {
-        return new MetaApiClient(connector, debitUrl, accessTokenHandler());
+        return new MetaApiClient(connector, properties, accessTokenHandler());
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public BlinkDebitClient blinkDebitClient() {
         return new BlinkDebitClient(singleConsentsApiClient(), enduringConsentsApiClient(), quickPaymentsApiClient(),
                 paymentsApiClient(), refundsApiClient(), metaApiClient(), validator, retry);

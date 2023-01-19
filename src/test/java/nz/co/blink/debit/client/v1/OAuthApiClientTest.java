@@ -22,6 +22,7 @@
 package nz.co.blink.debit.client.v1;
 
 import io.github.resilience4j.retry.Retry;
+import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
@@ -75,6 +76,9 @@ class OAuthApiClientTest {
 
     @Mock
     private ReactorClientHttpConnector connector;
+
+    @Spy
+    private BlinkPayProperties properties = new BlinkPayProperties();
 
     @Spy
     private Retry retry = Retry.ofDefaults("retry");

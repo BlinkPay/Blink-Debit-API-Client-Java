@@ -21,6 +21,7 @@
  */
 package nz.co.blink.debit.client.v1;
 
+import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
@@ -29,7 +30,6 @@ import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -60,15 +60,14 @@ public class MetaApiClient {
      * Default constructor.
      *
      * @param connector          the {@link ReactorClientHttpConnector}
-     * @param debitUrl           the Blink Debit URL
+     * @param properties         the {@link BlinkPayProperties}
      * @param accessTokenHandler the {@link AccessTokenHandler}
      */
     @Autowired
     public MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
-                         @Value("${blinkpay.debit.url:}") final String debitUrl,
-                         AccessTokenHandler accessTokenHandler) {
+                         BlinkPayProperties properties, AccessTokenHandler accessTokenHandler) {
         this.connector = connector;
-        this.debitUrl = debitUrl;
+        debitUrl = properties.getDebit().getUrl();
         this.accessTokenHandler = accessTokenHandler;
     }
 

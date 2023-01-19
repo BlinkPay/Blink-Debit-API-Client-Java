@@ -33,10 +33,11 @@ import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkUnauthorisedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.netty.http.client.HttpClient;
@@ -50,34 +51,26 @@ import java.time.Duration;
 import java.util.regex.Pattern;
 
 /**
- * The {@link Configuration} for Blink Debit.
+ * The internal {@link Configuration} for Blink Debit API client.
  */
 @Configuration
-@PropertySource(value = "classpath:blinkdebit.properties", ignoreResourceNotFound = true)
-@PropertySource(value = "classpath:blinkdebit.yaml", ignoreResourceNotFound = true)
-@PropertySource(value = "classpath:blinkdebit.yml", ignoreResourceNotFound = true)
+@EnableConfigurationProperties(BlinkPayProperties.class)
 public class BlinkDebitConfiguration {
-
-    @Value("${blinkpay.max.connections:10}")
-    private int maxConnections;
-
-    @Value("${blinkpay.max.idle.time:PT20S}")
-    private Duration maxIdleTime;
-
-    @Value("${blinkpay.max.life.time:PT60S}")
-    private Duration maxLifeTime;
-
-    @Value("${blinkpay.pending.acquire.timeout:PT10S}")
-    private Duration pendingAcquireTimeout;
-
-    @Value("${blinkpay.eviction.interval:PT60S}")
-    private Duration evictionInterval;
 
     @Value("${spring.profiles.active:test}")
     private String activeProfile;
 
-    @Value("${blinkpay.retry.enabled:true}")
-    private Boolean retryEnabled;
+    private final BlinkPayProperties properties;
+
+    /**
+     * Default constructor.
+     *
+     * @param properties the {@link BlinkPayProperties}
+     */
+    @Autowired
+    public BlinkDebitConfiguration(BlinkPayProperties properties) {
+        this.properties = properties;
+    }
 
     /**
      * Returns the {@link ReactorClientHttpConnector}.
@@ -87,11 +80,11 @@ public class BlinkDebitConfiguration {
     @Bean
     protected ReactorClientHttpConnector blinkDebitClientHttpConnector() {
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
-                .maxConnections(maxConnections)
-                .maxIdleTime(maxIdleTime)
-                .maxLifeTime(maxLifeTime)
-                .pendingAcquireTimeout(pendingAcquireTimeout)
-                .evictInBackground(evictionInterval)
+                .maxConnections(properties.getMax().getConnections())
+                .maxIdleTime(properties.getMax().getIdle().getTime())
+                .maxLifeTime(properties.getMax().getLife().getTime())
+                .pendingAcquireTimeout(properties.getPending().getAcquire().getTimeout())
+                .evictInBackground(properties.getEviction().getInterval())
                 .build();
 
         HttpClient client;
@@ -124,7 +117,7 @@ public class BlinkDebitConfiguration {
      */
     @Bean
     public Retry retry() {
-        if (Boolean.FALSE.equals(retryEnabled)) {
+        if (Boolean.FALSE.equals(properties.getRetry().getEnabled())) {
             return null;
         }
 

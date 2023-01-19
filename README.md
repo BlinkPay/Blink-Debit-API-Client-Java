@@ -52,6 +52,8 @@ blinkpay:
       timeout: ${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
   eviction:
     interval: ${BLINKPAY_EVICTION_INTERVAL:PT60S}
+  retry:
+    enabled: ${BLINKPAY_RETRY_ENABLED:true}
 ```
 
 #### Properties file example
@@ -68,6 +70,7 @@ blinkpay.max.idle.time=${BLINKPAY_MAX_IDLE_TIME:PT20S}
 blinkpay.max.life.time=${BLINKPAY_MAX_LIFE_TIME:PT60S}
 blinkpay.pending.acquire.timeout=${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
 blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
+blinkpay.retry.enabled=${BLINKPAY_RETRY_ENABLED:true}
 ```
 
 > For non-Spring consumer, substitute the correct values. Property placeholders only work for Spring consumer by substituting the corresponding environment variables.
@@ -84,6 +87,7 @@ blinkpay.max.idle.time=PT20S
 blinkpay.max.life.time=PT60S
 blinkpay.pending.acquire.timeout=PT10S
 blinkpay.eviction.interval=PT60S
+blinkpay.retry.enabled=true
 ```
 
 ## Client creation
