@@ -9,6 +9,7 @@ This SDK allows merchants with Java-based e-commerce site to integrate with Blin
 - Lombok 1.18
 
 This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
+> **Warning** This SDK is not compatible with Spring Framework 6 / Spring Boot 3. One notable issue is with WebFlux's ClientResponse#getStatusCode.
 
 ## Adding the dependency 
 ### Maven

@@ -21,10 +21,9 @@
  */
 package nz.co.blink.debit.config;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 import java.time.Duration;
 
@@ -32,9 +31,8 @@ import java.time.Duration;
  * The Blink Pay properties for Blink Bills and Blink Debit (Blink AutoPay and Blink PayNow).
  */
 @ConfigurationProperties(prefix = "blinkpay")
+@ConfigurationPropertiesScan
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class BlinkPayProperties {
 
     private Debit debit = new Debit();
