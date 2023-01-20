@@ -38,6 +38,7 @@ import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -105,10 +106,10 @@ public class EnduringConsentsApiClient {
      *
      * @param request the {@link EnduringConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createEnduringConsent(EnduringConsentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createEnduringConsent(request, null);
     }
 
@@ -118,10 +119,10 @@ public class EnduringConsentsApiClient {
      * @param request   the {@link EnduringConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createEnduringConsent(EnduringConsentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (request == null) {
             throw new BlinkInvalidValueException("Enduring consent request must not be null");
         }
@@ -227,9 +228,9 @@ public class EnduringConsentsApiClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Consent> getEnduringConsent(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Consent> getEnduringConsent(UUID consentId) throws BlinkServiceException {
         return getEnduringConsent(consentId, null);
     }
 
@@ -239,10 +240,10 @@ public class EnduringConsentsApiClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Consent> getEnduringConsent(UUID consentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (consentId == null) {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
@@ -267,9 +268,9 @@ public class EnduringConsentsApiClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeEnduringConsent(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeEnduringConsent(UUID consentId) throws BlinkServiceException {
         return revokeEnduringConsent(consentId, null);
     }
 
@@ -278,10 +279,10 @@ public class EnduringConsentsApiClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Void> revokeEnduringConsent(UUID consentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (consentId == null) {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
@@ -304,7 +305,7 @@ public class EnduringConsentsApiClient {
     }
 
     private Mono<CreateConsentResponse> createEnduringConsentMono(EnduringConsentRequest request, String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -322,7 +323,7 @@ public class EnduringConsentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

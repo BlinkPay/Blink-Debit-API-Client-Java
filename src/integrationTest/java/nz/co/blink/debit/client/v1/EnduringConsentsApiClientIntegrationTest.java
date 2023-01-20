@@ -38,8 +38,8 @@ import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -85,7 +85,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created in PNZ")
     @Order(1)
-    void createEnduringConsentWithRedirectFlowInPnz() throws BlinkInvalidValueException {
+    void createEnduringConsentWithRedirectFlowInPnz() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -117,7 +117,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is retrieved from PNZ")
     @Order(2)
-    void getEnduringConsentWithRedirectFlowFromPnz() throws BlinkInvalidValueException {
+    void getEnduringConsentWithRedirectFlowFromPnz() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         assertThat(consentMono).isNotNull();
@@ -153,7 +153,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is revoked in PNZ")
     @Order(3)
-    void revokeEnduringConsentWithRedirectFlowInPnz() throws BlinkInvalidValueException {
+    void revokeEnduringConsentWithRedirectFlowInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
@@ -191,7 +191,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that rejected/timed out enduring consent with redirect flow is retrieved from PNZ")
     @Order(4)
-    void getRejectedEnduringConsentWithRedirectFlowFromPnz() throws BlinkInvalidValueException {
+    void getRejectedEnduringConsentWithRedirectFlowFromPnz() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("f0b5fc9e-afa2-441f-a9e7-e2131952b835"));
 
         assertThat(consentMono).isNotNull();
@@ -234,7 +234,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created in PNZ")
     @Order(5)
-    void createEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -264,7 +264,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is retrieved from PNZ")
     @Order(6)
-    void getEnduringConsentWithGatewayFlowAndRedirectFlowHintFromPnz() throws BlinkInvalidValueException {
+    void getEnduringConsentWithGatewayFlowAndRedirectFlowHintFromPnz() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
@@ -307,7 +307,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is revoked in PNZ")
     @Order(7)
-    void revokeEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkInvalidValueException {
+    void revokeEnduringConsentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
@@ -352,7 +352,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created in PNZ")
     @Order(8)
-    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -384,7 +384,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is retrieved from PNZ")
     @Order(9)
-    void getEnduringConsentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws BlinkInvalidValueException {
+    void getEnduringConsentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         Consent actual = consentMono.block();
@@ -429,7 +429,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(10)
-    void revokeEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkInvalidValueException {
+    void revokeEnduringConsentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
@@ -476,7 +476,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created in PNZ")
     @Order(11)
-    void createEnduringConsentWithDecoupledFlowInPnz() throws BlinkInvalidValueException {
+    void createEnduringConsentWithDecoupledFlowInPnz() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -503,7 +503,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved from PNZ")
     @Order(12)
-    void getEnduringConsentWithDecoupledFlowFromPnz() throws BlinkInvalidValueException {
+    void getEnduringConsentWithDecoupledFlowFromPnz() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);
 
         assertThat(consentMono).isNotNull();
@@ -541,7 +541,7 @@ class EnduringConsentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is revoked in PNZ")
     @Order(13)
-    void revokeEnduringConsentWithDecoupledFlowInPnz() throws BlinkInvalidValueException {
+    void revokeEnduringConsentWithDecoupledFlowInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeEnduringConsent(consentId).block());
 
         Mono<Consent> consentMono = client.getEnduringConsent(consentId);

@@ -42,6 +42,7 @@ import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -895,7 +896,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and null flow hint is created")
-    void createSingleConsentWithGatewayFlowAndNullFlowHint() throws BlinkInvalidValueException {
+    void createSingleConsentWithGatewayFlowAndNullFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1052,7 +1053,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent is retrieved")
-    void getSingleConsent() throws BlinkInvalidValueException {
+    void getSingleConsent() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1146,7 +1147,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with redirect flow is created")
-    void createSingleConsentWithRedirectFlow() throws BlinkInvalidValueException {
+    void createSingleConsentWithRedirectFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1189,7 +1190,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with decoupled flow is created")
-    void createSingleConsentWithDecoupledFlow() throws BlinkInvalidValueException {
+    void createSingleConsentWithDecoupledFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1233,7 +1234,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created")
-    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
+    void createSingleConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1276,7 +1277,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created")
-    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
+    void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

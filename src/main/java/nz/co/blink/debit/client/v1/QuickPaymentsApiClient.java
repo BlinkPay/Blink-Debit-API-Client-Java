@@ -39,6 +39,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -106,10 +107,10 @@ public class QuickPaymentsApiClient {
      *
      * @param request the {@link QuickPaymentRequest}
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateQuickPaymentResponse> createQuickPayment(QuickPaymentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createQuickPayment(request, null);
     }
 
@@ -119,10 +120,10 @@ public class QuickPaymentsApiClient {
      * @param request   the {@link QuickPaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateQuickPaymentResponse> createQuickPayment(QuickPaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (request == null) {
             throw new BlinkInvalidValueException("Quick payment request must not be null");
         }
@@ -235,9 +236,9 @@ public class QuickPaymentsApiClient {
      *
      * @param quickPaymentId the quick payment ID
      * @return the {@link QuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<QuickPaymentResponse> getQuickPayment(UUID quickPaymentId) throws BlinkInvalidValueException {
+    public Mono<QuickPaymentResponse> getQuickPayment(UUID quickPaymentId) throws BlinkServiceException {
         return getQuickPayment(quickPaymentId, null);
     }
 
@@ -247,10 +248,10 @@ public class QuickPaymentsApiClient {
      * @param quickPaymentId the quick payment ID
      * @param requestId      the optional correlation ID
      * @return the {@link QuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<QuickPaymentResponse> getQuickPayment(UUID quickPaymentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (quickPaymentId == null) {
             throw new BlinkInvalidValueException("Quick payment ID must not be null");
         }
@@ -275,9 +276,9 @@ public class QuickPaymentsApiClient {
      * Revokes an existing quick payment by ID.
      *
      * @param quickPaymentId the quick payment ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeQuickPayment(UUID quickPaymentId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeQuickPayment(UUID quickPaymentId) throws BlinkServiceException {
         return revokeQuickPayment(quickPaymentId, null);
     }
 
@@ -286,10 +287,10 @@ public class QuickPaymentsApiClient {
      *
      * @param quickPaymentId the quick payment ID
      * @param requestId      the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Void> revokeQuickPayment(UUID quickPaymentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (quickPaymentId == null) {
             throw new BlinkInvalidValueException("Quick payment ID must not be null");
         }
@@ -312,7 +313,7 @@ public class QuickPaymentsApiClient {
     }
 
     private Mono<CreateQuickPaymentResponse> createQuickPaymentMono(QuickPaymentRequest request, String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -330,7 +331,7 @@ public class QuickPaymentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

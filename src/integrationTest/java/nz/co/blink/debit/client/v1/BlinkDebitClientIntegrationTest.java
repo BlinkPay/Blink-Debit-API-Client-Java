@@ -48,7 +48,6 @@ import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkConsentRejectedException;
 import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.exception.BlinkServiceException;
@@ -95,7 +94,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that timed out single consent is handled")
     @Order(1)
-    void awaitTimedOutSingleConsentThenThrowRuntimeException() throws BlinkInvalidValueException {
+    void awaitTimedOutSingleConsentThenThrowRuntimeException() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -151,7 +150,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is retrieved")
     @Order(3)
-    void awaitAuthorisedSingleConsent() throws BlinkInvalidValueException {
+    void awaitAuthorisedSingleConsent() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -211,7 +210,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that timed out single consent is handled")
     @Order(4)
-    void awaitTimedOutSingleConsentThenThrowConsentTimeoutException() throws BlinkInvalidValueException {
+    void awaitTimedOutSingleConsentThenThrowConsentTimeoutException() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -323,7 +322,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that timed out enduring consent with redirect flow is handled")
     @Order(11)
-    void awaitTimedOutEnduringConsentThenThrowRuntimeException() throws BlinkInvalidValueException {
+    void awaitTimedOutEnduringConsentThenThrowRuntimeException() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -377,7 +376,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved")
     @Order(13)
-    void awaitAuthorisedEnduringConsent() throws BlinkInvalidValueException {
+    void awaitAuthorisedEnduringConsent() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -433,7 +432,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that timed out enduring consent is handled")
     @Order(14)
-    void awaitTimedOutEnduringConsentThenThrowConsentTimeoutException() throws BlinkInvalidValueException {
+    void awaitTimedOutEnduringConsentThenThrowConsentTimeoutException() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -539,7 +538,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that timed out quick payment is handled")
     @Order(21)
-    void awaitTimedOutQuickPaymentThenThrowRuntimeException() throws BlinkInvalidValueException {
+    void awaitTimedOutQuickPaymentThenThrowRuntimeException() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -595,7 +594,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
     @Order(23)
-    void awaitSuccessfulQuickPayment() throws BlinkInvalidValueException {
+    void awaitSuccessfulQuickPayment() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -671,7 +670,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that timed out quick payment is handled")
     @Order(24)
-    void awaitTimedOutQuickPaymentThenThrowConsentTimeoutException() throws BlinkInvalidValueException {
+    void awaitTimedOutQuickPaymentThenThrowConsentTimeoutException() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -725,7 +724,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that revoked quick payment with gateway flow is handled")
     @Order(26)
-    void awaitRevokedQuickPaymentThenThrowRejectedException() throws BlinkInvalidValueException {
+    void awaitRevokedQuickPaymentThenThrowRejectedException() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -857,7 +856,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment is retrieved")
     @Order(32)
-    void awaitSuccessfulPayment() throws BlinkInvalidValueException {
+    void awaitSuccessfulPayment() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()

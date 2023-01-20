@@ -39,7 +39,7 @@ import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,7 +49,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.annotation.Import;
@@ -115,7 +114,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created")
     @Order(1)
-    void createEnduringConsentWithRedirectFlow() throws BlinkInvalidValueException {
+    void createEnduringConsentWithRedirectFlow() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -142,7 +141,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is retrieved")
     @Order(2)
-    void getEnduringConsentWithRedirectFlow() throws BlinkInvalidValueException {
+    void getEnduringConsentWithRedirectFlow() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458"));
 
         assertThat(consentMono).isNotNull();
@@ -186,7 +185,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created")
     @Order(4)
-    void createEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
+    void createEnduringConsentWithDecoupledFlow() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -214,7 +213,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved")
     @Order(5)
-    void getEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
+    void getEnduringConsentWithDecoupledFlow() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("294dda40-0357-4970-a86f-5b4974b880aa"));
 
         assertThat(consentMono).isNotNull();
@@ -253,7 +252,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created")
     @Order(6)
-    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -281,7 +280,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created")
     @Order(7)
-    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -311,7 +310,7 @@ class EnduringConsentsApiClientComponentTest {
     @Test
     @DisplayName("Verify that enduring consent with gateway flow is retrieved")
     @Order(7)
-    void getEnduringConsentWithGatewayFlow() throws BlinkInvalidValueException {
+    void getEnduringConsentWithGatewayFlow() throws BlinkServiceException {
         Mono<Consent> consentMono = client.getEnduringConsent(UUID.fromString("44b7169f-90a0-4b8d-b723-056363a3fe53"));
 
         assertThat(consentMono).isNotNull();

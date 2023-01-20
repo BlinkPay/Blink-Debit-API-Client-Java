@@ -26,6 +26,7 @@ import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ class OAuthApiClientTest {
 
     @Test
     @DisplayName("Verify that access token is generated")
-    void generateAccessToken() throws BlinkInvalidValueException {
+    void generateAccessToken() throws BlinkServiceException {
         // GIVEN
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");

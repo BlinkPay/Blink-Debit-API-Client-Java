@@ -39,6 +39,7 @@ import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -106,10 +107,10 @@ public class SingleConsentsApiClient {
      *
      * @param request the {@link SingleConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createSingleConsent(SingleConsentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createSingleConsent(request, null);
     }
 
@@ -119,10 +120,10 @@ public class SingleConsentsApiClient {
      * @param request   the {@link SingleConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createSingleConsent(SingleConsentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (request == null) {
             throw new BlinkInvalidValueException("Single consent request must not be null");
         }
@@ -235,9 +236,9 @@ public class SingleConsentsApiClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Consent> getSingleConsent(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Consent> getSingleConsent(UUID consentId) throws BlinkServiceException {
         return getSingleConsent(consentId, null);
     }
 
@@ -247,9 +248,9 @@ public class SingleConsentsApiClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Consent> getSingleConsent(UUID consentId, String requestId) throws BlinkInvalidValueException {
+    public Mono<Consent> getSingleConsent(UUID consentId, String requestId) throws BlinkServiceException {
         if (consentId == null) {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
@@ -274,9 +275,9 @@ public class SingleConsentsApiClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeSingleConsent(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeSingleConsent(UUID consentId) throws BlinkServiceException {
         return revokeSingleConsent(consentId, null);
     }
 
@@ -285,9 +286,9 @@ public class SingleConsentsApiClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeSingleConsent(UUID consentId, final String requestId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeSingleConsent(UUID consentId, final String requestId) throws BlinkServiceException {
         if (consentId == null) {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
@@ -309,7 +310,7 @@ public class SingleConsentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request, String requestId) throws BlinkInvalidValueException {
+    private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request, String requestId) throws BlinkServiceException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -327,7 +328,7 @@ public class SingleConsentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

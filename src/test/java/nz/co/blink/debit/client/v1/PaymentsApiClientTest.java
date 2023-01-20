@@ -30,6 +30,7 @@ import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -334,7 +335,7 @@ class PaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that payment is retrieved")
-    void getPayment() throws BlinkInvalidValueException {
+    void getPayment() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -379,7 +380,7 @@ class PaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single payment is created")
-    void createSinglePayment() throws BlinkInvalidValueException {
+    void createSinglePayment() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -411,7 +412,7 @@ class PaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring payment is created")
-    void createEnduringPayment() throws BlinkInvalidValueException {
+    void createEnduringPayment() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -451,7 +452,7 @@ class PaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single payment is created")
-    void createWestpacPayment() throws BlinkInvalidValueException {
+    void createWestpacPayment() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

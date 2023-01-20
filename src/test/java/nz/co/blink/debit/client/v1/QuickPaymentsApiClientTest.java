@@ -43,6 +43,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -895,7 +896,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow hint is handled")
-    void createQuickPaymentWithGatewayFlowAndNullFlowHint() throws BlinkInvalidValueException {
+    void createQuickPaymentWithGatewayFlowAndNullFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1137,7 +1138,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment is retrieved")
-    void getQuickPayment() throws BlinkInvalidValueException {
+    void getQuickPayment() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1242,7 +1243,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created")
-    void createQuickPaymentWithRedirectFlow() throws BlinkInvalidValueException {
+    void createQuickPaymentWithRedirectFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1286,7 +1287,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created")
-    void createQuickPaymentWithDecoupledFlow() throws BlinkInvalidValueException {
+    void createQuickPaymentWithDecoupledFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1331,7 +1332,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
-    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1376,7 +1377,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created")
-    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

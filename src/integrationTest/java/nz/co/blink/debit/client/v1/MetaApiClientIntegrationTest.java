@@ -30,7 +30,7 @@ import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlowAvailableIdenti
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesEnduringConsent;
 import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -64,7 +64,7 @@ class MetaApiClientIntegrationTest {
 
     @Test
     @DisplayName("Verify that bank metadata is retrieved")
-    void getMeta() throws BlinkInvalidValueException {
+    void getMeta() throws BlinkServiceException {
         BankMetadata bnz = new BankMetadata()
                 .name(Bank.BNZ)
                 .features(new BankmetadataFeatures()

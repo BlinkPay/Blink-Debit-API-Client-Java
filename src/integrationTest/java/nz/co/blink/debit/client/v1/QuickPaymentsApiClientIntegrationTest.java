@@ -40,8 +40,8 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -83,7 +83,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created in PNZ")
     @Order(1)
-    void createQuickPaymentWithRedirectFlowInPnz() throws BlinkInvalidValueException {
+    void createQuickPaymentWithRedirectFlowInPnz() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
@@ -117,7 +117,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is retrieved from PNZ")
     @Order(2)
-    void getQuickPaymentWithRedirectFlowFromPnz() throws BlinkInvalidValueException {
+    void getQuickPaymentWithRedirectFlowFromPnz() throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
         assertThat(quickPaymentResponseMono).isNotNull();
@@ -159,7 +159,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with redirect flow is revoked in PNZ")
     @Order(3)
-    void revokeQuickPaymentWithRedirectFlowInPnz() throws BlinkInvalidValueException {
+    void revokeQuickPaymentWithRedirectFlowInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
@@ -203,7 +203,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that rejected/timed out quick payment with redirect flow is retrieved from PNZ")
     @Order(4)
-    void getRejectedQuickPaymentWithRedirectFlowFromPnz() throws BlinkInvalidValueException {
+    void getRejectedQuickPaymentWithRedirectFlowFromPnz() throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono =
                 client.getQuickPayment(UUID.fromString("057a08f7-4ee1-499d-8726-e4fe802d64fc"));
 
@@ -253,7 +253,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created in PNZ")
     @Order(5)
-    void createQuickPaymentWithDecoupledFlowInPnz() throws BlinkInvalidValueException {
+    void createQuickPaymentWithDecoupledFlowInPnz() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -283,7 +283,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved from PNZ")
     @Order(6)
-    void getQuickPaymentWithDecoupledFlowFromPnz() throws BlinkInvalidValueException {
+    void getQuickPaymentWithDecoupledFlowFromPnz() throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
         assertThat(quickPaymentResponseMono).isNotNull();
@@ -328,7 +328,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(7)
-    void revokeQuickPaymentWithDecoupledFlowInPnz() throws BlinkInvalidValueException {
+    void revokeQuickPaymentWithDecoupledFlowInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
@@ -375,7 +375,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created in PNZ")
     @Order(8)
-    void createQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkInvalidValueException {
+    void createQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -407,7 +407,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is retrieved from PNZ")
     @Order(9)
-    void getQuickPaymentWithGatewayFlowAndRedirectFlowHintFromPnz() throws BlinkInvalidValueException {
+    void getQuickPaymentWithGatewayFlowAndRedirectFlowHintFromPnz() throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
         assertThat(quickPaymentResponseMono).isNotNull();
@@ -457,7 +457,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is revoked in PNZ")
     @Order(10)
-    void revokeQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkInvalidValueException {
+    void revokeQuickPaymentWithGatewayFlowAndRedirectFlowHintInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
@@ -509,7 +509,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created in PNZ")
     @Order(11)
-    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkInvalidValueException {
+    void createQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new GatewayFlow()
@@ -543,7 +543,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is retrieved from PNZ")
     @Order(12)
-    void getQuickPaymentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws BlinkInvalidValueException {
+    void getQuickPaymentWithGatewayFlowAndDecoupledFlowHintFromPnz() throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);
 
         assertThat(quickPaymentResponseMono).isNotNull();
@@ -595,7 +595,7 @@ class QuickPaymentsApiClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is revoked in PNZ")
     @Order(13)
-    void revokeQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkInvalidValueException {
+    void revokeQuickPaymentWithGatewayFlowAndDecoupledFlowHintInPnz() throws BlinkServiceException {
         assertThatNoException().isThrownBy(() -> client.revokeQuickPayment(quickPaymentId).block());
 
         Mono<QuickPaymentResponse> quickPaymentResponseMono = client.getQuickPayment(quickPaymentId);

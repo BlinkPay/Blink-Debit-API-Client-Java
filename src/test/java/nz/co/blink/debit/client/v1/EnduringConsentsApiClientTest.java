@@ -42,6 +42,7 @@ import nz.co.blink.debit.dto.v1.Period;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -795,7 +796,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and null flow hint is created")
-    void createEnduringConsentWithGatewayFlowAndNullFlowHint() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndNullFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -948,7 +949,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent is retrieved")
-    void getEnduringConsent() throws BlinkInvalidValueException {
+    void getEnduringConsent() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1039,7 +1040,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created")
-    void createEnduringConsentWithRedirectFlow() throws BlinkInvalidValueException {
+    void createEnduringConsentWithRedirectFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1081,7 +1082,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created")
-    void createEnduringConsentWithDecoupledFlow() throws BlinkInvalidValueException {
+    void createEnduringConsentWithDecoupledFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1124,7 +1125,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created")
-    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -1167,7 +1168,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created")
-    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkInvalidValueException {
+    void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

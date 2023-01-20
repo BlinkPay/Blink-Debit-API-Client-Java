@@ -32,7 +32,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +42,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.annotation.Import;
@@ -99,7 +98,7 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that account number refund is created")
     @Order(1)
-    void createAccountNumberRefund() throws BlinkInvalidValueException {
+    void createAccountNumberRefund() throws BlinkServiceException {
         AccountNumberRefundRequest request = (AccountNumberRefundRequest) new AccountNumberRefundRequest()
                 .paymentId(UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
 
@@ -116,7 +115,7 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that account number refund is retrieved")
     @Order(2)
-    void getAccountNumberRefund() throws BlinkInvalidValueException {
+    void getAccountNumberRefund() throws BlinkServiceException {
         UUID refundId = UUID.fromString("e9cc86bf-3030-4019-a0f5-1d73882051ea");
         Mono<Refund> refundMono = client.getRefund(refundId);
 
@@ -140,7 +139,7 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that full refund is created")
     @Order(3)
-    void createFullRefund() throws BlinkInvalidValueException {
+    void createFullRefund() throws BlinkServiceException {
         FullRefundRequest request = (FullRefundRequest) new FullRefundRequest()
                 .consentRedirect("https://www.mymerchant.co.nz")
                 .pcr(new Pcr()
@@ -162,7 +161,7 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that full refund is retrieved")
     @Order(4)
-    void getFullRefund() throws BlinkInvalidValueException {
+    void getFullRefund() throws BlinkServiceException {
         UUID refundId = UUID.fromString("87c203e9-00ff-40d8-ad90-7bdd67895731");
         Mono<Refund> refundMono = client.getRefund(refundId);
 
@@ -191,7 +190,7 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that partial refund is created")
     @Order(5)
-    void createPartialRefund() throws BlinkInvalidValueException {
+    void createPartialRefund() throws BlinkServiceException {
         PartialRefundRequest request = (PartialRefundRequest) new PartialRefundRequest()
                 .consentRedirect("https://www.mymerchant.co.nz")
                 .pcr(new Pcr()
@@ -216,7 +215,7 @@ class RefundsApiClientComponentTest {
     @Test
     @DisplayName("Verify that partial refund is retrieved")
     @Order(6)
-    void getPartialRefund() throws BlinkInvalidValueException {
+    void getPartialRefund() throws BlinkServiceException {
         UUID refundId = UUID.fromString("3df492b7-19ee-4094-b91c-dc20e449e436");
         Mono<Refund> refundMono = client.getRefund(refundId);
 

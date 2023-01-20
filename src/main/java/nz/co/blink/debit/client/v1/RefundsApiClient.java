@@ -34,6 +34,7 @@ import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -101,9 +102,9 @@ public class RefundsApiClient {
      *
      * @param request the {@link PartialRefundRequest}
      * @return the {@link RefundResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<RefundResponse> createRefund(RefundDetail request) throws BlinkInvalidValueException {
+    public Mono<RefundResponse> createRefund(RefundDetail request) throws BlinkServiceException {
         return createRefund(request, null);
     }
 
@@ -113,10 +114,10 @@ public class RefundsApiClient {
      * @param request   the {@link RefundDetail}
      * @param requestId the optional correlation ID
      * @return the {@link RefundResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<RefundResponse> createRefund(RefundDetail request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (request == null) {
             throw new BlinkInvalidValueException("Refund request must not be null");
         }
@@ -161,9 +162,9 @@ public class RefundsApiClient {
      *
      * @param refundId the refund ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Refund> getRefund(UUID refundId) throws BlinkInvalidValueException {
+    public Mono<Refund> getRefund(UUID refundId) throws BlinkServiceException {
         return getRefund(refundId, null);
     }
 
@@ -173,9 +174,9 @@ public class RefundsApiClient {
      * @param refundId  the refund ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Refund> getRefund(UUID refundId, final String requestId) throws BlinkInvalidValueException {
+    public Mono<Refund> getRefund(UUID refundId, final String requestId) throws BlinkServiceException {
         if (refundId == null) {
             throw new BlinkInvalidValueException("Refund ID must not be null");
         }
@@ -196,7 +197,7 @@ public class RefundsApiClient {
                 .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
     }
 
-    private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) throws BlinkInvalidValueException {
+    private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) throws BlinkServiceException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -214,7 +215,7 @@ public class RefundsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }
@@ -226,7 +227,7 @@ public class RefundsApiClient {
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }
 
-    private static void validatePcr(Pcr pcr) throws BlinkInvalidValueException {
+    private static void validatePcr(Pcr pcr) throws BlinkServiceException {
         if (pcr == null) {
             throw new BlinkInvalidValueException("PCR must not be null");
         }

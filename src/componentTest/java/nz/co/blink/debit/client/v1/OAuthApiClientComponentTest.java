@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ class OAuthApiClientComponentTest {
 
     @Test
     @DisplayName("Verify that access token is generated")
-    void generateAccessToken() throws JsonProcessingException, BlinkInvalidValueException {
+    void generateAccessToken() throws JsonProcessingException, BlinkServiceException {
         AccessTokenResponse response = new AccessTokenResponse();
         response.setAccessToken(System.getenv("ACCESS_TOKEN"));
         response.setTokenType("Bearer");

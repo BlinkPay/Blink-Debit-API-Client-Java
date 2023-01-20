@@ -24,7 +24,7 @@ package nz.co.blink.debit.client.v1;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -75,9 +75,9 @@ public class MetaApiClient {
      * Returns the {@link BankMetadata} {@link Flux}.
      *
      * @return the {@link BankMetadata} {@link Flux}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Flux<BankMetadata> getMeta() throws BlinkInvalidValueException {
+    public Flux<BankMetadata> getMeta() throws BlinkServiceException {
         return getMeta(null);
     }
 
@@ -86,9 +86,9 @@ public class MetaApiClient {
      *
      * @param requestId the optional correlation ID
      * @return the {@link BankMetadata} {@link Flux}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Flux<BankMetadata> getMeta(final String requestId) throws BlinkInvalidValueException {
+    public Flux<BankMetadata> getMeta(final String requestId) throws BlinkServiceException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -100,7 +100,7 @@ public class MetaApiClient {
                 .exchangeToFlux(ResponseHandler.handleResponseFlux(BankMetadata.class));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

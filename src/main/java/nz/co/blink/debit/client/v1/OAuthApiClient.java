@@ -28,6 +28,7 @@ import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,9 +84,9 @@ public class OAuthApiClient {
      * Generates an access token valid for 1 day.
      *
      * @return the {@link AccessTokenResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<AccessTokenResponse> generateAccessToken() throws BlinkInvalidValueException {
+    public Mono<AccessTokenResponse> generateAccessToken() throws BlinkServiceException {
         return generateAccessToken(null);
     }
 
@@ -94,9 +95,9 @@ public class OAuthApiClient {
      *
      * @param requestId the optional correlation ID
      * @return the {@link AccessTokenResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<AccessTokenResponse> generateAccessToken(final String requestId) throws BlinkInvalidValueException {
+    public Mono<AccessTokenResponse> generateAccessToken(final String requestId) throws BlinkServiceException {
         if (StringUtils.isBlank(clientId) || StringUtils.isBlank(clientSecret)) {
             throw new BlinkInvalidValueException("Client ID and client secret must not be blank");
         }

@@ -33,6 +33,7 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -353,7 +354,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that refund is retrieved")
-    void getRefund() throws BlinkInvalidValueException {
+    void getRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -396,7 +397,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that account number refund is created")
-    void createAccountNumberRefund() throws BlinkInvalidValueException {
+    void createAccountNumberRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -428,7 +429,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that full refund is created")
-    void createFullRefund() throws BlinkInvalidValueException {
+    void createFullRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
@@ -465,7 +466,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that partial refund is created")
-    void createPartialRefund() throws BlinkInvalidValueException {
+    void createPartialRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 

@@ -32,6 +32,7 @@ import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -99,9 +100,9 @@ public class PaymentsApiClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<PaymentResponse> createPayment(PaymentRequest request) throws BlinkInvalidValueException {
+    public Mono<PaymentResponse> createPayment(PaymentRequest request) throws BlinkServiceException {
         return createPayment(request, null);
     }
 
@@ -111,10 +112,10 @@ public class PaymentsApiClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<PaymentResponse> createPayment(PaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (request == null) {
             throw new BlinkInvalidValueException("Payment request must not be null");
         }
@@ -168,9 +169,9 @@ public class PaymentsApiClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request) throws BlinkInvalidValueException {
+    public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request) throws BlinkServiceException {
         return createWestpacPayment(request, null);
     }
 
@@ -181,10 +182,10 @@ public class PaymentsApiClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         if (request == null) {
             throw new BlinkInvalidValueException("Payment request must not be null");
         }
@@ -215,9 +216,9 @@ public class PaymentsApiClient {
      *
      * @param paymentId the payment ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Payment> getPayment(UUID paymentId) throws BlinkInvalidValueException {
+    public Mono<Payment> getPayment(UUID paymentId) throws BlinkServiceException {
         return getPayment(paymentId, null);
     }
 
@@ -227,9 +228,9 @@ public class PaymentsApiClient {
      * @param paymentId the payment ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Payment> getPayment(UUID paymentId, final String requestId) throws BlinkInvalidValueException {
+    public Mono<Payment> getPayment(UUID paymentId, final String requestId) throws BlinkServiceException {
         if (paymentId == null) {
             throw new BlinkInvalidValueException("Payment ID must not be null");
         }
@@ -251,7 +252,7 @@ public class PaymentsApiClient {
     }
 
     private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder(correlationId)
@@ -269,7 +270,7 @@ public class PaymentsApiClient {
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkInvalidValueException {
+    private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
         if (webClientBuilder != null) {
             return webClientBuilder;
         }

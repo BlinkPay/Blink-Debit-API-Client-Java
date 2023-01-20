@@ -46,7 +46,6 @@ import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkConsentRejectedException;
 import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
 import nz.co.blink.debit.exception.BlinkForbiddenException;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkNotImplementedException;
 import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkPaymentRejectedException;
@@ -168,17 +167,8 @@ public class BlinkDebitClient {
                 .evictInBackground(evictionInterval)
                 .build();
 
-        HttpClient client;
-        boolean debugMode = Pattern.compile("local|dev|test").matcher(activeProfile).matches();
-        if (debugMode) {
-            client = HttpClient.create(provider)
-                    .wiretap("reactor.netty.http.client.HttpClient", LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
-        } else {
-            client = HttpClient.create(provider);
-        }
-        client.warmup().subscribe();
-
-        ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(client);
+        ReactorClientHttpConnector reactorClientHttpConnector = configureReactorClientHttpConnector(activeProfile,
+                provider);
 
         validator = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -248,17 +238,8 @@ public class BlinkDebitClient {
                 .evictInBackground(evictionInterval)
                 .build();
 
-        HttpClient client;
-        boolean debugMode = Pattern.compile("local|dev|test").matcher(activeProfile).matches();
-        if (debugMode) {
-            client = HttpClient.create(provider)
-                    .wiretap("reactor.netty.http.client.HttpClient", LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
-        } else {
-            client = HttpClient.create(provider);
-        }
-        client.warmup().subscribe();
-
-        ReactorClientHttpConnector reactorClientHttpConnector = new ReactorClientHttpConnector(client);
+        ReactorClientHttpConnector reactorClientHttpConnector = configureReactorClientHttpConnector(activeProfile,
+                provider);
 
         validator = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -277,6 +258,21 @@ public class BlinkDebitClient {
         refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
                 validator, retry);
         metaApiClient = new MetaApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler);
+    }
+
+    private static ReactorClientHttpConnector configureReactorClientHttpConnector(String activeProfile,
+                                                                                  ConnectionProvider provider) {
+        HttpClient client;
+        boolean debugMode = Pattern.compile("local|dev|test").matcher(activeProfile).matches();
+        if (debugMode) {
+            client = HttpClient.create(provider)
+                    .wiretap("reactor.netty.http.client.HttpClient", LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL);
+        } else {
+            client = HttpClient.create(provider);
+        }
+        client.warmup().subscribe();
+
+        return new ReactorClientHttpConnector(client);
     }
 
     private static Retry configureRetry(boolean retryEnabled) {
@@ -314,9 +310,9 @@ public class BlinkDebitClient {
      * Returns the {@link List} of {@link BankMetadata}.
      *
      * @return the {@link List} of {@link BankMetadata}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public List<BankMetadata> getMeta() throws BlinkInvalidValueException {
+    public List<BankMetadata> getMeta() throws BlinkServiceException {
         return getMetaAsFlux().collectList().block();
     }
 
@@ -325,9 +321,9 @@ public class BlinkDebitClient {
      *
      * @param requestId the optional correlation ID
      * @return the {@link List} of {@link BankMetadata}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public List<BankMetadata> getMeta(final String requestId) throws BlinkInvalidValueException {
+    public List<BankMetadata> getMeta(final String requestId) throws BlinkServiceException {
         return getMetaAsFlux(requestId).collectList().block();
     }
 
@@ -335,9 +331,9 @@ public class BlinkDebitClient {
      * Returns the {@link BankMetadata} {@link Flux}.
      *
      * @return the {@link BankMetadata} {@link Flux}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Flux<BankMetadata> getMetaAsFlux() throws BlinkInvalidValueException {
+    public Flux<BankMetadata> getMetaAsFlux() throws BlinkServiceException {
         return metaApiClient.getMeta();
     }
 
@@ -346,9 +342,9 @@ public class BlinkDebitClient {
      *
      * @param requestId the optional correlation ID
      * @return the {@link BankMetadata} {@link Flux}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Flux<BankMetadata> getMetaAsFlux(final String requestId) throws BlinkInvalidValueException {
+    public Flux<BankMetadata> getMetaAsFlux(final String requestId) throws BlinkServiceException {
         return metaApiClient.getMeta(requestId);
     }
 
@@ -357,10 +353,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link SingleConsentRequest}
      * @return the {@link CreateConsentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public CreateConsentResponse createSingleConsent(SingleConsentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createSingleConsentAsMono(request).block();
     }
 
@@ -370,10 +366,10 @@ public class BlinkDebitClient {
      * @param request   the {@link SingleConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public CreateConsentResponse createSingleConsent(SingleConsentRequest request,
-                                                     final String requestId) throws BlinkInvalidValueException {
+                                                     final String requestId) throws BlinkServiceException {
         return createSingleConsentAsMono(request, requestId).block();
     }
 
@@ -382,10 +378,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link SingleConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createSingleConsentAsMono(SingleConsentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return singleConsentsApiClient.createSingleConsent(request);
     }
 
@@ -395,11 +391,11 @@ public class BlinkDebitClient {
      * @param request   the {@link SingleConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createSingleConsentAsMono(SingleConsentRequest request,
                                                                  final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return singleConsentsApiClient.createSingleConsent(request, requestId);
     }
 
@@ -408,9 +404,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Consent getSingleConsent(UUID consentId) throws BlinkInvalidValueException {
+    public Consent getSingleConsent(UUID consentId) throws BlinkServiceException {
         return getSingleConsentAsMono(consentId).block();
     }
 
@@ -420,9 +416,9 @@ public class BlinkDebitClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Consent getSingleConsent(UUID consentId, final String requestId) throws BlinkInvalidValueException {
+    public Consent getSingleConsent(UUID consentId, final String requestId) throws BlinkServiceException {
         return getSingleConsentAsMono(consentId, requestId).block();
     }
 
@@ -431,9 +427,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Consent> getSingleConsentAsMono(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Consent> getSingleConsentAsMono(UUID consentId) throws BlinkServiceException {
         return singleConsentsApiClient.getSingleConsent(consentId);
     }
 
@@ -443,10 +439,10 @@ public class BlinkDebitClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Consent> getSingleConsentAsMono(UUID consentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return singleConsentsApiClient.getSingleConsent(consentId, requestId);
     }
 
@@ -457,10 +453,10 @@ public class BlinkDebitClient {
      * @param consentId      the consent ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Consent awaitAuthorisedSingleConsent(UUID consentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         Mono<Consent> consentMono = getSingleConsentAsMono(consentId);
 
         return consentMono
@@ -516,10 +512,10 @@ public class BlinkDebitClient {
      * @param consentId      the consent ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Mono} containing the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Consent> awaitAuthorisedSingleConsentAsMono(UUID consentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         Mono<Consent> consentMono = getSingleConsentAsMono(consentId);
 
         return consentMono
@@ -567,9 +563,9 @@ public class BlinkDebitClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public void revokeSingleConsent(UUID consentId) throws BlinkInvalidValueException {
+    public void revokeSingleConsent(UUID consentId) throws BlinkServiceException {
         revokeSingleConsentAsMono(consentId).block();
     }
 
@@ -578,9 +574,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public void revokeSingleConsent(UUID consentId, final String requestId) throws BlinkInvalidValueException {
+    public void revokeSingleConsent(UUID consentId, final String requestId) throws BlinkServiceException {
         revokeSingleConsentAsMono(consentId, requestId).block();
     }
 
@@ -588,9 +584,9 @@ public class BlinkDebitClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeSingleConsentAsMono(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeSingleConsentAsMono(UUID consentId) throws BlinkServiceException {
         return singleConsentsApiClient.revokeSingleConsent(consentId);
     }
 
@@ -599,10 +595,10 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Void> revokeSingleConsentAsMono(UUID consentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return singleConsentsApiClient.revokeSingleConsent(consentId, requestId);
     }
 
@@ -611,10 +607,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link EnduringConsentRequest}
      * @return the {@link CreateConsentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createEnduringConsentAsMono(request).block();
     }
 
@@ -624,10 +620,10 @@ public class BlinkDebitClient {
      * @param request   the {@link EnduringConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request,
-                                                       final String requestId) throws BlinkInvalidValueException {
+                                                       final String requestId) throws BlinkServiceException {
         return createEnduringConsentAsMono(request, requestId).block();
     }
 
@@ -636,10 +632,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link EnduringConsentRequest}
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createEnduringConsentAsMono(EnduringConsentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return enduringConsentsApiClient.createEnduringConsent(request);
     }
 
@@ -649,11 +645,11 @@ public class BlinkDebitClient {
      * @param request   the {@link EnduringConsentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateConsentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateConsentResponse> createEnduringConsentAsMono(EnduringConsentRequest request,
                                                                    final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return enduringConsentsApiClient.createEnduringConsent(request, requestId);
     }
 
@@ -662,9 +658,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Consent getEnduringConsent(UUID consentId) throws BlinkInvalidValueException {
+    public Consent getEnduringConsent(UUID consentId) throws BlinkServiceException {
         return getEnduringConsentAsMono(consentId).block();
     }
 
@@ -674,9 +670,9 @@ public class BlinkDebitClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Consent getEnduringConsent(UUID consentId, final String requestId) throws BlinkInvalidValueException {
+    public Consent getEnduringConsent(UUID consentId, final String requestId) throws BlinkServiceException {
         return getEnduringConsentAsMono(consentId, requestId).block();
     }
 
@@ -685,9 +681,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Consent> getEnduringConsentAsMono(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Consent> getEnduringConsentAsMono(UUID consentId) throws BlinkServiceException {
         return enduringConsentsApiClient.getEnduringConsent(consentId);
     }
 
@@ -697,10 +693,10 @@ public class BlinkDebitClient {
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
      * @return the {@link Consent} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Consent> getEnduringConsentAsMono(UUID consentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return enduringConsentsApiClient.getEnduringConsent(consentId, requestId);
     }
 
@@ -711,10 +707,10 @@ public class BlinkDebitClient {
      * @param consentId      the consent ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Consent awaitAuthorisedEnduringConsent(UUID consentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         Mono<Consent> consentMono = getEnduringConsentAsMono(consentId);
 
         return consentMono
@@ -778,10 +774,10 @@ public class BlinkDebitClient {
      * @param consentId      the consent ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Mono} containing the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Consent> awaitAuthorisedEnduringConsentAsMono(UUID consentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         try {
             Mono<Consent> consentMono = getEnduringConsentAsMono(consentId);
 
@@ -848,9 +844,9 @@ public class BlinkDebitClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public void revokeEnduringConsent(UUID consentId) throws BlinkInvalidValueException {
+    public void revokeEnduringConsent(UUID consentId) throws BlinkServiceException {
         revokeEnduringConsentAsMono(consentId).block();
     }
 
@@ -859,9 +855,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public void revokeEnduringConsent(UUID consentId, final String requestId) throws BlinkInvalidValueException {
+    public void revokeEnduringConsent(UUID consentId, final String requestId) throws BlinkServiceException {
         revokeEnduringConsentAsMono(consentId, requestId).block();
     }
 
@@ -869,9 +865,9 @@ public class BlinkDebitClient {
      * Revokes an existing consent by ID.
      *
      * @param consentId the consent ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeEnduringConsentAsMono(UUID consentId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeEnduringConsentAsMono(UUID consentId) throws BlinkServiceException {
         return enduringConsentsApiClient.revokeEnduringConsent(consentId);
     }
 
@@ -880,10 +876,10 @@ public class BlinkDebitClient {
      *
      * @param consentId the consent ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Void> revokeEnduringConsentAsMono(UUID consentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return enduringConsentsApiClient.revokeEnduringConsent(consentId, requestId);
     }
 
@@ -892,10 +888,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link QuickPaymentRequest}
      * @return the {@link CreateQuickPaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createQuickPaymentAsMono(request).block();
     }
 
@@ -905,10 +901,10 @@ public class BlinkDebitClient {
      * @param request   the {@link QuickPaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateQuickPaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request,
-                                                         final String requestId) throws BlinkInvalidValueException {
+                                                         final String requestId) throws BlinkServiceException {
         return createQuickPaymentAsMono(request, requestId).block();
     }
 
@@ -917,10 +913,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link QuickPaymentRequest}
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateQuickPaymentResponse> createQuickPaymentAsMono(QuickPaymentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return quickPaymentsApiClient.createQuickPayment(request);
     }
 
@@ -930,11 +926,11 @@ public class BlinkDebitClient {
      * @param request   the {@link QuickPaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link CreateQuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<CreateQuickPaymentResponse> createQuickPaymentAsMono(QuickPaymentRequest request,
                                                                      final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return quickPaymentsApiClient.createQuickPayment(request, requestId);
     }
 
@@ -943,9 +939,9 @@ public class BlinkDebitClient {
      *
      * @param quickPaymentId the quick payment ID
      * @return the {@link QuickPaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public QuickPaymentResponse getQuickPayment(UUID quickPaymentId) throws BlinkInvalidValueException {
+    public QuickPaymentResponse getQuickPayment(UUID quickPaymentId) throws BlinkServiceException {
         return getQuickPaymentAsMono(quickPaymentId).block();
     }
 
@@ -955,10 +951,10 @@ public class BlinkDebitClient {
      * @param quickPaymentId the quick payment ID
      * @param requestId      the optional correlation ID
      * @return the {@link QuickPaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public QuickPaymentResponse getQuickPayment(UUID quickPaymentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return getQuickPaymentAsMono(quickPaymentId, requestId).block();
     }
 
@@ -967,9 +963,9 @@ public class BlinkDebitClient {
      *
      * @param quickPaymentId the quick payment ID
      * @return the {@link QuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<QuickPaymentResponse> getQuickPaymentAsMono(UUID quickPaymentId) throws BlinkInvalidValueException {
+    public Mono<QuickPaymentResponse> getQuickPaymentAsMono(UUID quickPaymentId) throws BlinkServiceException {
         return quickPaymentsApiClient.getQuickPayment(quickPaymentId);
     }
 
@@ -979,10 +975,10 @@ public class BlinkDebitClient {
      * @param quickPaymentId the quick payment ID
      * @param requestId      the optional correlation ID
      * @return the {@link QuickPaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<QuickPaymentResponse> getQuickPaymentAsMono(UUID quickPaymentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId);
     }
 
@@ -993,10 +989,10 @@ public class BlinkDebitClient {
      * @param quickPaymentId the quick payment ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link QuickPaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public QuickPaymentResponse awaitSuccessfulQuickPayment(UUID quickPaymentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = getQuickPaymentAsMono(quickPaymentId);
 
         return quickPaymentResponseMono
@@ -1060,10 +1056,10 @@ public class BlinkDebitClient {
      * @param quickPaymentId the quick payment ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Mono} containing the {@link QuickPaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<QuickPaymentResponse> awaitSuccessfulQuickPaymentAsMono(UUID quickPaymentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = getQuickPaymentAsMono(quickPaymentId);
 
         return quickPaymentResponseMono
@@ -1120,9 +1116,9 @@ public class BlinkDebitClient {
      * Revokes an existing quick payment by ID.
      *
      * @param quickPaymentId the quick payment ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public void revokeQuickPayment(UUID quickPaymentId) throws BlinkInvalidValueException {
+    public void revokeQuickPayment(UUID quickPaymentId) throws BlinkServiceException {
         revokeQuickPaymentAsMono(quickPaymentId).block();
     }
 
@@ -1131,9 +1127,9 @@ public class BlinkDebitClient {
      *
      * @param consentId the quick payment ID
      * @param requestId the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public void revokeQuickPayment(UUID consentId, final String requestId) throws BlinkInvalidValueException {
+    public void revokeQuickPayment(UUID consentId, final String requestId) throws BlinkServiceException {
         revokeQuickPaymentAsMono(consentId, requestId).block();
     }
 
@@ -1141,9 +1137,9 @@ public class BlinkDebitClient {
      * Revokes an existing quick payment by ID.
      *
      * @param quickPaymentId the quick payment ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Void> revokeQuickPaymentAsMono(UUID quickPaymentId) throws BlinkInvalidValueException {
+    public Mono<Void> revokeQuickPaymentAsMono(UUID quickPaymentId) throws BlinkServiceException {
         return quickPaymentsApiClient.revokeQuickPayment(quickPaymentId);
     }
 
@@ -1152,10 +1148,10 @@ public class BlinkDebitClient {
      *
      * @param quickPaymentId the quick payment ID
      * @param requestId      the optional correlation ID
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Void> revokeQuickPaymentAsMono(UUID quickPaymentId, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return quickPaymentsApiClient.revokeQuickPayment(quickPaymentId, requestId);
     }
 
@@ -1164,9 +1160,9 @@ public class BlinkDebitClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public PaymentResponse createPayment(PaymentRequest request) throws BlinkInvalidValueException {
+    public PaymentResponse createPayment(PaymentRequest request) throws BlinkServiceException {
         return createPaymentAsMono(request).block();
     }
 
@@ -1176,10 +1172,10 @@ public class BlinkDebitClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public PaymentResponse createPayment(PaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createPaymentAsMono(request, requestId).block();
     }
 
@@ -1188,9 +1184,9 @@ public class BlinkDebitClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<PaymentResponse> createPaymentAsMono(PaymentRequest request) throws BlinkInvalidValueException {
+    public Mono<PaymentResponse> createPaymentAsMono(PaymentRequest request) throws BlinkServiceException {
         return paymentsApiClient.createPayment(request);
     }
 
@@ -1200,10 +1196,10 @@ public class BlinkDebitClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<PaymentResponse> createPaymentAsMono(PaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return paymentsApiClient.createPayment(request, requestId);
     }
 
@@ -1213,9 +1209,9 @@ public class BlinkDebitClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public PaymentResponse createWestpacPayment(PaymentRequest request) throws BlinkInvalidValueException {
+    public PaymentResponse createWestpacPayment(PaymentRequest request) throws BlinkServiceException {
         return createWestpacPaymentAsMono(request).block();
     }
 
@@ -1226,10 +1222,10 @@ public class BlinkDebitClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public PaymentResponse createWestpacPayment(PaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createWestpacPaymentAsMono(request, requestId).block();
     }
 
@@ -1239,10 +1235,10 @@ public class BlinkDebitClient {
      *
      * @param request the {@link PaymentRequest}
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<PaymentResponse> createWestpacPaymentAsMono(PaymentRequest request)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return paymentsApiClient.createWestpacPayment(request);
     }
 
@@ -1253,10 +1249,10 @@ public class BlinkDebitClient {
      * @param request   the {@link PaymentRequest}
      * @param requestId the optional correlation ID
      * @return the {@link PaymentResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<PaymentResponse> createWestpacPaymentAsMono(PaymentRequest request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return paymentsApiClient.createWestpacPayment(request, requestId);
     }
 
@@ -1265,9 +1261,9 @@ public class BlinkDebitClient {
      *
      * @param paymentId the payment ID
      * @return the {@link Payment}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Payment getPayment(UUID paymentId) throws BlinkInvalidValueException {
+    public Payment getPayment(UUID paymentId) throws BlinkServiceException {
         return getPaymentAsMono(paymentId).block();
     }
 
@@ -1277,9 +1273,9 @@ public class BlinkDebitClient {
      * @param paymentId the payment ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Payment getPayment(UUID paymentId, final String requestId) throws BlinkInvalidValueException {
+    public Payment getPayment(UUID paymentId, final String requestId) throws BlinkServiceException {
         return getPaymentAsMono(paymentId, requestId).block();
     }
 
@@ -1288,9 +1284,9 @@ public class BlinkDebitClient {
      *
      * @param paymentId the payment ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Payment> getPaymentAsMono(UUID paymentId) throws BlinkInvalidValueException {
+    public Mono<Payment> getPaymentAsMono(UUID paymentId) throws BlinkServiceException {
         return paymentsApiClient.getPayment(paymentId);
     }
 
@@ -1300,9 +1296,9 @@ public class BlinkDebitClient {
      * @param paymentId the payment ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Payment> getPaymentAsMono(UUID paymentId, final String requestId) throws BlinkInvalidValueException {
+    public Mono<Payment> getPaymentAsMono(UUID paymentId, final String requestId) throws BlinkServiceException {
         return paymentsApiClient.getPayment(paymentId, requestId);
     }
 
@@ -1313,9 +1309,9 @@ public class BlinkDebitClient {
      * @param paymentId      the payment ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Payment}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Payment awaitSuccessfulPayment(UUID paymentId, final int maxWaitSeconds) throws BlinkInvalidValueException {
+    public Payment awaitSuccessfulPayment(UUID paymentId, final int maxWaitSeconds) throws BlinkServiceException {
         Mono<Payment> paymentMono = getPaymentAsMono(paymentId);
 
         return paymentMono
@@ -1370,10 +1366,10 @@ public class BlinkDebitClient {
      * @param paymentId      the payment ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Mono} containing the {@link Consent}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<Payment> awaitSuccessfulPaymentAsMono(UUID paymentId, final int maxWaitSeconds)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         Mono<Payment> paymentMono = getPaymentAsMono(paymentId);
 
         return paymentMono
@@ -1415,9 +1411,9 @@ public class BlinkDebitClient {
      *
      * @param request the {@link RefundDetail}
      * @return the {@link RefundResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public RefundResponse createRefund(RefundDetail request) throws BlinkInvalidValueException {
+    public RefundResponse createRefund(RefundDetail request) throws BlinkServiceException {
         return createRefundAsMono(request).block();
     }
 
@@ -1427,10 +1423,10 @@ public class BlinkDebitClient {
      * @param request   the {@link RefundDetail}
      * @param requestId the optional correlation ID
      * @return the {@link RefundResponse}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public RefundResponse createRefund(RefundDetail request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return createRefundAsMono(request, requestId).block();
     }
 
@@ -1439,9 +1435,9 @@ public class BlinkDebitClient {
      *
      * @param request the {@link RefundDetail}
      * @return the {@link RefundResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<RefundResponse> createRefundAsMono(RefundDetail request) throws BlinkInvalidValueException {
+    public Mono<RefundResponse> createRefundAsMono(RefundDetail request) throws BlinkServiceException {
         return refundsApiClient.createRefund(request);
     }
 
@@ -1451,10 +1447,10 @@ public class BlinkDebitClient {
      * @param request   the {@link RefundDetail}
      * @param requestId the optional correlation ID
      * @return the {@link RefundResponse} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
     public Mono<RefundResponse> createRefundAsMono(RefundDetail request, final String requestId)
-            throws BlinkInvalidValueException {
+            throws BlinkServiceException {
         return refundsApiClient.createRefund(request, requestId);
     }
 
@@ -1463,9 +1459,9 @@ public class BlinkDebitClient {
      *
      * @param refundId the refund ID
      * @return the {@link Payment}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Refund getRefund(UUID refundId) throws BlinkInvalidValueException {
+    public Refund getRefund(UUID refundId) throws BlinkServiceException {
         return getRefundAsMono(refundId).block();
     }
 
@@ -1475,9 +1471,9 @@ public class BlinkDebitClient {
      * @param refundId  the refund ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Refund getRefund(UUID refundId, final String requestId) throws BlinkInvalidValueException {
+    public Refund getRefund(UUID refundId, final String requestId) throws BlinkServiceException {
         return getRefundAsMono(refundId, requestId).block();
     }
 
@@ -1486,9 +1482,9 @@ public class BlinkDebitClient {
      *
      * @param refundId the refund ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Refund> getRefundAsMono(UUID refundId) throws BlinkInvalidValueException {
+    public Mono<Refund> getRefundAsMono(UUID refundId) throws BlinkServiceException {
         return refundsApiClient.getRefund(refundId);
     }
 
@@ -1498,9 +1494,9 @@ public class BlinkDebitClient {
      * @param refundId  the refund ID
      * @param requestId the optional correlation ID
      * @return the {@link Payment} {@link Mono}
-     * @throws BlinkInvalidValueException thrown when one or more arguments are invalid
+     * @throws BlinkServiceException thrown when an exception occurs
      */
-    public Mono<Refund> getRefundAsMono(UUID refundId, final String requestId) throws BlinkInvalidValueException {
+    public Mono<Refund> getRefundAsMono(UUID refundId, final String requestId) throws BlinkServiceException {
         return refundsApiClient.getRefund(refundId, requestId);
     }
 
