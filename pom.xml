@@ -42,11 +42,15 @@
         <java.jwt.version>4.2.2</java.jwt.version>
         <commons.lang.version>3.12.0</commons.lang.version>
         <netty.version>4.1.87.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
+        <validation.api.version>2.0.1.Final</validation.api.version>
+        <hibernate.validator.version>6.2.5.Final</hibernate.validator.version>
+        <javax.el.version>3.0.0</javax.el.version>
 
         <junit.version>5.9.2</junit.version>
         <spring.cloud.contract.wiremock.version>3.1.5</spring.cloud.contract.wiremock.version>
         <reactor.test.version>3.5.2</reactor.test.version>
         <assertj.version>3.24.2</assertj.version>
+        <system.stubs.jupiter.version>2.0.1</system.stubs.jupiter.version>
     </properties>
 
     <dependencies>
@@ -148,6 +152,23 @@
             <version>${netty.version}</version>
         </dependency>
 
+        <!-- Bean Validation API support -->
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${validation.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate.validator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>${javax.el.version}</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -190,6 +211,11 @@
             <artifactId>assertj-core</artifactId>
             <version>${assertj.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.org.webcompere</groupId>
+            <artifactId>system-stubs-jupiter</artifactId>
+            <version>${system.stubs.jupiter.version}</version>
         </dependency>
     </dependencies>
 

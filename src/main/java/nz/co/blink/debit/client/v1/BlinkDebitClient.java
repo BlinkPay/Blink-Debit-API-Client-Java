@@ -41,6 +41,7 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
+import nz.co.blink.debit.enums.BlinkPayProperty;
 import nz.co.blink.debit.exception.BlinkClientException;
 import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkConsentRejectedException;
@@ -56,6 +57,11 @@ import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
+import nz.co.blink.debit.helpers.DefaultPropertyProvider;
+import nz.co.blink.debit.helpers.EnvironmentVariablePropertyProvider;
+import nz.co.blink.debit.helpers.FilePropertyProvider;
+import nz.co.blink.debit.helpers.PropertyProvider;
+import nz.co.blink.debit.helpers.SystemPropertyProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
@@ -86,6 +92,8 @@ import static nz.co.blink.debit.dto.v1.Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMP
 @Component
 @Slf4j
 public class BlinkDebitClient {
+
+    private static final PropertyProvider PROPERTY_PROVIDER = new EnvironmentVariablePropertyProvider(new SystemPropertyProvider(new FilePropertyProvider(new DefaultPropertyProvider())));
 
     private final SingleConsentsApiClient singleConsentsApiClient;
 
@@ -137,16 +145,16 @@ public class BlinkDebitClient {
      * @param properties the {@link Properties} retrieved from the configuration file
      */
     public BlinkDebitClient(Properties properties) {
-        int maxConnections = Integer.parseInt(properties.getProperty("blinkpay.max.connections", "10"));
-        Duration maxIdleTime = Duration.parse(properties.getProperty("blinkpay.max.idle.time", "PT20S"));
-        Duration maxLifeTime = Duration.parse(properties.getProperty("blinkpay.max.life.time", "PT60S"));
-        Duration pendingAcquireTimeout = Duration.parse(properties.getProperty("blinkpay.pending.acquire.timeout", "PT10S"));
-        Duration evictionInterval = Duration.parse(properties.getProperty("blinkpay.eviction.interval", "PT60S"));
-        String debitUrl = properties.getProperty("blinkpay.debit.url");
-        String clientId = properties.getProperty("blinkpay.client.id");
-        String clientSecret = properties.getProperty("blinkpay.client.secret");
-        String activeProfile = properties.getProperty("blinkpay.active.profile", "test");
-        boolean retryEnabled = Boolean.parseBoolean(properties.getProperty("blinkpay.retry.enabled", "true"));
+        int maxConnections = Integer.parseInt(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_MAX_CONNECTIONS));
+        Duration maxIdleTime = Duration.parse(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_MAX_IDLE_TIME));
+        Duration maxLifeTime = Duration.parse(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_MAX_LIFE_TIME));
+        Duration pendingAcquireTimeout = Duration.parse(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_PENDING_ACQUIRE_TIMEOUT));
+        Duration evictionInterval = Duration.parse(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_EVICTION_INTERVAL));
+        String debitUrl = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_DEBIT_URL);
+        String clientId = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_CLIENT_ID);
+        String clientSecret = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_CLIENT_SECRET);
+        String activeProfile = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_ACTIVE_PROFILE);
+        boolean retryEnabled = Boolean.parseBoolean(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_RETRY_ENABLED));
 
         BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
         blinkPayProperties.getDebit().setUrl(debitUrl);
