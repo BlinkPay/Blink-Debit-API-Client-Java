@@ -1,0 +1,29 @@
+{
+  "quick_payment_id": "2ea80e7a-ef5e-4431-8b47-cbae9c246414",
+  "consent": {
+    "consent_id": "2ea80e7a-ef5e-4431-8b47-cbae9c246414",
+    "status": "AwaitingAuthorisation",
+    "creation_timestamp": "2022-09-13T15:10:00+12:00",
+    "status_updated_timestamp": "2022-09-13T15:10:06.226964145+12:00",
+    "detail": {
+      "type": "single",
+      "flow": {
+        "detail": {
+          "type": "redirect",
+          "redirect_uri": "https://www.blinkpay.co.nz/sample-merchant-return-page",
+          "bank": "BNZ"
+        }
+      },
+      "pcr": {
+        "particulars": "particulars",
+        "code": "code",
+        "reference": "reference"
+      },
+      "amount": {
+        "total": "1.50",
+        "currency": "NZD"
+      }
+    },
+    "payments": []
+  }
+}

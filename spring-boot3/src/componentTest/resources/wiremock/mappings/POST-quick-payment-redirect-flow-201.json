@@ -1,0 +1,22 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "POST",
+    "url": "/payments/v1/quick-payments",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.flow.detail.type",
+          "contains": "redirect"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "quick-payment-redirect-flow-201.json"
+  }
+}

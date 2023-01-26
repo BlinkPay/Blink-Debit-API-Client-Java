@@ -9,20 +9,31 @@ This SDK allows merchants with Java-based e-commerce site to integrate with Blin
 - Lombok 1.18
 
 This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
-> **Warning** This SDK is not compatible with Spring Framework 6 / Spring Boot 3. One notable issue is with WebFlux's ClientResponse#getStatusCode.
 
-## Adding the dependency 
+## Adding the dependency
+For Java 8 with or without Spring Boot 2, use `blink-debit-api-client-java-spring-boot2` which relies on `javax.*`.
 ### Maven
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
-    <artifactId>blink-debit-api-client-java</artifactId>
+    <artifactId>blink-debit-api-client-java-spring-boot2</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+For Java 17 with or without Spring Boot 3, use `blink-debit-api-client-java-spring-boot3` which relies on `jakarta.*`.
+```xml
+<dependency>
+    <groupId>nz.co.blinkpay</groupId>
+    <artifactId>blink-debit-api-client-java-spring-boot3</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
 ### Gradle
+```groovy
+implementation 'nz.co.blinkpay:blink-debit-api-client-java-spring-boot2:1.0.0
 ```
-implementation 'nz.co.blinkpay:blink-debit-api-client-java:1.0.0
+```groovy
+implementation 'nz.co.blinkpay:blink-debit-api-client-java-spring-boot3:1.0.0
 ```
 
 ## Configuration
