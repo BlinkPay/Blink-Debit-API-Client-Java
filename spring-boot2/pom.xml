@@ -4,16 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>nz.co.blinkpay</groupId>
-        <artifactId>blink-debit-api-client-java</artifactId>
+        <artifactId>blink-debit-api-client-java-parent</artifactId>
         <version>${revision}</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>blink-debit-api-client-java-spring-boot2</artifactId>
+    <artifactId>blink-debit-api-client-java</artifactId>
     <version>${revision}</version>
 
-    <name>blink-debit-api-client-java-spring-boot2</name>
-    <description>Blink Debit API Client for Java 8 and Spring Boot 2</description>
+    <name>blink-debit-api-client-java</name>
+    <description>Blink Debit API Client for Java 8 with or without Spring Boot 2</description>
     <url>https://www.blinkpay.co.nz</url>
 
     <properties>
