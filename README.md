@@ -30,10 +30,10 @@ For Java 17 with or without Spring Boot 3, use `blink-debit-api-client-java-spri
 ```
 ### Gradle
 ```groovy
-implementation 'nz.co.blinkpay:blink-debit-api-client-java-spring-boot2:1.0.0
+implementation 'nz.co.blinkpay:blink-debit-api-client-java:1.0.0
 ```
 ```groovy
-implementation 'nz.co.blinkpay:blink-debit-api-client-java-spring-boot3:1.0.0
+implementation 'nz.co.blinkpay:blink-debit-api-client-java-spring6:1.0.0
 ```
 
 ## Configuration
