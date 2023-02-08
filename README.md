@@ -11,20 +11,20 @@ This SDK allows merchants with Java-based e-commerce site to integrate with Blin
 This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
 
 ## Adding the dependency
-For Java 8 with or without Spring Boot 2, use `blink-debit-api-client-java-spring-boot2` which relies on `javax.*`.
+For Java 8 with or without Spring Boot 2, use `blink-debit-api-client-java` which relies on `javax.*`.
 ### Maven
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
-    <artifactId>blink-debit-api-client-java-spring-boot2</artifactId>
+    <artifactId>blink-debit-api-client-java</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
-For Java 17 with or without Spring Boot 3, use `blink-debit-api-client-java-spring-boot3` which relies on `jakarta.*`.
+For Java 17 with or without Spring Boot 3, use `blink-debit-api-client-java-spring6` which relies on `jakarta.*`.
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
-    <artifactId>blink-debit-api-client-java-spring-boot3</artifactId>
+    <artifactId>blink-debit-api-client-java-spring6</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
