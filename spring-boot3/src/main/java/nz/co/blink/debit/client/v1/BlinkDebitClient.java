@@ -322,7 +322,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public List<BankMetadata> getMeta() throws BlinkServiceException {
-        return getMetaAsFlux().collectList().block();
+        try {
+            return getMetaAsFlux().collectList().block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -333,7 +340,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public List<BankMetadata> getMeta(final String requestId) throws BlinkServiceException {
-        return getMetaAsFlux(requestId).collectList().block();
+        try {
+            return getMetaAsFlux(requestId).collectList().block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -366,7 +380,14 @@ public class BlinkDebitClient {
      */
     public CreateConsentResponse createSingleConsent(SingleConsentRequest request)
             throws BlinkServiceException {
-        return createSingleConsentAsMono(request).block();
+        try {
+            return createSingleConsentAsMono(request).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -377,9 +398,16 @@ public class BlinkDebitClient {
      * @return the {@link CreateConsentResponse}
      * @throws BlinkServiceException thrown when an exception occurs
      */
-    public CreateConsentResponse createSingleConsent(SingleConsentRequest request,
-                                                     final String requestId) throws BlinkServiceException {
-        return createSingleConsentAsMono(request, requestId).block();
+    public CreateConsentResponse createSingleConsent(SingleConsentRequest request, final String requestId)
+            throws BlinkServiceException {
+        try {
+            return createSingleConsentAsMono(request, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -416,7 +444,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Consent getSingleConsent(UUID consentId) throws BlinkServiceException {
-        return getSingleConsentAsMono(consentId).block();
+        try {
+            return getSingleConsentAsMono(consentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -428,7 +463,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Consent getSingleConsent(UUID consentId, final String requestId) throws BlinkServiceException {
-        return getSingleConsentAsMono(consentId, requestId).block();
+        try {
+            return getSingleConsentAsMono(consentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -468,25 +510,32 @@ public class BlinkDebitClient {
             throws BlinkServiceException {
         Mono<Consent> consentMono = getSingleConsentAsMono(consentId);
 
-        return consentMono
-                .flatMap(consent -> {
-                    Consent.StatusEnum status = consent.getStatus();
-                    log.debug("The last status polled was: {} \tfor Single Consent ID: {}", status,
-                            consentId);
+        try {
+            return consentMono
+                    .flatMap(consent -> {
+                        Consent.StatusEnum status = consent.getStatus();
+                        log.debug("The last status polled was: {} \tfor Single Consent ID: {}", status,
+                                consentId);
 
-                    if (AUTHORISED == status) {
-                        return consentMono;
-                    }
+                        if (AUTHORISED == status) {
+                            return consentMono;
+                        }
 
-                    return Mono.error(new BlinkConsentFailureException());
-                }).retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkConsentFailureException.class::isInstance)
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
-                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
-                        })
-                ).block();
+                        return Mono.error(new BlinkConsentFailureException());
+                    }).retryWhen(reactor.util.retry.Retry
+                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .filter(BlinkConsentFailureException.class::isInstance)
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                                throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                            })
+                    ).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -510,7 +559,7 @@ public class BlinkDebitClient {
                 throw (BlinkServiceException) cause;
             }
 
-            throw e;
+            throw new BlinkServiceException(e.getMessage(), e);
         }
     }
 
@@ -575,7 +624,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public void revokeSingleConsent(UUID consentId) throws BlinkServiceException {
-        revokeSingleConsentAsMono(consentId).block();
+        try {
+            revokeSingleConsentAsMono(consentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -586,7 +642,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public void revokeSingleConsent(UUID consentId, final String requestId) throws BlinkServiceException {
-        revokeSingleConsentAsMono(consentId, requestId).block();
+        try {
+            revokeSingleConsentAsMono(consentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -620,7 +683,14 @@ public class BlinkDebitClient {
      */
     public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request)
             throws BlinkServiceException {
-        return createEnduringConsentAsMono(request).block();
+        try {
+            return createEnduringConsentAsMono(request).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -631,9 +701,16 @@ public class BlinkDebitClient {
      * @return the {@link CreateConsentResponse}
      * @throws BlinkServiceException thrown when an exception occurs
      */
-    public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request,
-                                                       final String requestId) throws BlinkServiceException {
-        return createEnduringConsentAsMono(request, requestId).block();
+    public CreateConsentResponse createEnduringConsent(EnduringConsentRequest request, final String requestId)
+            throws BlinkServiceException {
+        try {
+            return createEnduringConsentAsMono(request, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -670,7 +747,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Consent getEnduringConsent(UUID consentId) throws BlinkServiceException {
-        return getEnduringConsentAsMono(consentId).block();
+        try {
+            return getEnduringConsentAsMono(consentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -682,7 +766,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Consent getEnduringConsent(UUID consentId, final String requestId) throws BlinkServiceException {
-        return getEnduringConsentAsMono(consentId, requestId).block();
+        try {
+            return getEnduringConsentAsMono(consentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -722,33 +813,40 @@ public class BlinkDebitClient {
             throws BlinkServiceException {
         Mono<Consent> consentMono = getEnduringConsentAsMono(consentId);
 
-        return consentMono
-                .flatMap(consent -> {
-                    Consent.StatusEnum status = consent.getStatus();
-                    log.debug("The last status polled was: {} \tfor Enduring Consent ID: {}", status,
-                            consentId);
+        try {
+            return consentMono
+                    .flatMap(consent -> {
+                        Consent.StatusEnum status = consent.getStatus();
+                        log.debug("The last status polled was: {} \tfor Enduring Consent ID: {}", status,
+                                consentId);
 
-                    if (AUTHORISED == status) {
-                        return consentMono;
-                    }
+                        if (AUTHORISED == status) {
+                            return consentMono;
+                        }
 
-                    return Mono.error(new BlinkConsentFailureException());
-                }).retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkConsentFailureException.class::isInstance)
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
-                            try {
-                                revokeEnduringConsentAsMono(consentId).then();
-                                log.info("The max wait time was reached while waiting for the enduring consent to complete and the payment has been revoked with the server. Enduring consent ID: {}", consentId);
-                            } catch (Throwable revokeException) {
-                                log.error("Waiting for the enduring consent was not successful and it was also not able to be revoked with the server due to: {}. Enduring consent ID: {}", revokeException.getLocalizedMessage(), consentId);
-                                awaitException.addSuppressed(revokeException);
-                            }
+                        return Mono.error(new BlinkConsentFailureException());
+                    }).retryWhen(reactor.util.retry.Retry
+                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .filter(BlinkConsentFailureException.class::isInstance)
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                                try {
+                                    revokeEnduringConsentAsMono(consentId).then();
+                                    log.info("The max wait time was reached while waiting for the enduring consent to complete and the payment has been revoked with the server. Enduring consent ID: {}", consentId);
+                                } catch (Throwable revokeException) {
+                                    log.error("Waiting for the enduring consent was not successful and it was also not able to be revoked with the server due to: {}. Enduring consent ID: {}", revokeException.getLocalizedMessage(), consentId);
+                                    awaitException.addSuppressed(revokeException);
+                                }
 
-                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
-                        })
-                ).block();
+                                throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                            })
+                    ).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -772,7 +870,7 @@ public class BlinkDebitClient {
                 throw (BlinkServiceException) cause;
             }
 
-            throw e;
+            throw new BlinkServiceException(e.getMessage(), e);
         }
     }
 
@@ -856,7 +954,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public void revokeEnduringConsent(UUID consentId) throws BlinkServiceException {
-        revokeEnduringConsentAsMono(consentId).block();
+        try {
+            revokeEnduringConsentAsMono(consentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -867,7 +972,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public void revokeEnduringConsent(UUID consentId, final String requestId) throws BlinkServiceException {
-        revokeEnduringConsentAsMono(consentId, requestId).block();
+        try {
+            revokeEnduringConsentAsMono(consentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -901,7 +1013,14 @@ public class BlinkDebitClient {
      */
     public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request)
             throws BlinkServiceException {
-        return createQuickPaymentAsMono(request).block();
+        try {
+            return createQuickPaymentAsMono(request).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -912,9 +1031,16 @@ public class BlinkDebitClient {
      * @return the {@link CreateQuickPaymentResponse}
      * @throws BlinkServiceException thrown when an exception occurs
      */
-    public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request,
-                                                         final String requestId) throws BlinkServiceException {
-        return createQuickPaymentAsMono(request, requestId).block();
+    public CreateQuickPaymentResponse createQuickPayment(QuickPaymentRequest request, final String requestId)
+            throws BlinkServiceException {
+        try {
+            return createQuickPaymentAsMono(request, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -951,7 +1077,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public QuickPaymentResponse getQuickPayment(UUID quickPaymentId) throws BlinkServiceException {
-        return getQuickPaymentAsMono(quickPaymentId).block();
+        try {
+            return getQuickPaymentAsMono(quickPaymentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -964,7 +1097,14 @@ public class BlinkDebitClient {
      */
     public QuickPaymentResponse getQuickPayment(UUID quickPaymentId, final String requestId)
             throws BlinkServiceException {
-        return getQuickPaymentAsMono(quickPaymentId, requestId).block();
+        try {
+            return getQuickPaymentAsMono(quickPaymentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1004,33 +1144,40 @@ public class BlinkDebitClient {
             throws BlinkServiceException {
         Mono<QuickPaymentResponse> quickPaymentResponseMono = getQuickPaymentAsMono(quickPaymentId);
 
-        return quickPaymentResponseMono
-                .flatMap(quickPaymentResponse -> {
-                    Consent.StatusEnum status = quickPaymentResponse.getConsent().getStatus();
-                    log.debug("The last status polled was: {} \tfor Quick Payment ID: {}", status, quickPaymentId);
+        try {
+            return quickPaymentResponseMono
+                    .flatMap(quickPaymentResponse -> {
+                        Consent.StatusEnum status = quickPaymentResponse.getConsent().getStatus();
+                        log.debug("The last status polled was: {} \tfor Quick Payment ID: {}", status, quickPaymentId);
 
-                    if (AUTHORISED == status) {
-                        return quickPaymentResponseMono;
-                    }
+                        if (AUTHORISED == status) {
+                            return quickPaymentResponseMono;
+                        }
 
-                    return Mono.error(new BlinkConsentFailureException());
-                }).retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkConsentFailureException.class::isInstance)
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            // Gateway timed out. Revoke so it can't be used anymore
-                            BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
-                            try {
-                                revokeQuickPaymentAsMono(quickPaymentId).then();
-                                log.info("The max wait time was reached while waiting for the quick payment to complete and the payment has been revoked with the server. Quick payment ID: {}", quickPaymentId);
-                            } catch (Throwable revokeException) {
-                                log.error("Waiting for the quick payment was not successful and it was also not able to be revoked with the server due to: {}. Quick payment ID: {}", revokeException.getLocalizedMessage(), quickPaymentId);
-                                awaitException.addSuppressed(revokeException);
-                            }
+                        return Mono.error(new BlinkConsentFailureException());
+                    }).retryWhen(reactor.util.retry.Retry
+                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .filter(BlinkConsentFailureException.class::isInstance)
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                // Gateway timed out. Revoke so it can't be used anymore
+                                BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
+                                try {
+                                    revokeQuickPaymentAsMono(quickPaymentId).then();
+                                    log.info("The max wait time was reached while waiting for the quick payment to complete and the payment has been revoked with the server. Quick payment ID: {}", quickPaymentId);
+                                } catch (Throwable revokeException) {
+                                    log.error("Waiting for the quick payment was not successful and it was also not able to be revoked with the server due to: {}. Quick payment ID: {}", revokeException.getLocalizedMessage(), quickPaymentId);
+                                    awaitException.addSuppressed(revokeException);
+                                }
 
-                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
-                        })
-                ).block();
+                                throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                            })
+                    ).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1054,7 +1201,7 @@ public class BlinkDebitClient {
                 throw (BlinkServiceException) cause;
             }
 
-            throw e;
+            throw new BlinkServiceException(e.getMessage(), e);
         }
     }
 
@@ -1128,7 +1275,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public void revokeQuickPayment(UUID quickPaymentId) throws BlinkServiceException {
-        revokeQuickPaymentAsMono(quickPaymentId).block();
+        try {
+            revokeQuickPaymentAsMono(quickPaymentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1139,7 +1293,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public void revokeQuickPayment(UUID consentId, final String requestId) throws BlinkServiceException {
-        revokeQuickPaymentAsMono(consentId, requestId).block();
+        try {
+            revokeQuickPaymentAsMono(consentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1172,7 +1333,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public PaymentResponse createPayment(PaymentRequest request) throws BlinkServiceException {
-        return createPaymentAsMono(request).block();
+        try {
+            return createPaymentAsMono(request).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1185,7 +1353,14 @@ public class BlinkDebitClient {
      */
     public PaymentResponse createPayment(PaymentRequest request, final String requestId)
             throws BlinkServiceException {
-        return createPaymentAsMono(request, requestId).block();
+        try {
+            return createPaymentAsMono(request, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1221,7 +1396,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public PaymentResponse createWestpacPayment(PaymentRequest request) throws BlinkServiceException {
-        return createWestpacPaymentAsMono(request).block();
+        try {
+            return createWestpacPaymentAsMono(request).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1235,7 +1417,14 @@ public class BlinkDebitClient {
      */
     public PaymentResponse createWestpacPayment(PaymentRequest request, final String requestId)
             throws BlinkServiceException {
-        return createWestpacPaymentAsMono(request, requestId).block();
+        try {
+            return createWestpacPaymentAsMono(request, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1273,7 +1462,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Payment getPayment(UUID paymentId) throws BlinkServiceException {
-        return getPaymentAsMono(paymentId).block();
+        try {
+            return getPaymentAsMono(paymentId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1285,7 +1481,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Payment getPayment(UUID paymentId, final String requestId) throws BlinkServiceException {
-        return getPaymentAsMono(paymentId, requestId).block();
+        try {
+            return getPaymentAsMono(paymentId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1323,24 +1526,31 @@ public class BlinkDebitClient {
     public Payment awaitSuccessfulPayment(UUID paymentId, final int maxWaitSeconds) throws BlinkServiceException {
         Mono<Payment> paymentMono = getPaymentAsMono(paymentId);
 
-        return paymentMono
-                .flatMap(payment -> {
-                    Payment.StatusEnum status = payment.getStatus();
-                    log.debug("The last status polled was: {} \tfor Payment ID: {}", status, paymentId);
+        try {
+            return paymentMono
+                    .flatMap(payment -> {
+                        Payment.StatusEnum status = payment.getStatus();
+                        log.debug("The last status polled was: {} \tfor Payment ID: {}", status, paymentId);
 
-                    if (ACCEPTEDSETTLEMENTCOMPLETED == status || ACCEPTED == status) {
-                        return paymentMono;
-                    }
+                        if (ACCEPTEDSETTLEMENTCOMPLETED == status || ACCEPTED == status) {
+                            return paymentMono;
+                        }
 
-                    return Mono.error(new BlinkPaymentFailureException());
-                }).retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkPaymentFailureException.class::isInstance)
-                        .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
-                            throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
-                        })
-                ).block();
+                        return Mono.error(new BlinkPaymentFailureException());
+                    }).retryWhen(reactor.util.retry.Retry
+                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .filter(BlinkPaymentFailureException.class::isInstance)
+                            .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                                BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
+                                throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
+                            })
+                    ).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1364,7 +1574,7 @@ public class BlinkDebitClient {
                 throw (BlinkServiceException) cause;
             }
 
-            throw e;
+            throw new BlinkServiceException(e.getMessage(), e);
         }
     }
 
@@ -1423,7 +1633,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public RefundResponse createRefund(RefundDetail request) throws BlinkServiceException {
-        return createRefundAsMono(request).block();
+        try {
+            return createRefundAsMono(request).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1436,7 +1653,14 @@ public class BlinkDebitClient {
      */
     public RefundResponse createRefund(RefundDetail request, final String requestId)
             throws BlinkServiceException {
-        return createRefundAsMono(request, requestId).block();
+        try {
+            return createRefundAsMono(request, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1471,7 +1695,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Refund getRefund(UUID refundId) throws BlinkServiceException {
-        return getRefundAsMono(refundId).block();
+        try {
+            return getRefundAsMono(refundId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
@@ -1483,7 +1714,14 @@ public class BlinkDebitClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Refund getRefund(UUID refundId, final String requestId) throws BlinkServiceException {
-        return getRefundAsMono(refundId, requestId).block();
+        try {
+            return getRefundAsMono(refundId, requestId).block();
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof BlinkServiceException) {
+                throw (BlinkServiceException) e.getCause();
+            }
+            throw new BlinkServiceException(e.getMessage(), e);
+        }
     }
 
     /**
