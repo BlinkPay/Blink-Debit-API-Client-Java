@@ -121,13 +121,11 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsent(consentId, 5), RuntimeException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedSingleConsent(consentId, 5), BlinkServiceException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkConsentTimeoutException.class)
                 .hasMessage("Consent timed out");
     }
 
@@ -137,13 +135,11 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentSingleConsentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsent(consentId, 5), RuntimeException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedSingleConsent(consentId, 5), BlinkResourceNotFoundException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkResourceNotFoundException.class)
                 .hasMessage("Consent with ID [" + consentId + "] does not exist");
     }
 
@@ -347,13 +343,11 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsent(consentId, 5), RuntimeException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedEnduringConsent(consentId, 5), BlinkServiceException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkConsentTimeoutException.class)
                 .hasMessage("Consent timed out");
     }
 
@@ -363,13 +357,11 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentEnduringConsentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsent(consentId, 5), RuntimeException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedEnduringConsent(consentId, 5), BlinkResourceNotFoundException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkResourceNotFoundException.class)
                 .hasMessage("Consent with ID [" + consentId + "] does not exist");
     }
 
@@ -565,13 +557,11 @@ class BlinkDebitClientIntegrationTest {
         UUID quickPaymentId = response.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulQuickPayment(quickPaymentId, 5), RuntimeException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitSuccessfulQuickPayment(quickPaymentId, 5), BlinkServiceException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkConsentTimeoutException.class)
                 .hasMessage("Consent timed out");
     }
 
@@ -581,13 +571,11 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentQuickPaymentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulQuickPayment(consentId, 5), RuntimeException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
+                client.awaitSuccessfulQuickPayment(consentId, 5), BlinkResourceNotFoundException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkResourceNotFoundException.class)
                 .hasMessage("Consent with ID [" + consentId + "] does not exist");
     }
 
@@ -843,13 +831,11 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentPaymentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        RuntimeException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulPayment(consentId, 5), RuntimeException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
+                client.awaitSuccessfulPayment(consentId, 5), BlinkResourceNotFoundException.class);
 
-        assertThat(exception).isNotNull();
-        assertThat(exception.getCause())
+        assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkResourceNotFoundException.class)
                 .hasMessage("Payment with ID [" + consentId + "] does not exist");
     }
 
