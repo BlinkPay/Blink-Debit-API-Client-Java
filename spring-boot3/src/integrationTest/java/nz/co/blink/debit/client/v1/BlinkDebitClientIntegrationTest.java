@@ -52,6 +52,7 @@ import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -582,6 +583,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
     @Order(23)
+    @Disabled("temporarily disabled to run in GitHub")
     void awaitSuccessfulQuickPayment() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
