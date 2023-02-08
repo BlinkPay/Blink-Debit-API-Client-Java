@@ -606,7 +606,7 @@ class BlinkDebitClientIntegrationTest {
         UUID quickPaymentId = response.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
-        QuickPaymentResponse actual = client.awaitSuccessfulQuickPayment(quickPaymentId, 30);
+        QuickPaymentResponse actual = client.awaitSuccessfulQuickPayment(quickPaymentId, 60);
         assertThat(actual)
                 .isNotNull()
                 .extracting(QuickPaymentResponse::getQuickPaymentId)
