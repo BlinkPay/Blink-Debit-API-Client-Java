@@ -36,14 +36,78 @@ implementation 'nz.co.blinkpay:blink-debit-api-client-java:1.0.0
 implementation 'nz.co.blinkpay:blink-debit-api-client-java-spring6:1.0.0
 ```
 
+## Quick Start
+```java
+String blinkpayUrl = "https://sandbox.debit.blinkpay.co.nz";
+String clientId = "...";
+String clientSecret = "...";
+String profile = "local";
+BlinkDebitClient client = new BlinkDebitClient(blinkpayUrl, clientId, clientSecret, profile);
+
+QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
+        .flow(new AuthFlow()
+                .detail(new GatewayFlow()
+                        .redirectUri("https://www.blinkpay.co.nz/sample-merchant-return-page")))
+        .amount(new Amount()
+                .currency(Amount.CurrencyEnum.NZD)
+                .total("0.01"))
+        .pcr(new Pcr()
+                .particulars("particulars")
+                .code("code")
+                .reference("reference"));
+
+CreateQuickPaymentResponse qpCreateResponse = client.createQuickPayment(request);
+logger.info("Redirect URL: {}", qpCreateResponse.getRedirectUri()); // Redirect the consumer to this URL
+UUID qpId = qpCreateResponse.getQuickPaymentId();
+QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowException(qpId, 300); // Will throw an exception if the payment was not successful after 5min
+```
+
 ## Configuration
-- Customise/supply the required properties in your `blinkdebit.yaml` (or `blinkdebit.properties`). This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
+- Customise/supply the required properties in your `blinkdebit.yaml` or `blinkdebit.properties`. This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
 - The BlinkPay **Sandbox** debit URL is `https://sandbox.debit.blinkpay.co.nz` and the **production** debit URL is `https://debit.blinkpay.co.nz`.
 - The client credentials will be provided to you by BlinkPay as part of your on-boarding process. 
 - Properties can be supplied using environment variables if the environment variable is referenced in the properties as per the examples below.
 > **Warning** Take care not to check in your client ID and secret to your source control.
 
-#### YAML properties example
+
+#### Properties file plain java example
+Substitute the correct values to your `blinkdebit.properties` file.
+```properties
+blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
+blinkpay.client.id=<BLINKPAY_CLIENT_ID>
+blinkpay.client.secret=<BLINKPAY_CLIENT_SECRET>
+# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
+blinkpay.active.profile=test
+
+# Optional configuration values below
+blinkpay.max.connections=10
+blinkpay.max.idle.time=PT20S
+blinkpay.max.life.time=PT60S
+blinkpay.pending.acquire.timeout=PT10S
+blinkpay.eviction.interval=PT60S
+blinkpay.retry.enabled=true
+```
+
+#### Properties file example - Spring
+The property placeholders below only work for Spring consumers by substituting the corresponding environment variables.
+```properties
+blinkpay.debit.url=${BLINKPAY_DEBIT_URL}
+blinkpay.client.id=${BLINKPAY_CLIENT_ID}
+blinkpay.client.secret=${BLINKPAY_CLIENT_SECRET}
+# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
+blinkpay.active.profile=${BLINKPAY_ACTIVE_PROFILE:test}
+
+# Optional configuration values below
+blinkpay.max.connections=${BLINKPAY_MAX_CONNECTIONS:10}
+blinkpay.max.idle.time=${BLINKPAY_MAX_IDLE_TIME:PT20S}
+blinkpay.max.life.time=${BLINKPAY_MAX_LIFE_TIME:PT60S}
+blinkpay.pending.acquire.timeout=${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
+blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
+blinkpay.retry.enabled=${BLINKPAY_RETRY_ENABLED:true}
+```
+
+#### YAML properties example - Spring
+The property placeholders below only work for Spring consumers by substituting the corresponding environment variables.
 ```yaml
 blinkpay:
   debit:
@@ -66,40 +130,6 @@ blinkpay:
     interval: ${BLINKPAY_EVICTION_INTERVAL:PT60S}
   retry:
     enabled: ${BLINKPAY_RETRY_ENABLED:true}
-```
-
-#### Properties file example
-```properties
-blinkpay.debit.url=${BLINKPAY_DEBIT_URL}
-blinkpay.client.id=${BLINKPAY_CLIENT_ID}
-blinkpay.client.secret=${BLINKPAY_CLIENT_SECRET}
-# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
-blinkpay.active.profile=${BLINKPAY_ACTIVE_PROFILE:test}
-
-# Optional configuration values below
-blinkpay.max.connections=${BLINKPAY_MAX_CONNECTIONS:10}
-blinkpay.max.idle.time=${BLINKPAY_MAX_IDLE_TIME:PT20S}
-blinkpay.max.life.time=${BLINKPAY_MAX_LIFE_TIME:PT60S}
-blinkpay.pending.acquire.timeout=${BLINKPAY_PENDING_ACQUIRE_TIMEOUT:PT10S}
-blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
-blinkpay.retry.enabled=${BLINKPAY_RETRY_ENABLED:true}
-```
-
-> For non-Spring consumer, substitute the correct values. Property placeholders only work for Spring consumer by substituting the corresponding environment variables.
-```properties
-blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
-blinkpay.client.id=<BLINKPAY_CLIENT_ID>
-blinkpay.client.secret=<BLINKPAY_CLIENT_SECRET>
-# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
-blinkpay.active.profile=test
-
-# Optional configuration values below
-blinkpay.max.connections=10
-blinkpay.max.idle.time=PT20S
-blinkpay.max.life.time=PT60S
-blinkpay.pending.acquire.timeout=PT10S
-blinkpay.eviction.interval=PT60S
-blinkpay.retry.enabled=true
 ```
 
 ## Client creation
