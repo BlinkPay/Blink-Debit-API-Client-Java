@@ -3,15 +3,15 @@
 
 This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
 
+This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
+
 ## Minimum Requirements
 - Maven 3 or Gradle 7
 - Java 8 or higher
-- Lombok 1.18
-
-This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
+- Lombok 1.18 (for development only)
 
 ## Adding the dependency
-For Java 8 with or without Spring Boot 2, use `blink-debit-api-client-java` which relies on `javax.*`.
+For Java 8+ with using plan java or with Spring versions less than 6 (i.e. including Spring Boot 2), use `blink-debit-api-client-java`
 ### Maven
 ```xml
 <dependency>
@@ -20,7 +20,7 @@ For Java 8 with or without Spring Boot 2, use `blink-debit-api-client-java` whic
     <version>1.0.0</version>
 </dependency>
 ```
-For Java 17 with or without Spring Boot 3, use `blink-debit-api-client-java-spring6` which relies on `jakarta.*`.
+For Java 17+ using Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-spring6` which relies on `jakarta.*`.
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
