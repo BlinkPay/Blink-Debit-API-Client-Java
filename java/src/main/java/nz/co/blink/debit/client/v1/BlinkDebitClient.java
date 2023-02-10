@@ -47,6 +47,7 @@ import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkConsentRejectedException;
 import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
 import nz.co.blink.debit.exception.BlinkForbiddenException;
+import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkNotImplementedException;
 import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkPaymentRejectedException;
@@ -59,11 +60,13 @@ import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.DefaultPropertyProvider;
 import nz.co.blink.debit.helpers.EnvironmentVariablePropertyProvider;
-import nz.co.blink.debit.helpers.FilePropertyProvider;
+import nz.co.blink.debit.helpers.PropertiesFilePropertyProvider;
 import nz.co.blink.debit.helpers.PropertyProvider;
 import nz.co.blink.debit.helpers.SystemPropertyProvider;
+import nz.co.blink.debit.helpers.YamlFilePropertyProvider;
 import nz.co.blink.debit.service.ValidationService;
 import nz.co.blink.debit.service.impl.JavaxValidationServiceImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
@@ -94,23 +97,23 @@ import static nz.co.blink.debit.dto.v1.Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMP
 @Slf4j
 public class BlinkDebitClient {
 
-    private static final PropertyProvider PROPERTY_PROVIDER = new EnvironmentVariablePropertyProvider(new SystemPropertyProvider(new FilePropertyProvider(new DefaultPropertyProvider())));
+    private static final PropertyProvider PROPERTY_PROVIDER = new EnvironmentVariablePropertyProvider(new SystemPropertyProvider(new PropertiesFilePropertyProvider(new YamlFilePropertyProvider(new DefaultPropertyProvider()))));
 
-    private final SingleConsentsApiClient singleConsentsApiClient;
+    private SingleConsentsApiClient singleConsentsApiClient;
 
-    private final EnduringConsentsApiClient enduringConsentsApiClient;
+    private EnduringConsentsApiClient enduringConsentsApiClient;
 
-    private final QuickPaymentsApiClient quickPaymentsApiClient;
+    private QuickPaymentsApiClient quickPaymentsApiClient;
 
-    private final PaymentsApiClient paymentsApiClient;
+    private PaymentsApiClient paymentsApiClient;
 
-    private final RefundsApiClient refundsApiClient;
+    private RefundsApiClient refundsApiClient;
 
-    private final MetaApiClient metaApiClient;
+    private MetaApiClient metaApiClient;
 
-    private final ValidationService validationService;
+    private ValidationService validationService;
 
-    private final Retry retry;
+    private Retry retry;
 
     /**
      * Default constructor for Spring-based consumer.
@@ -141,11 +144,43 @@ public class BlinkDebitClient {
     }
 
     /**
+     * No-arg constructor for pure Java application.
+     *
+     * @throws BlinkInvalidValueException thrown when Blink Debit URL, client ID or client secret are not configured
+     */
+    public BlinkDebitClient() throws BlinkInvalidValueException {
+        int maxConnections = Integer.parseInt(PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_MAX_CONNECTIONS));
+        Duration maxIdleTime = Duration.parse(PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_MAX_IDLE_TIME));
+        Duration maxLifeTime = Duration.parse(PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_MAX_LIFE_TIME));
+        Duration pendingAcquireTimeout = Duration.parse(PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_PENDING_ACQUIRE_TIMEOUT));
+        Duration evictionInterval = Duration.parse(PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_EVICTION_INTERVAL));
+        String debitUrl = PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_DEBIT_URL);
+        String clientId = PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_CLIENT_ID);
+        String clientSecret = PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_CLIENT_SECRET);
+        String activeProfile = PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_ACTIVE_PROFILE);
+        boolean retryEnabled = Boolean.parseBoolean(PROPERTY_PROVIDER.getProperty(null, BlinkPayProperty.BLINKPAY_RETRY_ENABLED));
+
+        BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
+        blinkPayProperties.getDebit().setUrl(debitUrl);
+        blinkPayProperties.getClient().setId(clientId);
+        blinkPayProperties.getClient().setSecret(clientSecret);
+        blinkPayProperties.getMax().setConnections(maxConnections);
+        blinkPayProperties.getMax().getIdle().setTime(maxIdleTime);
+        blinkPayProperties.getMax().getLife().setTime(maxLifeTime);
+        blinkPayProperties.getPending().getAcquire().setTimeout(pendingAcquireTimeout);
+        blinkPayProperties.getEviction().setInterval(evictionInterval);
+        blinkPayProperties.getRetry().setEnabled(retryEnabled);
+
+        createServices(blinkPayProperties, activeProfile);
+    }
+
+    /**
      * Constructor for pure Java application.
      *
      * @param properties the {@link Properties} retrieved from the configuration file
+     * @throws BlinkInvalidValueException thrown when Blink Debit URL, client ID or client secret are not configured
      */
-    public BlinkDebitClient(Properties properties) {
+    public BlinkDebitClient(Properties properties) throws BlinkInvalidValueException {
         int maxConnections = Integer.parseInt(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_MAX_CONNECTIONS));
         Duration maxIdleTime = Duration.parse(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_MAX_IDLE_TIME));
         Duration maxLifeTime = Duration.parse(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_MAX_LIFE_TIME));
@@ -168,34 +203,7 @@ public class BlinkDebitClient {
         blinkPayProperties.getEviction().setInterval(evictionInterval);
         blinkPayProperties.getRetry().setEnabled(retryEnabled);
 
-        ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
-                .maxConnections(maxConnections)
-                .maxIdleTime(maxIdleTime)
-                .maxLifeTime(maxLifeTime)
-                .pendingAcquireTimeout(pendingAcquireTimeout)
-                .evictInBackground(evictionInterval)
-                .build();
-
-        ReactorClientHttpConnector reactorClientHttpConnector = configureReactorClientHttpConnector(activeProfile,
-                provider);
-
-        validationService = new JavaxValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
-
-        retry = configureRetry(retryEnabled);
-
-        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties, retry);
-        AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
-        singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
-        enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
-        quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
-        paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
-                validationService, retry);
-        refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
-                validationService, retry);
-        metaApiClient = new MetaApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler);
+        createServices(blinkPayProperties, activeProfile);
     }
 
     /**
@@ -205,9 +213,10 @@ public class BlinkDebitClient {
      * @param clientId      the client ID
      * @param clientSecret  the client secret
      * @param activeProfile the active profile
+     * @throws BlinkInvalidValueException thrown when Blink Debit URL, client ID or client secret are not configured
      */
     public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
-                            final String activeProfile) {
+                            final String activeProfile) throws BlinkInvalidValueException {
         this(debitUrl, clientId, clientSecret, activeProfile, true);
     }
 
@@ -219,9 +228,10 @@ public class BlinkDebitClient {
      * @param clientSecret  the client secret
      * @param activeProfile the active profile
      * @param retryEnabled  {@code true} if retry is enabled; {@code false otherwise}
+     * @throws BlinkInvalidValueException thrown when Blink Debit URL, client ID or client secret are not configured
      */
     public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
-                            final String activeProfile, final boolean retryEnabled) {
+                            final String activeProfile, final boolean retryEnabled) throws BlinkInvalidValueException {
         int maxConnections = 10;
         Duration maxIdleTime = Duration.parse("PT20S");
         Duration maxLifeTime = Duration.parse("PT60S");
@@ -239,12 +249,27 @@ public class BlinkDebitClient {
         blinkPayProperties.getEviction().setInterval(evictionInterval);
         blinkPayProperties.getRetry().setEnabled(retryEnabled);
 
+        createServices(blinkPayProperties, activeProfile);
+    }
+
+    private void createServices(BlinkPayProperties blinkPayProperties, String activeProfile)
+            throws BlinkInvalidValueException {
+        if (StringUtils.isBlank(blinkPayProperties.getDebit().getUrl())) {
+            throw new BlinkInvalidValueException("Blink Debit URL is not configured");
+        }
+        if (StringUtils.isBlank(blinkPayProperties.getClient().getId())) {
+            throw new BlinkInvalidValueException("Blink Debit client ID is not configured");
+        }
+        if (StringUtils.isBlank(blinkPayProperties.getClient().getSecret())) {
+            throw new BlinkInvalidValueException("Blink Debit client secret is not configured");
+        }
+
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
-                .maxConnections(maxConnections)
-                .maxIdleTime(maxIdleTime)
-                .maxLifeTime(maxLifeTime)
-                .pendingAcquireTimeout(pendingAcquireTimeout)
-                .evictInBackground(evictionInterval)
+                .maxConnections(blinkPayProperties.getMax().getConnections())
+                .maxIdleTime(blinkPayProperties.getMax().getIdle().getTime())
+                .maxLifeTime(blinkPayProperties.getMax().getLife().getTime())
+                .pendingAcquireTimeout(blinkPayProperties.getPending().getAcquire().getTimeout())
+                .evictInBackground(blinkPayProperties.getEviction().getInterval())
                 .build();
 
         ReactorClientHttpConnector reactorClientHttpConnector = configureReactorClientHttpConnector(activeProfile,
@@ -252,7 +277,7 @@ public class BlinkDebitClient {
 
         validationService = new JavaxValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
-        retry = configureRetry(retryEnabled);
+        retry = configureRetry(blinkPayProperties.getRetry().getEnabled());
 
         OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties, retry);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);

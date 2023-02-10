@@ -75,7 +75,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import javax.validation.Validation;
-import javax.validation.Validator;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -3096,5 +3095,10 @@ class BlinkDebitClientTest {
         properties.load(Files.newBufferedReader(propertiesFile));
 
         assertThatNoException().isThrownBy(() -> new BlinkDebitClient(properties));
+    }
+
+    @Test
+    void constructNoArgs() throws IOException {
+        assertThatNoException().isThrownBy(BlinkDebitClient::new);
     }
 }

@@ -1,6 +1,16 @@
 # Blink Debit API Client for Java
 ![badge](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/actions/workflows/workflow.yml/badge.svg)
 
+# Table of Contents
+1. [Minimum Requirements](#minimum-requirements)
+2. [Dependency](#adding-the-dependency)
+3. [Quick Start](#quick-start)
+4. [Configuration](#configuration)
+5. [Client Creation](#client-creation)
+6. [Correlation ID](#correlation-id)
+7. [Full Examples](#full-examples)
+8. [Individual API Call Examples](#individual-api-call-examples)
+
 This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
 
 This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
@@ -70,7 +80,23 @@ QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowExcep
 > **Warning** Take care not to check in your client ID and secret to your source control.
 
 
-#### Properties file plain java example
+#### Environment variables - vanilla Java
+```shell
+export BLINKPAY_DEBIT_URL=<BLINKPAY_DEBIT_URL>
+export BLINKPAY_CLIENT_ID=<BLINKPAY_CLIENT_ID>
+export BLINKPAY_CLIENT_SECRET=<BLINKPAY_CLIENT_SECRET>
+# for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
+export BLINKPAY_ACTIVE_PROFILE=test
+# Optional configuration values below
+export BLINKPAY_MAX_CONNECTIONS=10
+export BLINKPAY_MAX_IDLE_TIME=PT20S
+export BLINKPAY_MAX_LIFE_TIME=PT60S
+export BLINKPAY_PENDING_ACQUIRE_timeout=PT10S
+export BLINKPAY_EVICTION_INTERVAL=PT60S
+export BLINKPAY_RETRY_ENABLED=true
+```
+
+#### Properties file example - vanilla Java
 Substitute the correct values to your `blinkdebit.properties` file.
 ```properties
 blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
@@ -134,55 +160,17 @@ blinkpay:
 
 ## Client creation
 ### Java
-Pure Java client code can load the contents of `blinkdebit.properties` into Properties:
+Vanilla Java client code can use the no-arg constructor which will attempt to populate the properties from
+1.) environment variables e.g. `export BLINKPAY_MAX_CONNECTIONS=10`,
+2.) system properties e.g. `-Dblinkpay.max.connections=10`,
+3.) `blinkdebit.properties`, 4.) `blinkdebit.yaml`, or 5.) `blinkdebit.yml` before using the applicable default values:
 ```java
-Properties properties = new Properties();
-properties.load(getClass().getClassLoader().getResourceAsStream("blinkdebit.properties"));
-
-BlinkDebitClient client = new BlinkDebitClient(properties);
+BlinkDebitClient client = new BlinkDebitClient();
 ```
-Or they can supply the required properties on object creation:
+
+Another way is to supply the required properties on object creation:
 ```java
 BlinkDebitClient client = new BlinkDebitClient(blinkpayUrl, clientId, clientSecret, "production");
-```
-Or they can load the contents of `blinkdebit.yaml` into Properties, with some additional logic using SnakeYAML:
-```java
-public static void main(String[] args) {
-    Properties properties = new Properties();
-    Yaml yaml = new Yaml();
-    InputStream inputStream = getClass().getClassLoader().getResourceAsStream("blinkdebit.yaml");
-    properties.putAll(getFlattenedMap(yaml.load(inputStream)));
-
-    BlinkDebitClient client = new BlinkDebitClient(properties);
-}
-
-private static Map<String, Object> getFlattenedMap(Map<String, Object> source) {
-    Map<String, Object> result = new LinkedHashMap<>();
-    buildFlattenedMap(result, source, null);
-    return result;
-}
-
-@SuppressWarnings("unchecked")
-private static void buildFlattenedMap(Map<String, Object> result, Map<String, Object> source, String path) {
-    source.forEach((key, value) -> {
-            if (StringUtils.isNotBlank(path)) {
-                key = path + (key.startsWith("[") ? key : '.' + key);
-            }
-        
-            if (value instanceof String) {
-                result.put(key, value);
-            } else if (value instanceof Map) {
-                buildFlattenedMap(result, (Map<String, Object>) value, key);
-            } else if (value instanceof Collection) {
-                int count = 0;
-                for (Object object : (Collection<?>) value) {
-                    buildFlattenedMap(result, Collections.singletonMap("[" + (count++) + "]", object), key);
-                }
-            } else {
-                result.put(key, value != null ? value : "");
-            }
-        });
-}
 ```
 
 ### Spring
@@ -197,7 +185,7 @@ An optional correlation ID can be added as the last argument to API calls. This 
 
 It will be generated for you automatically if it is not provided.
 
-## Full examples
+## Full Examples
 ### Quick payment (one-off payment), using Blink Gateway flow
 A quick payment is a one-off payment that combines the API calls needed for both the consent and the payment.
 ```java
@@ -240,7 +228,7 @@ logger.info("Payment Status: {}", client.getPayment(paymentResponse.getPaymentId
 // TODO inspect the payment result status
 ```
 
-## Individual API call examples
+## Individual API Call Examples
 ### Bank Metadata
 Supplies the supported banks and supported flows on your account.
 ```java
