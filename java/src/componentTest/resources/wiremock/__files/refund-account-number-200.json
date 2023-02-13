@@ -1,0 +1,11 @@
+{
+  "refund_id": "e9cc86bf-3030-4019-a0f5-1d73882051ea",
+  "status": "completed",
+  "creation_timestamp": "2022-09-14T11:46:58+12:00",
+  "status_updated_timestamp": "2022-09-14T11:46:58+12:00",
+  "account_number": "99-6121-3292712-00",
+  "detail": {
+    "payment_id": "76ac9fa3-4793-45fe-8682-c7876fc5262e",
+    "type": "account_number"
+  }
+}

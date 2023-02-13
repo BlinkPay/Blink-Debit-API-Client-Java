@@ -1,0 +1,14 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "GET",
+    "url": "/payments/v1/quick-payments/04157088-47ed-46ea-820e-6f726365b092"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "quick-payment-gateway-flow-200.json"
+  }
+}

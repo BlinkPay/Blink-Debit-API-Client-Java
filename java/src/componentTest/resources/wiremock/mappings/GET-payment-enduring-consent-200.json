@@ -1,0 +1,14 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "GET",
+    "url": "/payments/v1/payments/12fd4aa2-629f-463d-9114-15b095448a79"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "payment-enduring-consent-200.json"
+  }
+}

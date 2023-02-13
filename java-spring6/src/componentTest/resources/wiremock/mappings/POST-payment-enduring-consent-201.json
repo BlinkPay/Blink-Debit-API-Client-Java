@@ -1,0 +1,22 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "POST",
+    "url": "/payments/v1/payments",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": {
+          "expression": "$.consent_id",
+          "contains": "0500c560-c156-439f-9aed-753d82884323"
+        }
+      }
+    ]
+  },
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "payment-enduring-consent-201.json"
+  }
+}
