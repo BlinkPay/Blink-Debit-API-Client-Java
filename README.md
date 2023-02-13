@@ -21,7 +21,10 @@ This SDK internally uses WebClient, a reactive web client introduced in Spring F
 - Lombok 1.18 (for development only)
 
 ## Adding the dependency
-For Java 8+ with using plan java or with Spring versions less than 6 (i.e. including Spring Boot 2), use `blink-debit-api-client-java`
+For: 
+- Java 8 or higher using plan java 
+- or with Spring versions less than 6 (i.e. including Spring Boot 2)
+use `blink-debit-api-client-java`
 ### Maven
 ```xml
 <dependency>
@@ -30,7 +33,7 @@ For Java 8+ with using plan java or with Spring versions less than 6 (i.e. inclu
     <version>1.0.0</version>
 </dependency>
 ```
-For Java 17+ using Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-spring6` which relies on `jakarta.*`.
+For Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-spring6`
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
@@ -76,17 +79,28 @@ QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowExcep
 - Customise/supply the required properties in your `blinkdebit.yaml` or `blinkdebit.properties`. This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
 - The BlinkPay **Sandbox** debit URL is `https://sandbox.debit.blinkpay.co.nz` and the **production** debit URL is `https://debit.blinkpay.co.nz`.
 - The client credentials will be provided to you by BlinkPay as part of your on-boarding process. 
-- Properties can be supplied using environment variables if the environment variable is referenced in the properties as per the examples below.
+- Properties can be supplied using environment variables.
 > **Warning** Take care not to check in your client ID and secret to your source control.
 
+### Property precedence
+Properties will be detected and loaded according to the heirarcy -
+1. As provided directly to client constructor
+2. Environment variables e.g. `export BLINKPAY_CLIENT_SECRET=...`
+3. System properties e.g. `-Dblinkpay.client.secret=...`
+4. `blinkdebit.properties`
+5. `blinkdebit.yaml`
+6. Default values
 
-#### Environment variables - vanilla Java
+### Property set-up examples
+
+#### Environment variables
 ```shell
 export BLINKPAY_DEBIT_URL=<BLINKPAY_DEBIT_URL>
 export BLINKPAY_CLIENT_ID=<BLINKPAY_CLIENT_ID>
 export BLINKPAY_CLIENT_SECRET=<BLINKPAY_CLIENT_SECRET>
 # for non-Spring consumer as an alternative to spring.profiles.active property. Debugging profiles are local, dev or test. Any other value will behave in a production-like manner.
 export BLINKPAY_ACTIVE_PROFILE=test
+
 # Optional configuration values below
 export BLINKPAY_MAX_CONNECTIONS=10
 export BLINKPAY_MAX_IDLE_TIME=PT20S
@@ -96,7 +110,7 @@ export BLINKPAY_EVICTION_INTERVAL=PT60S
 export BLINKPAY_RETRY_ENABLED=true
 ```
 
-#### Properties file example - vanilla Java
+### Properties file 
 Substitute the correct values to your `blinkdebit.properties` file.
 ```properties
 blinkpay.debit.url=<BLINKPAY_DEBIT_URL>
@@ -114,8 +128,8 @@ blinkpay.eviction.interval=PT60S
 blinkpay.retry.enabled=true
 ```
 
-#### Properties file example - Spring
-The property placeholders below only work for Spring consumers by substituting the corresponding environment variables.
+#### Properties file - Spring
+The property placeholders below will **only work for Spring consumers** by substituting the corresponding environment variables.
 ```properties
 blinkpay.debit.url=${BLINKPAY_DEBIT_URL}
 blinkpay.client.id=${BLINKPAY_CLIENT_ID}
@@ -132,8 +146,8 @@ blinkpay.eviction.interval=${BLINKPAY_EVICTION_INTERVAL:PT60S}
 blinkpay.retry.enabled=${BLINKPAY_RETRY_ENABLED:true}
 ```
 
-#### YAML properties example - Spring
-The property placeholders below only work for Spring consumers by substituting the corresponding environment variables.
+#### YAML properties file - Spring
+The property placeholders below will **only work for Spring consumers** by substituting the corresponding environment variables.
 ```yaml
 blinkpay:
   debit:
@@ -160,10 +174,8 @@ blinkpay:
 
 ## Client creation
 ### Java
-Vanilla Java client code can use the no-arg constructor which will attempt to populate the properties from
-1.) environment variables e.g. `export BLINKPAY_MAX_CONNECTIONS=10`,
-2.) system properties e.g. `-Dblinkpay.max.connections=10`,
-3.) `blinkdebit.properties`, 4.) `blinkdebit.yaml`, or 5.) `blinkdebit.yml` before using the applicable default values:
+Plain Java client code can use the no-arg constructor which will attempt to populate the properties according to the hierarchy above.
+
 ```java
 BlinkDebitClient client = new BlinkDebitClient();
 ```
@@ -186,7 +198,7 @@ An optional correlation ID can be added as the last argument to API calls. This 
 It will be generated for you automatically if it is not provided.
 
 ## Full Examples
-### Quick payment (one-off payment), using Blink Gateway flow
+### Quick payment (one-off payment), using Gateway flow
 A quick payment is a one-off payment that combines the API calls needed for both the consent and the payment.
 ```java
 QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
@@ -207,7 +219,7 @@ UUID qpId = qpCreateResponse.getQuickPaymentId();
 QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowException(qpId, 300); // Will throw an exception if the payment was not successful after 5min
 ```
 
-### Single consent followed by one-off payment, using Blink Gateway flow
+### Single consent followed by one-off payment, using Gateway flow
 ```java
 SingleConsentRequest consent = new SingleConsentRequest()
         .flow(new AuthFlow()
