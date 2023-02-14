@@ -1,5 +1,5 @@
 # Blink Debit API Client for Java
-![badge](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/actions/workflows/workflow.yml/badge.svg?branch=main)
+![CI](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/actions/workflows/workflow.yml/badge.svg?branch=main)
 [![blink-debit-api-client-java](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java%22)
 [![blink-debit-api-client-java-spring6](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java-spring6.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java-spring6%22)
 [![Snyk](https://snyk.io/test/github/BlinkPay/Blink-Debit-API-Client-Java/badge.svg)](https://snyk.io/test/github/BlinkPay/Blink-Debit-API-Client-Java)

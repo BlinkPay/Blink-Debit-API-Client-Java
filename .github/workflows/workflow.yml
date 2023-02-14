@@ -1,4 +1,4 @@
-name: 64-bit Corretto CI
+name: CI
 on:
   push:
     branches: [ "main" ]
@@ -40,14 +40,6 @@ jobs:
           BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/maven-3-jdk-11@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          command: monitor
-
-      - name: Run Snyk to check for vulnerabilities
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
           export NVM_DIR="$HOME/.nvm" && \. $NVM_DIR/nvm.sh
@@ -55,6 +47,7 @@ jobs:
           npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
           snyk monitor --org=blinkpay-zw9 --project-name=BlinkPay/Blink-Debit-API-Client-Java
+        continue-on-error: true
 
   publish:
     runs-on: ubuntu-latest
