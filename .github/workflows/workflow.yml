@@ -40,7 +40,7 @@ jobs:
 #          BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/maven@master
+        uses: snyk/actions/maven-3-jdk-11@master
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
