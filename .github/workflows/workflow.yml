@@ -70,12 +70,6 @@ jobs:
           gpg-private-key: ${{ secrets.OSSRH_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
-      - name: Build artifact
-        run: mvn clean package -DskipTests
-        env:
-          SDK_VERSION_NUMBER: ${{ vars.SDK_VERSION_NUMBER }}
-          BUILD_NUMBER: ${{ github.run_number }}
-
       - name: Publish to Apache Maven Central
         run: mvn deploy -DskipTests
         env:
