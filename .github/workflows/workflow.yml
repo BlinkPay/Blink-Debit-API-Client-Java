@@ -50,6 +50,7 @@ jobs:
           SPRING_PROFILES_ACTIVE=test
           mvn verify sonar:sonar
           -DskipTests
+          -Dgpg.skip
           -Dsonar.projectKey=Blink-Debit-API-Client-Java
           -Dsonar.organization=blinkpay
           -Dsonar.host.url=https://sonarcloud.io
