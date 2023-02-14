@@ -300,7 +300,8 @@
                             <passphraseServerId>0x52E12254</passphraseServerId>
                             <!-- Prevent gpg from using pinentry programs -->
                             <gpgArguments>
-                                <arg>--no-tty</arg>
+                                <arg>--batch</arg>
+                                <arg>--yes</arg>
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>
                             </gpgArguments>
