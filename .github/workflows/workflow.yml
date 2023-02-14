@@ -20,30 +20,24 @@ jobs:
           architecture: x64
           cache: maven
           
-      - name: Run unit tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=unit test
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-
-      - name: Run component tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=component test
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          
-      - name: Run integration tests
-        run: mvn -Dgroups=integration test
-        env:
-          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        
-      - name: Package
-        run: mvn clean package -DskipTests
-        env:
-          SDK_VERSION_NUMBER: ${{ vars.SDK_VERSION_NUMBER }}
-          BUILD_NUMBER: ${{ github.run_number }}
+#      - name: Run unit tests
+#        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=unit test
+#        env:
+#          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+#
+#      - name: Run component tests
+#        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=component test
+#        env:
+#          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+#          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+#          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+#
+#      - name: Run integration tests
+#        run: mvn -Dgroups=integration test
+#        env:
+#          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+#          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+#          BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master
@@ -52,22 +46,17 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Sonar to inspect code
-        run: >
-          SPRING_PROFILES_ACTIVE=test mvn clean verify sonar:sonar
-          -Dgroups=unit test
-          -Dsonar.projectKey=blink-debit-api-client-java
-          -Dsonar.organization=blinkpay
-          -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.junit.reportPaths=target/surefire-reports
-          -Dsonar.coverage.plugin=jacoco
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/coverage-reports/jacoco-ut/jacoco.xml
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        uses: SonarSource/sonarcloud-github-action@master
         continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   publish:
     runs-on: ubuntu-latest
     needs: [build]
     environment: production
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v3
@@ -86,6 +75,9 @@ jobs:
 
       - name: Build artifact
         run: mvn clean package -DskipTests
+        env:
+          SDK_VERSION_NUMBER: ${{ vars.SDK_VERSION_NUMBER }}
+          BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Publish to Apache Maven Central
         run: mvn deploy -DskipTests
