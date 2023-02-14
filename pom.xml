@@ -31,12 +31,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonar.inclusions>src/main/**</sonar.inclusions>
-        <sonar.test.exclusions>
-            src/test/**,
-            src/componentTest/**,
-            src/integrationTest/**
-        </sonar.test.exclusions>
 
         <revision>1.0-SNAPSHOT</revision>
         <lombok.version>1.18.24</lombok.version>
@@ -323,16 +317,6 @@
                 </configuration>
             </plugin>
         </plugins>
-
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.sonarsource.scanner.maven</groupId>
-                    <artifactId>sonar-maven-plugin</artifactId>
-                    <version>3.9.1.2184</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
 
     <distributionManagement>
