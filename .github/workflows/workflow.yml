@@ -46,7 +46,16 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Run Sonar to inspect code
-        uses: SonarSource/sonarcloud-github-action@master
+        run: >
+          SPRING_PROFILES_ACTIVE=test
+          mvn verify sonar:sonar
+          -DskipTests
+          -Dsonar.projectKey=Blink-Debit-API-Client-Java
+          -Dsonar.organization=blinkpay
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.junit.reportPaths=target/surefire-reports
+          -Dsonar.coverage.plugin=jacoco
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/coverage-reports/jacoco-ut/jacoco.xml
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
