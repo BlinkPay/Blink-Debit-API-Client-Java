@@ -21,19 +21,19 @@ jobs:
           cache: maven
 
       - name: Run unit tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=unit test
+        run: SPRING_PROFILES_ACTIVE=test mvn -B -ntp -Dgroups=unit test
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run component tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -Dgroups=component test
+        run: SPRING_PROFILES_ACTIVE=test mvn -B -ntp -Dgroups=component test
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
       - name: Run integration tests
-        run: mvn -Dgroups=integration test
+        run: mvn -B -ntp -Dgroups=integration test
         env:
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
@@ -52,7 +52,7 @@ jobs:
       - name: Run Sonar to inspect code
         run: >
           SPRING_PROFILES_ACTIVE=test
-          mvn verify sonar:sonar
+          mvn -B -ntp verify sonar:sonar
           -DskipTests
           -Dgpg.skip
           -Dsonar.projectKey=Blink-Debit-API-Client-Java
