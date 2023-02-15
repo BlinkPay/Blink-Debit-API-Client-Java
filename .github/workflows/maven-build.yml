@@ -47,7 +47,7 @@ jobs:
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
   integration:
-    if: ${{ env.JOB_ENABLED}}
+    if: ${{ vars.JOB_ENABLED == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
