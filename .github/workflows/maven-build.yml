@@ -81,7 +81,7 @@ jobs:
           nvm install 16
           npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
-          snyk monitor --org=blinkpay-zw9 --maven-aggregate-project --all-projects
+          snyk monitor --org=blinkpay-zw9 --maven-aggregate-project
         continue-on-error: true
 
   sonar:
