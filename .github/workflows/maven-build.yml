@@ -6,7 +6,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
 jobs:
-  build:
+  unit:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,6 +25,20 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
+  component:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up 64-bit Corretto 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          architecture: x64
+          cache: maven
+
       - name: Run component tests
         run: SPRING_PROFILES_ACTIVE=test mvn -B -ntp -Dgroups=component test
         env:
@@ -32,7 +46,22 @@ jobs:
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
 
+  integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up 64-bit Corretto 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          architecture: x64
+          cache: maven
+
       - name: Run integration tests
+        if: ${{ env.STEP_ENABLED}}
         run: mvn -B -ntp -Dgroups=integration test
         env:
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
