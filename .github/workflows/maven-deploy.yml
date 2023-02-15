@@ -28,7 +28,8 @@ jobs:
           gpg --list-secret-keys --keyid-format LONG
 
       - name: Publish to Apache Maven Central
-        run: mvn -B -ntp deploy -DskipTests -Dgpg.passphrase=${{ secrets.OSSRH_GPG_PASSPHRASE }}
+        run: mvn -B -ntp deploy -DskipTests
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.OSSRH_GPG_PASSPHRASE }}
