@@ -1,12 +1,18 @@
 # Blink Debit API Client for Java
 [![CI](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/actions/workflows/maven-build.yml/badge.svg)](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/actions/workflows/maven-build.yml)
+
+---
+
 [![blink-debit-api-client-java](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java%22)
-[![blink-debit-api-client-java-spring6](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java-spring6.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java-spring6%22)
+[![Sonar](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=alert_status)](https://sonarcloud.io/dashboard?id=blink-debit-api-client-java)
 [![Snyk](https://snyk-widget.herokuapp.com/badge/mvn/nz.co.blinkpay/blink-debit-api-client-java/latest/badge.svg)](https://security.snyk.io/package/maven/nz.co.blinkpay:blink-debit-api-client-java/latest)
+
+---
+
+[![blink-debit-api-client-java-spring6](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java-spring6.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java-spring6%22)
+[![Sonar](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=alert_status)](https://sonarcloud.io/dashboard?id=blink-debit-api-client-java-spring6)
 [![Snyk](https://snyk-widget.herokuapp.com/badge/mvn/nz.co.blinkpay/blink-debit-api-client-java-spring6/latest/badge.svg)](https://security.snyk.io/package/maven/nz.co.blinkpay:blink-debit-api-client-java-spring6/latest)
 
-[//]: # ([![Sonar]&#40;https://sonarcloud.io/api/project_badges/measure?project=Blink-Debit-API-Client-Java&metric=alert_status&#41;]&#40;https://sonarcloud.io/dashboard?id=Blink-Debit-API-Client-Java&#41;)
-[//]: # ([![Sonar]&#40;https://sonarcloud.io/api/project_badges/measure?project=Blink-Debit-API-Client-Java&metric=alert_status&token=7c7f02d34057667623b414799d39feab762610cb&#41;]&#40;https://sonarcloud.io/summary/new_code?id=Blink-Debit-API-Client-Java&#41;)
 
 # Table of Contents
 1. [Minimum Requirements](#minimum-requirements)
