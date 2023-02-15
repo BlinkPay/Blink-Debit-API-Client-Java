@@ -81,7 +81,7 @@ jobs:
           nvm install 16
           npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
-          snyk monitor --org=blinkpay-zw9 --project-name=BlinkPay/Blink-Debit-API-Client-Java
+          snyk monitor --org=blinkpay-zw9 --all-projects
         continue-on-error: true
 
   sonar:

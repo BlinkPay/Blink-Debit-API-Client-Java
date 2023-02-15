@@ -7,7 +7,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: production
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
 
     steps:
       - uses: actions/checkout@v3
