@@ -74,6 +74,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Set up 64-bit Corretto 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          architecture: x64
+          cache: maven
+
       - name: Run Snyk to check for vulnerabilities
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
