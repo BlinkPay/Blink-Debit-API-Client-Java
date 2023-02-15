@@ -48,6 +48,7 @@ jobs:
 
   integration:
     runs-on: ubuntu-latest
+    if: ${{ env.STEP_ENABLED}}
 
     steps:
       - uses: actions/checkout@v3
@@ -61,7 +62,6 @@ jobs:
           cache: maven
 
       - name: Run integration tests
-        if: ${{ env.STEP_ENABLED}}
         run: mvn -B -ntp -Dgroups=integration test
         env:
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
