@@ -39,6 +39,12 @@ jobs:
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
+  snyk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
       - name: Run Snyk to check for vulnerabilities
         run: |
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
@@ -48,6 +54,20 @@ jobs:
           snyk auth ${{ secrets.SNYK_TOKEN }}
           snyk monitor --org=blinkpay-zw9 --project-name=BlinkPay/Blink-Debit-API-Client-Java
         continue-on-error: true
+
+  sonar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up 64-bit Corretto 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          architecture: x64
+          cache: maven
 
       - name: Run Sonar to inspect code
         run: >
