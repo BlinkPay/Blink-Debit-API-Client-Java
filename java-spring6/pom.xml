@@ -21,16 +21,16 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <revision>1.0-SNAPSHOT</revision>
-        <spring.boot.version>3.0.2</spring.boot.version>
-        <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>3.0.0</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
+        <spring.boot.version>3.0.6</spring.boot.version>
+        <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>3.0.1</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>2.0.2</resilience4j.version>
-        <swagger.version>2.2.8</swagger.version>
-        <java.jwt.version>4.2.2</java.jwt.version>
-        <slf4j.version>2.0.6</slf4j.version>
-        <logback.version>1.4.5</logback.version>
+        <swagger.version>2.2.10</swagger.version>
+        <java.jwt.version>4.4.0</java.jwt.version>
+        <slf4j.version>2.0.7</slf4j.version>
+        <logback.version>1.4.7</logback.version>
 
-        <spring.cloud.contract.wiremock.version>4.0.0</spring.cloud.contract.wiremock.version>
-        <reactor.test.version>3.5.2</reactor.test.version>
+        <spring.cloud.contract.wiremock.version>4.0.2</spring.cloud.contract.wiremock.version>
+        <reactor.test.version>3.5.6</reactor.test.version>
     </properties>
 
     <dependencies>
@@ -171,13 +171,8 @@
     <profiles>
         <profile>
             <id>versioning</id>
-            <activation>
-                <property>
-                    <name>env.BUILD_NUMBER</name>
-                </property>
-            </activation>
             <properties>
-                <revision>${env.SDK_VERSION_NUMBER}.${env.BUILD_NUMBER}</revision>
+                <revision>1.1.0</revision>
             </properties>
         </profile>
     </profiles>

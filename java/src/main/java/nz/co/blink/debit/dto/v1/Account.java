@@ -81,7 +81,7 @@ public class Account {
      *
      * @return accountNumber
      **/
-    @Schema(example = "03-0296-0481201-00", accessMode = Schema.AccessMode.READ_ONLY, description = "The account number.")
+    @Schema(example = "00-0000-0000000-00", accessMode = Schema.AccessMode.READ_ONLY, description = "The account number.")
     public String getAccountNumber() {
         return accountNumber;
     }

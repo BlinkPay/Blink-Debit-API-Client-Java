@@ -26,6 +26,7 @@ import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
+import nz.co.blink.debit.helpers.RequestHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import reactor.core.publisher.Flux;
 
 import java.util.UUID;
 
+import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.METADATA_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -89,14 +91,20 @@ public class MetaApiClient {
      * @throws BlinkServiceException thrown when an exception occurs
      */
     public Flux<BankMetadata> getMeta(final String requestId) throws BlinkServiceException {
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String correlationId = UUID.randomUUID().toString();
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                        exchangeFunction))
                 .build()
                 .get()
                 .uri(METADATA_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
+                .headers(httpHeaders -> {
+                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
+                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
+                })
                 .exchangeToFlux(ResponseHandler.handleResponseFlux(BankMetadata.class));
     }
 

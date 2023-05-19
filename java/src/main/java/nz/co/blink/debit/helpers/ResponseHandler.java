@@ -47,9 +47,7 @@ import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 @Slf4j
 public final class ResponseHandler {
 
-    private static final String ENCOUNTERED_ERROR = "{} | Encountered: {}";
-
-    private static final String ENCOUNTERED_UNKNOWN_ERROR = "{} | Encountered an unknown error: {}";
+    private static final String RESPONSE_FORMAT = "Status Code: {}\nHeaders: {}\nBody: {}";
 
     /**
      * Private constructor.
@@ -75,7 +73,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkUnauthorisedException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkUnauthorisedException(body.getMessage()));
                         });
@@ -84,7 +82,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkForbiddenException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkForbiddenException(body.getMessage()));
                         });
@@ -93,7 +91,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkResourceNotFoundException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkResourceNotFoundException(body.getMessage()));
                         });
@@ -102,7 +100,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkRequestTimeoutException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkRequestTimeoutException(body.getMessage()));
                         });
@@ -111,7 +109,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkRateLimitExceededException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkRateLimitExceededException(body.getMessage()));
                         });
@@ -120,7 +118,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkNotImplementedException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkNotImplementedException(body.getMessage()));
                         });
@@ -129,7 +127,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkClientException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkClientException(body.getMessage()));
                         });
@@ -138,7 +136,7 @@ public final class ResponseHandler {
                         .bodyToMono(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkServiceException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkServiceException(body.getMessage()));
                         });
@@ -146,12 +144,13 @@ public final class ResponseHandler {
                 return clientResponse
                         .createException()
                         .flatMap(error -> {
-                            List<String> correlationIdHeader = clientResponse.headers().header(REQUEST_ID.getValue());
+                            List<String> requestId = clientResponse.headers().header(REQUEST_ID.getValue());
                             String errorMessage = error.getMessage();
-                            log.error(ENCOUNTERED_UNKNOWN_ERROR, correlationIdHeader, errorMessage, error);
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
+                                    errorMessage);
                             return Mono.error(new BlinkServiceException("Service call to Blink Debit failed with error: "
-                                    + errorMessage + ", please contact BlinkPay with the correlation ID: "
-                                    + correlationIdHeader));
+                                    + errorMessage + ", please contact BlinkPay with the request ID: "
+                                    + requestId));
                         });
             }
         };
@@ -174,7 +173,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkUnauthorisedException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkUnauthorisedException(body.getMessage()));
                         });
@@ -183,7 +182,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkForbiddenException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkForbiddenException(body.getMessage()));
                         });
@@ -192,7 +191,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkResourceNotFoundException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkResourceNotFoundException(body.getMessage()));
                         });
@@ -201,7 +200,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkRequestTimeoutException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkRequestTimeoutException(body.getMessage()));
                         });
@@ -210,7 +209,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkRateLimitExceededException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkRateLimitExceededException(body.getMessage()));
                         });
@@ -219,7 +218,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkNotImplementedException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkNotImplementedException(body.getMessage()));
                         });
@@ -228,7 +227,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkClientException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkClientException(body.getMessage()));
                         });
@@ -237,7 +236,7 @@ public final class ResponseHandler {
                         .bodyToFlux(DetailErrorResponseModel.class)
                         .switchIfEmpty(Mono.error(new BlinkServiceException()))
                         .flatMap(body -> {
-                            log.error(ENCOUNTERED_ERROR, clientResponse.headers().header(REQUEST_ID.getValue()),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
                             return Mono.error(new BlinkServiceException(body.getMessage()));
                         });
@@ -246,12 +245,13 @@ public final class ResponseHandler {
                         .createException()
                         .flux()
                         .flatMap(error -> {
-                            List<String> correlationIdHeader = clientResponse.headers().header(REQUEST_ID.getValue());
+                            List<String> requestId = clientResponse.headers().header(REQUEST_ID.getValue());
                             String errorMessage = error.getMessage();
-                            log.error(ENCOUNTERED_UNKNOWN_ERROR, correlationIdHeader, errorMessage, error);
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
+                                    errorMessage);
                             return Mono.error(new BlinkServiceException("Service call to Blink Debit failed with error: "
                                     + errorMessage + ", please contact BlinkPay with the correlation ID: "
-                                    + correlationIdHeader));
+                                    + requestId));
                         });
             }
         };

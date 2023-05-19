@@ -59,7 +59,7 @@ public class BankmetadataFeaturesDecoupledFlowAvailableIdentifiers {
      *
      * @return type
      **/
-    @Schema(required = true, description = "The type of the field")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The type of the field")
     @NotNull(message = "Identifier type must not be null")
     public IdentifierType getType() {
         return type;
@@ -93,7 +93,7 @@ public class BankmetadataFeaturesDecoupledFlowAvailableIdentifiers {
         return this;
     }
 
-    @Schema(required = true, example = "Access Number", description = "The common name of the field")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "Access Number", description = "The common name of the field")
     @NotNull(message = "Name must not be null")
     public String getName() {
         return name;

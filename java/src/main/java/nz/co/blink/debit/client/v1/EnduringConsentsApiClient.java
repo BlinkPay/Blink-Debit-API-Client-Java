@@ -40,6 +40,7 @@ import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
+import nz.co.blink.debit.helpers.RequestHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import nz.co.blink.debit.service.ValidationService;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +56,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.ENDURING_CONSENTS_PATH;
-import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
 /**
@@ -236,9 +237,12 @@ public class EnduringConsentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String correlationId = UUID.randomUUID().toString();
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                        exchangeFunction))
                 .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
@@ -246,8 +250,8 @@ public class EnduringConsentsApiClient {
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
+                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class));
     }
@@ -275,9 +279,12 @@ public class EnduringConsentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String correlationId = UUID.randomUUID().toString();
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                        exchangeFunction))
                 .build()
                 .delete()
                 .uri(uriBuilder -> uriBuilder
@@ -285,8 +292,8 @@ public class EnduringConsentsApiClient {
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
+                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
                 })
                 .exchangeToMono(ResponseHandler.handleResponseMono(Void.class))
                 .transformDeferred(RetryOperator.of(retry));
@@ -294,17 +301,20 @@ public class EnduringConsentsApiClient {
 
     private Mono<CreateConsentResponse> createEnduringConsentMono(EnduringConsentRequest request, String requestId)
             throws BlinkServiceException {
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String correlationId = UUID.randomUUID().toString();
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
+                        exchangeFunction))
                 .build()
                 .post()
                 .uri(ENDURING_CONSENTS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
+                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(CreateConsentResponse.class))

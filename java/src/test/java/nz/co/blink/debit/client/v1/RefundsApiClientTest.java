@@ -26,11 +26,11 @@ import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
-import nz.co.blink.debit.dto.v1.OneOfrefundRequest;
 import nz.co.blink.debit.dto.v1.PartialRefundRequest;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
+import nz.co.blink.debit.dto.v1.RefundRequest;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
@@ -52,11 +52,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Validation;
-import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
@@ -369,10 +369,11 @@ class RefundsApiClientTest {
                 .status(Refund.StatusEnum.COMPLETED)
                 .creationTimestamp(now)
                 .statusUpdatedTimestamp(now.plusMinutes(5))
-                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                .detail((RefundRequest) new AccountNumberRefundRequest()
                         .paymentId(paymentId)
                         .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
 
+        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
@@ -407,6 +408,7 @@ class RefundsApiClientTest {
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
 
+        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(REFUNDS_PATH.getValue())).thenReturn(requestBodySpec);
@@ -439,6 +441,7 @@ class RefundsApiClientTest {
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
 
+        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(REFUNDS_PATH.getValue())).thenReturn(requestBodySpec);
@@ -476,6 +479,7 @@ class RefundsApiClientTest {
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
 
+        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(REFUNDS_PATH.getValue())).thenReturn(requestBodySpec);

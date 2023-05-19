@@ -52,7 +52,7 @@ public class AuthFlow {
      *
      * @return detail
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Detail must not be null")
     public OneOfauthFlowDetail getDetail() {
         return detail;

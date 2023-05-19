@@ -75,7 +75,7 @@ public class DetailErrorResponseModel {
      *
      * @return timestamp
      **/
-    @Schema(required = true, description = "The error timestamp.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The error timestamp.")
     @NotNull
     @Valid
     public OffsetDateTime getTimestamp() {
@@ -96,7 +96,7 @@ public class DetailErrorResponseModel {
      *
      * @return status
      **/
-    @Schema(required = true, description = "The status code.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The status code.")
     @NotNull
     public Integer getStatus() {
         return status;
@@ -116,7 +116,7 @@ public class DetailErrorResponseModel {
      *
      * @return error
      **/
-    @Schema(required = true, description = "The title of the error code.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The title of the error code.")
     @NotNull
     public String getError() {
         return error;
@@ -136,7 +136,7 @@ public class DetailErrorResponseModel {
      *
      * @return message
      **/
-    @Schema(required = true, description = "The error detail.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The error detail.")
     @NotNull
     public String getMessage() {
         return message;
@@ -156,7 +156,7 @@ public class DetailErrorResponseModel {
      *
      * @return path
      **/
-    @Schema(required = true, description = "The requested path when the error was triggered.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The requested path when the error was triggered.")
     @NotNull
     public String getPath() {
         return path;
@@ -171,6 +171,12 @@ public class DetailErrorResponseModel {
         return this;
     }
 
+    /**
+     * A code supplied by BlinkPay to reference the error type
+     *
+     * @return code
+     **/
+    @Schema(description = "A code supplied by BlinkPay to reference the error type")
     public String getCode() {
         return code;
     }

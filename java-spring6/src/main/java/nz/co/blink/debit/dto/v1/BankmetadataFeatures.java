@@ -32,8 +32,9 @@ import org.springframework.validation.annotation.Validated;
 import java.util.Objects;
 
 /**
- * BankmetadataFeatures
+ * The available bank features
  */
+@Schema(description = "The available bank features")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-04-22T17:59:56.975143+12:00[Pacific/Auckland]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -55,7 +56,7 @@ public class BankmetadataFeatures {
      *
      * @return enduringConsent
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Enduring consent must not be null")
     @Valid
     public BankmetadataFeaturesEnduringConsent getEnduringConsent() {
@@ -76,7 +77,7 @@ public class BankmetadataFeatures {
      *
      * @return decoupledFlow
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Decoupled flow must not be null")
     @Valid
     public BankmetadataFeaturesDecoupledFlow getDecoupledFlow() {

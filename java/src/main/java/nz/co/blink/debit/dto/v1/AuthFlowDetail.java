@@ -85,7 +85,7 @@ public class AuthFlowDetail {
      *
      * @return type
      **/
-    @Schema(required = true, description = "Whether to use Blink Gateway, redirect or decoupled flow.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Whether to use Blink Gateway, redirect or decoupled flow.")
     @NotNull(message = "Type must not be null")
     public TypeEnum getType() {
         return type;

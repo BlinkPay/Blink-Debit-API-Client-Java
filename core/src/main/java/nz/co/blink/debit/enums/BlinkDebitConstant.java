@@ -26,11 +26,15 @@ package nz.co.blink.debit.enums;
  */
 public enum BlinkDebitConstant {
 
-    REQUEST_ID("X-Request-Id"),
+    REQUEST_ID("request-id"),
 
-    INTERACTION_ID("x-interaction-id"),
+    CORRELATION_ID("x-correlation-id"),
+
+    IDEMPOTENCY_KEY("idempotency-key"),
 
     BEARER("Bearer "),
+
+    AUTHORIZATION("Authorization"),
 
     TOKEN_PATH("/oauth2/token"),
 

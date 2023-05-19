@@ -31,8 +31,9 @@ import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * BankmetadataFeaturesEnduringConsent
+ * The enduring consent bank feature
  */
+@Schema(description = "The enduring consent bank feature")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-04-22T17:59:56.975143+12:00[Pacific/Auckland]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -57,7 +58,7 @@ public class BankmetadataFeaturesEnduringConsent {
      *
      * @return enabled
      **/
-    @Schema(required = true, description = "If enduring consent is disabled, only single payment consents can be issued.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "If enduring consent is disabled, only single payment consents can be issued.")
     @NotNull(message = "Enabled flag must not be null")
     public Boolean isEnabled() {
         return enabled;
@@ -92,11 +93,11 @@ public class BankmetadataFeaturesEnduringConsent {
     }
 
     /**
-     * If the conseting period for payments is indefinate or time-limited by the bank
+     * If the consenting period for payments is indefinite or time-limited by the bank
      *
      * @return consentIndefinite
      **/
-    @Schema(description = "If the conseting period for payments is indefinate or time-limited by the bank")
+    @Schema(description = "If the consenting period for payments is indefinite or time-limited by the bank")
     public Boolean isConsentIndefinite() {
         return consentIndefinite;
     }

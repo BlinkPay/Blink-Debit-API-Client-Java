@@ -40,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -102,6 +103,7 @@ class OAuthApiClientTest {
         response.setExpiresIn(86400);
         response.setScope("create:payment view:payment create:single_consent view:single_consent view:metadata create:enduring_consent view:enduring_consent revoke:enduring_consent view:transaction create:quick_payment view:quick_payment create:refund view:refund revoke:single_consent");
 
+        when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(TOKEN_PATH.getValue())).thenReturn(requestBodySpec);

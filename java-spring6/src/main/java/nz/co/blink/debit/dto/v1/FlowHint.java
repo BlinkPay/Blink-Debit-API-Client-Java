@@ -38,9 +38,9 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * Optionally include a hint to the Gateway of which flow should be used and thier prefilled details in order to make the checkout experence faster.  You can also use Gateway flow hint to instruct Gateway to identify a customer using their last consent ID for mobile payments.
+ * Optionally include a hint to the Gateway of which flow should be used, allowing the customers details to be prefilled in order to make the checkout experience faster. You can also use Gateway flow hint to instruct Gateway to identify a customer using their last consent ID for mobile payments.
  */
-@Schema(description = "Optionally include a hint to the Gateway of which flow should be used and thier prefilled details in order to make the checkout experence faster.  You can also use Gateway flow hint to instruct Gateway to identify a customer using their last consent ID for mobile payments.")
+@Schema(description = "Optionally include a hint to the Gateway of which flow should be used, allowing the customers details to be prefilled in order to make the checkout experience faster. You can also use Gateway flow hint to instruct Gateway to identify a customer using their last consent ID for mobile payments.")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-11-12T03:11:35.286Z[GMT]")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", visible = true)
@@ -96,7 +96,7 @@ public class FlowHint {
      *
      * @return type
      **/
-    @Schema(example = "redirect", required = true, description = "The flow hint type, i.e. Redirect or Decoupled.")
+    @Schema(example = "redirect", requiredMode = Schema.RequiredMode.REQUIRED, description = "The flow hint type, i.e. Redirect or Decoupled.")
     @NotNull(message = "Type must not be null")
     public TypeEnum getType() {
         return type;
@@ -116,7 +116,7 @@ public class FlowHint {
      *
      * @return bank
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Bank must not be null")
     @Valid
     public Bank getBank() {

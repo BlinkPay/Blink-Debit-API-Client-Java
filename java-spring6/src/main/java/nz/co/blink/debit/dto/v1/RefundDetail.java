@@ -93,7 +93,7 @@ public class RefundDetail {
      *
      * @return paymentId
      **/
-    @Schema(required = true, description = "The payment ID. The payment must have a status of `AcceptedSettlementCompleted`.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The payment ID. The payment must have a status of `AcceptedSettlementCompleted`.")
     @NotNull
     @Valid
     public UUID getPaymentId() {
@@ -114,7 +114,7 @@ public class RefundDetail {
      *
      * @return type
      **/
-    @Schema(required = true, description = "The refund type.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The refund type.")
     @NotNull
     public TypeEnum getType() {
         return type;

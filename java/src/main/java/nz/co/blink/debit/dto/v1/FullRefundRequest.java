@@ -32,13 +32,13 @@ import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * The PCR and to use in the &#x60;full_refund&#x60; request.
+ * The PCR and to use in the `full_refund` request.
  */
 @Schema(description = "The PCR and to use in the `full_refund` request.")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-02-14T00:59:00.905Z[GMT]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class FullRefundRequest extends RefundDetail implements OneOfrefundRequest {
+public class FullRefundRequest extends RefundDetail implements RefundRequest {
 
     @JsonProperty("pcr")
     private Pcr pcr = null;
@@ -56,7 +56,7 @@ public class FullRefundRequest extends RefundDetail implements OneOfrefundReques
      *
      * @return pcr
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull
     @Valid
     public Pcr getPcr() {

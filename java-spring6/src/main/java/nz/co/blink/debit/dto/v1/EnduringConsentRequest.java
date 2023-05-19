@@ -74,7 +74,7 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
      *
      * @return flow
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Authorization flow must not be null")
     @Valid
     public AuthFlow getFlow() {
@@ -115,7 +115,7 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
      *
      * @return fromTimestamp
      **/
-    @Schema(example = "2020-12-01T00:00+13:00", required = true, description = "The ISO 8601 start date to calculate the periods for which to calculate the consent period.")
+    @Schema(example = "2020-12-01T00:00+13:00", requiredMode = Schema.RequiredMode.REQUIRED, description = "The ISO 8601 start date to calculate the periods for which to calculate the consent period.")
     @NotNull(message = "From timestamp must not be null")
     @Valid
     public OffsetDateTime getFromTimestamp() {
@@ -136,7 +136,7 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
      *
      * @return maximumAmountPeriod
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Maximum amount period must not be null")
     @Valid
     public Amount getMaximumAmountPeriod() {
@@ -157,7 +157,7 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
      *
      * @return period
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Period must not be null")
     @Valid
     public Period getPeriod() {

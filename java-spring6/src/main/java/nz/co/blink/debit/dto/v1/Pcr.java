@@ -56,11 +56,11 @@ public class Pcr {
     }
 
     /**
-     * Get particulars
+     * The particulars
      *
      * @return particulars
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The particulars")
     @NotNull(message = "Particulars must not be null")
     @Pattern(regexp = "[a-zA-Z0-9- &#\\?:_/,\\.']{1,12}", message = "Particulars must match [a-zA-Z0-9- &#\\?:_/,\\.']{1,12}")
     @Size(min = 1, max = 12, message = "Particulars has a maximum length of 12 characters and must have at least 1 non-whitespace character")
@@ -78,11 +78,11 @@ public class Pcr {
     }
 
     /**
-     * Get code
+     * The code
      *
      * @return code
      **/
-    @Schema(description = "")
+    @Schema(description = "The code")
     @Pattern(regexp = "[a-zA-Z0-9- &#\\?:_/,\\.']{0,12}", message = "Code must match [a-zA-Z0-9- &#\\?:_/,\\.']{0,12}")
     @Size(max = 12, message = "Code has a maximum length of 12 characters")
     public String getCode() {
@@ -99,11 +99,11 @@ public class Pcr {
     }
 
     /**
-     * Get reference
+     * The reference
      *
      * @return reference
      **/
-    @Schema(description = "")
+    @Schema(description = "The reference")
     @Pattern(regexp = "[a-zA-Z0-9- &#\\?:_/,\\.']{0,12}", message = "Reference must match [a-zA-Z0-9- &#\\?:_/,\\.']{0,12}")
     @Size(max = 12, message = "Reference has a maximum length of 12 characters")
     public String getReference() {
