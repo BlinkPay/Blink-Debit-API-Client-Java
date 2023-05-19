@@ -21,54 +21,18 @@
  */
 package nz.co.blink.debit.dto.v1;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.validation.annotation.Validated;
-
-import javax.annotation.Generated;
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
- * The refund requests.
+ * The refund request model.
  */
-@Schema(description = "The refund requests.")
-@Validated
-@Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-02-14T03:45:05.223Z[GMT]")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class RefundRequest implements OneOfrefundRequest {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = AccountNumberRefundRequest.class, name = "account_number"),
+        @JsonSubTypes.Type(value = PartialRefundRequest.class, name = "partial_refund"),
+        @JsonSubTypes.Type(value = FullRefundRequest.class, name = "full_refund")
+})
+public interface RefundRequest {
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash();
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("class RefundRequest {\n");
-        sb.append("}");
-        return sb.toString();
-    }
-
-    /**
-     * Convert the given object to string with each line indented by 4 spaces
-     * (except the first line).
-     */
-    private String toIndentedString(Object o) {
-        if (o == null) {
-            return "null";
-        }
-        return o.toString().replace("\n", "\n    ");
-    }
 }

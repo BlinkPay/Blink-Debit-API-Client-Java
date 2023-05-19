@@ -56,7 +56,7 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
      *
      * @return redirectUri
      **/
-    @Schema(required = true, description = "The URI to redirect back to once the consent is completed. App-based workflows may use deep/universal links.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The URI to redirect back to once the consent is completed. App-based workflows may use deep/universal links. The `cid` (Consent ID) will be added as a URL parameter. If there is an error, an `error` parameter will be appended also.")
     @NotNull(message = "Redirect URI must not be null")
     public String getRedirectUri() {
         return redirectUri;
@@ -76,7 +76,7 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
      *
      * @return bank
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Bank must not be null")
     @Valid
     public Bank getBank() {

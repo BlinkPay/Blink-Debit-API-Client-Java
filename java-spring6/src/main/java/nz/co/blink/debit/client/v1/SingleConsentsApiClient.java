@@ -41,6 +41,7 @@ import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
+import nz.co.blink.debit.helpers.RequestHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import nz.co.blink.debit.service.ValidationService;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +56,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.IDEMPOTENCY_KEY;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.SINGLE_CONSENTS_PATH;
 
@@ -243,19 +244,18 @@ public class SingleConsentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                        exchangeFunction))
                 .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(SINGLE_CONSENTS_PATH.getValue() + "/{consentId}")
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class));
     }
 
@@ -281,35 +281,38 @@ public class SingleConsentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                        exchangeFunction))
                 .build()
                 .delete()
                 .uri(uriBuilder -> uriBuilder
                         .path(SINGLE_CONSENTS_PATH.getValue() + "/{consentId}")
                         .build(consentId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(Void.class))
                 .transformDeferred(RetryOperator.of(retry));
     }
 
-    private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request, String requestId) throws BlinkServiceException {
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+    private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request, String requestId)
+            throws BlinkServiceException {
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String idempotencyKey = UUID.randomUUID().toString();
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
+                        exchangeFunction))
                 .build()
                 .post()
                 .uri(SINGLE_CONSENTS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
+                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
+                    httpHeaders.add(IDEMPOTENCY_KEY.getValue(), idempotencyKey);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(CreateConsentResponse.class))

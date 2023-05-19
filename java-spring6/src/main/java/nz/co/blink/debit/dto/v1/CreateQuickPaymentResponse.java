@@ -33,8 +33,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * CreateQuickPaymentResponse
+ * The quick payment response
  */
+@Schema(description = "The quick payment response")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-07-22T00:54:15.842Z[GMT]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -52,11 +53,11 @@ public class CreateQuickPaymentResponse {
     }
 
     /**
-     * The quick payment id
+     * The quick payment ID
      *
      * @return quickPaymentId
      **/
-    @Schema(required = true, description = "The quick payment id")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The quick payment id")
     @NotNull(message = "Quick payment ID must not be null")
     @Valid
     public UUID getQuickPaymentId() {

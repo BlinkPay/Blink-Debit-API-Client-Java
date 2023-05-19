@@ -33,8 +33,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * RefundResponse
+ * The refund response
  */
+@Schema(description = "The refund response")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-02-13T21:29:12.057Z[GMT]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -53,7 +54,7 @@ public class RefundResponse {
      *
      * @return refundId
      **/
-    @Schema(required = true, description = "The created refund request ID.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The created refund request ID.")
     @NotNull
     @Valid
     public UUID getRefundId() {

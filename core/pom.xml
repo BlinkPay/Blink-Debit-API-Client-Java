@@ -21,8 +21,8 @@
         <maven.compiler.target>8</maven.compiler.target>
 
         <revision>1.0-SNAPSHOT</revision>
-        <snakeyaml.version>1.33</snakeyaml.version>
-        <system.stubs.jupiter.version>2.0.1</system.stubs.jupiter.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
+        <system.stubs.jupiter.version>2.0.2</system.stubs.jupiter.version>
     </properties>
 
     <dependencies>
@@ -43,13 +43,8 @@
     <profiles>
         <profile>
             <id>versioning</id>
-            <activation>
-                <property>
-                    <name>env.BUILD_NUMBER</name>
-                </property>
-            </activation>
             <properties>
-                <revision>${env.SDK_VERSION_NUMBER}.${env.BUILD_NUMBER}</revision>
+                <revision>1.1.0</revision>
             </properties>
         </profile>
     </profiles>

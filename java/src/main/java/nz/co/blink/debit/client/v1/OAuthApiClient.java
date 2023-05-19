@@ -29,6 +29,7 @@ import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
+import nz.co.blink.debit.helpers.RequestHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,15 +109,18 @@ public class OAuthApiClient {
                 .grantType("client_credentials")
                 .build();
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
         return getWebClientBuilder()
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
+                        exchangeFunction))
                 .build()
                 .post()
                 .uri(TOKEN_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), correlationId))
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(AccessTokenResponse.class))
                 .transformDeferred(RetryOperator.of(retry));

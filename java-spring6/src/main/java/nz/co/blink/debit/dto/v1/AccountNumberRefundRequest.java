@@ -29,13 +29,13 @@ import org.springframework.validation.annotation.Validated;
 import java.util.Objects;
 
 /**
- * The details for an &#x60;account_number&#x60; refund request.
+ * The details for an `account_number` refund request.
  */
 @Schema(description = "The details for an `account_number` refund request.")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-02-14T00:59:00.905Z[GMT]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AccountNumberRefundRequest extends RefundDetail implements OneOfrefundRequest {
+public class AccountNumberRefundRequest extends RefundDetail implements RefundRequest {
 
     @Override
     public TypeEnum getType() {

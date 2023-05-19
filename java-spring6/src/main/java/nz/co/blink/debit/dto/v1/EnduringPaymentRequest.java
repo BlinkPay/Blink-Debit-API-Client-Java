@@ -32,9 +32,9 @@ import org.springframework.validation.annotation.Validated;
 import java.util.Objects;
 
 /**
- * The model for an enduring payment request.
+ * The model for an enduring payment request, if applicable.
  */
-@Schema(description = "The model for an enduring payment request.")
+@Schema(description = "The model for an enduring payment request, if applicable.")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-07-22T00:54:15.842Z[GMT]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -56,7 +56,7 @@ public class EnduringPaymentRequest {
      *
      * @return pcr
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "PCR must not be null")
     @Valid
     public Pcr getPcr() {
@@ -77,7 +77,7 @@ public class EnduringPaymentRequest {
      *
      * @return amount
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Amount must not be null")
     @Valid
     public Amount getAmount() {

@@ -84,7 +84,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import static nz.co.blink.debit.dto.v1.Consent.StatusEnum.AUTHORISED;
-import static nz.co.blink.debit.dto.v1.Payment.StatusEnum.ACCEPTED;
 import static nz.co.blink.debit.dto.v1.Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED;
 
 /**
@@ -1532,7 +1531,7 @@ public class BlinkDebitClient {
                         Payment.StatusEnum status = payment.getStatus();
                         log.debug("The last status polled was: {} \tfor Payment ID: {}", status, paymentId);
 
-                        if (ACCEPTEDSETTLEMENTCOMPLETED == status || ACCEPTED == status) {
+                        if (ACCEPTEDSETTLEMENTCOMPLETED == status) {
                             return paymentMono;
                         }
 
@@ -1598,7 +1597,6 @@ public class BlinkDebitClient {
 
                     switch (status) {
                         case ACCEPTEDSETTLEMENTCOMPLETED:
-                        case ACCEPTED:
                             break;
                         case REJECTED:
                             BlinkPaymentRejectedException exception1 =

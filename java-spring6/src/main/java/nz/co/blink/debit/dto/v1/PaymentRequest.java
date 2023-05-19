@@ -60,7 +60,7 @@ public class PaymentRequest {
      *
      * @return consentId
      **/
-    @Schema(required = true, description = "The consent ID")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The consent ID")
     @NotNull(message = "Consent ID must not be null")
     @Valid
     public UUID getConsentId() {
@@ -97,7 +97,7 @@ public class PaymentRequest {
     }
 
     /**
-     * The Westpac account reference ID from account list.
+     * The account reference ID from account list. This is required if the account selection information was provided to you on the consents endpoint.
      *
      * @return accountReferenceId
      **/

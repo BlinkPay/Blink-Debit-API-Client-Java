@@ -57,7 +57,7 @@ public class CreateConsentResponse {
      *
      * @return consentId
      **/
-    @Schema(required = true, description = "The consent ID")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The consent ID")
     @NotNull(message = "Consent ID must not be null")
     @Valid
     public UUID getConsentId() {

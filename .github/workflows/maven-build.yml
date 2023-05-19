@@ -64,7 +64,7 @@ jobs:
       - name: Run integration tests
         run: mvn -B -ntp -Dgroups=integration test
         env:
-          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          BLINKPAY_CLIENT_ID: ${{ vars.CLIENT_ID }}
           BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 

@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * BankmetadataFeaturesDecoupledFlow
+ * The decoupled flow bank feature
  */
+@Schema(description = "The decoupled flow bank feature")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2021-04-22T17:59:56.975143+12:00[Pacific/Auckland]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -54,11 +55,11 @@ public class BankmetadataFeaturesDecoupledFlow {
     }
 
     /**
-     * Get enabled
+     * Whether the Decoupled Flow is enabled.
      *
      * @return enabled
      **/
-    @Schema(required = true, description = "Whether the Decoupled Flow is enabled.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Whether the Decoupled Flow is enabled.")
     @NotNull(message = "Enabled flag must not be null")
     public Boolean isEnabled() {
         return enabled;
@@ -73,6 +74,12 @@ public class BankmetadataFeaturesDecoupledFlow {
         return this;
     }
 
+    /**
+     * If enabled, will show the available fields to use to identify the customer with their bank.
+     *
+     * @return availableIdentifiers
+     **/
+    @Schema(description = "If enabled, will show the available fields to use to identify the customer with their bank.")
     public List<BankmetadataFeaturesDecoupledFlowAvailableIdentifiers> getAvailableIdentifiers() {
         return availableIdentifiers;
     }
@@ -91,7 +98,7 @@ public class BankmetadataFeaturesDecoupledFlow {
      *
      * @return requestTimeout
      **/
-    @Schema(example = "P1DT00H00M00S", required = true, description = "ISO8601 time duration until the decoupled flow request expires/times out")
+    @Schema(example = "P1DT00H00M00S", requiredMode = Schema.RequiredMode.REQUIRED, description = "ISO8601 time duration until the decoupled flow request expires/times out")
     @NotNull(message = "Request timeout must not be null")
     public String getRequestTimeout() {
         return requestTimeout;

@@ -27,10 +27,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeDeserializer;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeSerializer;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Generated;
@@ -99,8 +99,6 @@ public class Payment {
 
         ACCEPTEDSETTLEMENTCOMPLETED("AcceptedSettlementCompleted"),
 
-        ACCEPTED("Accepted"),
-
         REJECTED("Rejected");
 
         private String value;
@@ -126,6 +124,38 @@ public class Payment {
 
     @JsonProperty("status")
     private StatusEnum status = null;
+
+    /**
+     * The reason for `AcceptedSettlementCompleted`.
+     */
+    public enum AcceptedReasonEnum {
+        SOURCE_BANK_PAYMENT_SENT("source_bank_payment_sent"),
+
+        CARD_NETWORK_ACCEPTED("card_network_accepted");
+
+        private String value;
+
+        AcceptedReasonEnum(String value) {
+            this.value = value;
+        }
+
+        @Override
+        @JsonValue
+        public String toString() {
+            return String.valueOf(value);
+        }
+
+        @JsonCreator
+        public static AcceptedReasonEnum fromValue(String acceptedReason) throws BlinkInvalidValueException {
+            return Arrays.stream(AcceptedReasonEnum.values())
+                    .filter(acceptedReasonEnum -> String.valueOf(acceptedReasonEnum.value).equals(acceptedReason))
+                    .findFirst()
+                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown accepted reason: " + acceptedReason));
+        }
+    }
+
+    @JsonProperty("accepted_reason")
+    private AcceptedReasonEnum acceptedReason = null;
 
     @JsonProperty("creation_timestamp")
     @JsonSerialize(using = CustomOffsetDateTimeSerializer.class)
@@ -154,7 +184,7 @@ public class Payment {
      *
      * @return paymentId
      **/
-    @Schema(required = true, description = "The payment ID")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The payment ID")
     @NotNull(message = "Payment ID must not be null")
     public UUID getPaymentId() {
         return paymentId;
@@ -174,7 +204,7 @@ public class Payment {
      *
      * @return type
      **/
-    @Schema(required = true, description = "The type of payment (single of enduring).")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The type of payment (single of enduring).")
     @NotNull(message = "Type must not be null")
     public TypeEnum getType() {
         return type;
@@ -194,7 +224,7 @@ public class Payment {
      *
      * @return status
      **/
-    @Schema(required = true, description = "The status of the payment.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The status of the payment.")
     @NotNull(message = "Status must not be null")
     public StatusEnum getStatus() {
         return status;
@@ -202,6 +232,25 @@ public class Payment {
 
     public void setStatus(StatusEnum status) {
         this.status = status;
+    }
+
+    public Payment acceptedReason(AcceptedReasonEnum acceptedReason) {
+        this.acceptedReason = acceptedReason;
+        return this;
+    }
+
+    /**
+     * The reason for `AcceptedSettlementCompleted`.
+     *
+     * @return acceptedReason
+     **/
+    @Schema(description = "The reason for `AcceptedSettlementCompleted`.")
+    public AcceptedReasonEnum getAcceptedReason() {
+        return acceptedReason;
+    }
+
+    public void setAcceptedReason(AcceptedReasonEnum acceptedReason) {
+        this.acceptedReason = acceptedReason;
     }
 
     public Payment creationTimestamp(OffsetDateTime creationTimestamp) {
@@ -214,7 +263,7 @@ public class Payment {
      *
      * @return creationTimestamp
      **/
-    @Schema(required = true, description = "The timestamp that the payment was created.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamp that the payment was created.")
     @NotNull(message = "Creation timestamp must not be null")
     @Valid
     public OffsetDateTime getCreationTimestamp() {
@@ -235,7 +284,7 @@ public class Payment {
      *
      * @return statusUpdatedTimestamp
      **/
-    @Schema(required = true, description = "The timestamp that the payment status was last updated.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamp that the payment status was last updated.")
     @NotNull(message = "Status updated timestamp must not be null")
     @Valid
     public OffsetDateTime getStatusUpdatedTimestamp() {
@@ -256,7 +305,7 @@ public class Payment {
      *
      * @return detail
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Payment request must not be null")
     @Valid
     public PaymentRequest getDetail() {
@@ -279,9 +328,10 @@ public class Payment {
 
     /**
      * Refunds that are related to this payment, if any.
+     *
      * @return refunds
      **/
-    @Schema(required = true, description = "Refunds that are related to this payment, if any.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Refunds that are related to this payment, if any.")
     @NotNull
     @Valid
     public List<Refund> getRefunds() {
@@ -304,6 +354,7 @@ public class Payment {
         return Objects.equals(this.paymentId, payment.paymentId)
                 && Objects.equals(this.type, payment.type)
                 && Objects.equals(this.status, payment.status)
+                && Objects.equals(this.acceptedReason, payment.acceptedReason)
                 && Objects.equals(this.creationTimestamp, payment.creationTimestamp)
                 && Objects.equals(this.statusUpdatedTimestamp, payment.statusUpdatedTimestamp)
                 && Objects.equals(this.detail, payment.detail)
@@ -312,7 +363,8 @@ public class Payment {
 
     @Override
     public int hashCode() {
-        return Objects.hash(paymentId, type, status, creationTimestamp, statusUpdatedTimestamp, detail, refunds);
+        return Objects.hash(paymentId, type, status, acceptedReason, creationTimestamp, statusUpdatedTimestamp, detail,
+                refunds);
     }
 
     @Override
@@ -322,6 +374,7 @@ public class Payment {
         sb.append("    paymentId: ").append(toIndentedString(paymentId)).append("\n");
         sb.append("    type: ").append(toIndentedString(type)).append("\n");
         sb.append("    status: ").append(toIndentedString(status)).append("\n");
+        sb.append("    acceptedReason: ").append(toIndentedString(acceptedReason)).append("\n");
         sb.append("    creationTimestamp: ").append(toIndentedString(creationTimestamp)).append("\n");
         sb.append("    statusUpdatedTimestamp: ").append(toIndentedString(statusUpdatedTimestamp)).append("\n");
         sb.append("    detail: ").append(toIndentedString(detail)).append("\n");

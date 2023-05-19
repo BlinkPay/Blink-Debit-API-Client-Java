@@ -59,7 +59,7 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
      *
      * @return flow
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Authorization flow must not be null")
     @Valid
     public AuthFlow getFlow() {
@@ -80,7 +80,7 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
      *
      * @return pcr
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "PCR must not be null")
     @Valid
     public Pcr getPcr() {
@@ -101,7 +101,7 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
      *
      * @return amount
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Amount must not be null")
     @Valid
     public Amount getAmount() {

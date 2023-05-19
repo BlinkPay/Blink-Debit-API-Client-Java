@@ -87,7 +87,7 @@ public class Amount {
      *
      * @return total
      **/
-    @Schema(example = "100.00", required = true, description = "The amount.")
+    @Schema(example = "100.00", requiredMode = Schema.RequiredMode.REQUIRED, description = "The amount.")
     @NotNull(message = "Total must not be null")
     @Pattern(regexp = "^\\d{1,13}\\.\\d{1,2}$")
     public String getTotal() {
@@ -108,7 +108,7 @@ public class Amount {
      *
      * @return currency
      **/
-    @Schema(example = "NZD", required = true, description = "The currency. Only NZD is supported.")
+    @Schema(example = "NZD", requiredMode = Schema.RequiredMode.REQUIRED, description = "The currency. Only NZD is supported.")
     @NotNull(message = "Currency must not be null and only NZD is supported")
     public CurrencyEnum getCurrency() {
         return currency;

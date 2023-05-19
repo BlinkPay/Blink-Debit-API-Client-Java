@@ -51,11 +51,11 @@ public class BankmetadataRedirectFlow {
     }
 
     /**
-     * Get enabled
+     * Whether the redirect flow is enabled
      *
      * @return enabled
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Whether the redirect flow is enabled")
     @NotNull(message = "Enabled flag must not be null")
     public Boolean isEnabled() {
         return enabled;
@@ -71,11 +71,11 @@ public class BankmetadataRedirectFlow {
     }
 
     /**
-     * How long the user has to complete the redirect flow once initiated
+     * ISO8601 time duration until the redirect flow consent request times out
      *
      * @return requestTimeout
      **/
-    @Schema(example = "PT01H00M00S", required = true, description = "How long the user has to complete the redirect flow once initiated ")
+    @Schema(example = "PT01H00M00S", requiredMode = Schema.RequiredMode.REQUIRED, description = "ISO8601 time duration until the redirect flow consent request times out")
     @NotNull(message = "Request timeout must not be null")
     public String getRequestTimeout() {
         return requestTimeout;

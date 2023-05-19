@@ -32,13 +32,13 @@ import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 /**
- * The PCR and amount to use in the &#x60;partial_refund&#x60; request.
+ * The PCR and amount to use in the `partial_refund` request.
  */
 @Schema(description = "The PCR and amount to use in the `partial_refund` request.")
 @Validated
 @Generated(value = "io.swagger.codegen.v3.generators.java.SpringCodegen", date = "2022-02-14T00:59:00.905Z[GMT]")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PartialRefundRequest extends RefundDetail implements OneOfrefundRequest {
+public class PartialRefundRequest extends RefundDetail implements RefundRequest {
 
     @JsonProperty("amount")
     private Amount amount = null;
@@ -59,7 +59,7 @@ public class PartialRefundRequest extends RefundDetail implements OneOfrefundReq
      *
      * @return amount
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull
     @Valid
     public Amount getAmount() {
@@ -80,7 +80,7 @@ public class PartialRefundRequest extends RefundDetail implements OneOfrefundReq
      *
      * @return pcr
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull
     @Valid
     public Pcr getPcr() {

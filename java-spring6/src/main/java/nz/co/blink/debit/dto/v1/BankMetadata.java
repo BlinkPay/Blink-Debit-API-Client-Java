@@ -59,7 +59,7 @@ public class BankMetadata {
      *
      * @return name
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Bank must not be null")
     @Valid
     public Bank getName() {
@@ -80,7 +80,7 @@ public class BankMetadata {
      *
      * @return features
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Features must not be null")
     @Valid
     public BankmetadataFeatures getFeatures() {
@@ -101,7 +101,7 @@ public class BankMetadata {
      *
      * @return redirectFlow
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Redirect flow must not be null")
     @Valid
     public BankmetadataRedirectFlow getRedirectFlow() {

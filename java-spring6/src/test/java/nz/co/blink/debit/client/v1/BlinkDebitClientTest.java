@@ -22,7 +22,6 @@
 package nz.co.blink.debit.client.v1;
 
 import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import nz.co.blink.debit.dto.v1.AccountNumberRefundRequest;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
@@ -47,7 +46,6 @@ import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.OneOfconsentDetail;
-import nz.co.blink.debit.dto.v1.OneOfrefundRequest;
 import nz.co.blink.debit.dto.v1.PartialRefundRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
@@ -60,6 +58,7 @@ import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
+import nz.co.blink.debit.dto.v1.RefundRequest;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.exception.BlinkServiceException;
@@ -2965,7 +2964,7 @@ class BlinkDebitClientTest {
                 .status(Refund.StatusEnum.COMPLETED)
                 .creationTimestamp(now)
                 .statusUpdatedTimestamp(now.plusMinutes(5))
-                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                .detail((RefundRequest) new AccountNumberRefundRequest()
                         .paymentId(paymentId)
                         .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
         when(refundsApiClient.getRefund(refundId))
@@ -2998,7 +2997,7 @@ class BlinkDebitClientTest {
                 .status(Refund.StatusEnum.COMPLETED)
                 .creationTimestamp(now)
                 .statusUpdatedTimestamp(now.plusMinutes(5))
-                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                .detail((RefundRequest) new AccountNumberRefundRequest()
                         .paymentId(paymentId)
                         .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
         when(refundsApiClient.getRefund(refundId, requestId))
@@ -3030,7 +3029,7 @@ class BlinkDebitClientTest {
                 .status(Refund.StatusEnum.COMPLETED)
                 .creationTimestamp(now)
                 .statusUpdatedTimestamp(now.plusMinutes(5))
-                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                .detail((RefundRequest) new AccountNumberRefundRequest()
                         .paymentId(paymentId)
                         .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
         when(refundsApiClient.getRefund(refundId))
@@ -3065,7 +3064,7 @@ class BlinkDebitClientTest {
                 .status(Refund.StatusEnum.COMPLETED)
                 .creationTimestamp(now)
                 .statusUpdatedTimestamp(now.plusMinutes(5))
-                .detail((OneOfrefundRequest) new AccountNumberRefundRequest()
+                .detail((RefundRequest) new AccountNumberRefundRequest()
                         .paymentId(paymentId)
                         .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
         when(refundsApiClient.getRefund(refundId, requestId))

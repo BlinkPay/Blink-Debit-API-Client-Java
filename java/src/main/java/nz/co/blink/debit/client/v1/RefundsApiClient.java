@@ -36,6 +36,7 @@ import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
+import nz.co.blink.debit.helpers.RequestHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
 import nz.co.blink.debit.service.ValidationService;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.INTERACTION_ID;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REFUNDS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -169,35 +170,33 @@ public class RefundsApiClient {
             throw new BlinkInvalidValueException("Refund ID must not be null");
         }
 
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                        exchangeFunction))
                 .build()
                 .get()
                 .uri(uriBuilder -> uriBuilder
                         .path(REFUNDS_PATH.getValue() + "/{refundId}")
                         .build(refundId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
     }
 
     private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) throws BlinkServiceException {
-        String correlationId = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
+        String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
 
-        return getWebClientBuilder(correlationId)
+        return getWebClientBuilder(requestIdFinal)
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
+                        exchangeFunction))
                 .build()
                 .post()
                 .uri(REFUNDS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), correlationId);
-                    httpHeaders.add(INTERACTION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(RefundResponse.class))
                 .transformDeferred(RetryOperator.of(retry));

@@ -133,7 +133,7 @@ public class Consent {
      *
      * @return consentId
      **/
-    @Schema(required = true, description = "The consent ID")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The consent ID")
     @NotNull(message = "Consent ID must not be null")
     public UUID getConsentId() {
         return consentId;
@@ -153,7 +153,7 @@ public class Consent {
      *
      * @return status
      **/
-    @Schema(required = true, description = "The status of the consent")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The status of the consent")
     @NotNull(message = "Status must not be null")
     public StatusEnum getStatus() {
         return status;
@@ -173,7 +173,7 @@ public class Consent {
      *
      * @return creationTimestamp
      **/
-    @Schema(required = true, description = "The timestamp that that the consent was created")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The timestamp that that the consent was created")
     @NotNull(message = "Creation timestamp must not be null")
     @Valid
     public OffsetDateTime getCreationTimestamp() {
@@ -194,7 +194,7 @@ public class Consent {
      *
      * @return statusUpdatedTimestamp
      **/
-    @Schema(required = true, description = "The time that the status was last updated")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The time that the status was last updated")
     @NotNull(message = "Status updated timestamp must not be null")
     @Valid
     public OffsetDateTime getStatusUpdatedTimestamp() {
@@ -215,7 +215,7 @@ public class Consent {
      *
      * @return detail
      **/
-    @Schema(required = true, description = "The consent details")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The consent details")
     @NotNull(message = "Detail must not be null")
     public OneOfconsentDetail getDetail() {
         return detail;

@@ -102,7 +102,7 @@ public class Refund {
     private String accountNumber = null;
 
     @JsonProperty("detail")
-    private OneOfrefundRequest detail = null;
+    private RefundRequest detail = null;
 
     public Refund refundId(UUID refundId) {
         this.refundId = refundId;
@@ -114,7 +114,7 @@ public class Refund {
      *
      * @return refundId
      **/
-    @Schema(required = true, description = "The refund ID.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The refund ID.")
     @NotNull
     @Valid
     public UUID getRefundId() {
@@ -131,11 +131,11 @@ public class Refund {
     }
 
     /**
-     * Get status
+     * The refund status
      *
      * @return status
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The refund status")
     @NotNull
     public StatusEnum getStatus() {
         return status;
@@ -155,7 +155,7 @@ public class Refund {
      *
      * @return creationTimestamp
      **/
-    @Schema(required = true, description = "The time that the refund was created.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The time that the refund was created.")
     @NotNull
     @Valid
     public OffsetDateTime getCreationTimestamp() {
@@ -176,7 +176,7 @@ public class Refund {
      *
      * @return statusUpdatedTimestamp
      **/
-    @Schema(required = true, description = "The time that the status was last updated.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The time that the status was last updated.")
     @NotNull
     @Valid
     public OffsetDateTime getStatusUpdatedTimestamp() {
@@ -197,7 +197,7 @@ public class Refund {
      *
      * @return accountNumber
      **/
-    @Schema(example = "03-0296-0481201-00", required = true, description = "The customer account number used or to be used for the refund.")
+    @Schema(example = "00-0000-0000000-00", requiredMode = Schema.RequiredMode.REQUIRED, description = "The customer account number used or to be used for the refund.")
     @NotNull
     public String getAccountNumber() {
         return accountNumber;
@@ -207,7 +207,7 @@ public class Refund {
         this.accountNumber = accountNumber;
     }
 
-    public Refund detail(OneOfrefundRequest detail) {
+    public Refund detail(RefundRequest detail) {
         this.detail = detail;
         return this;
     }
@@ -217,14 +217,14 @@ public class Refund {
      *
      * @return detail
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull
     @Valid
-    public OneOfrefundRequest getDetail() {
+    public RefundRequest getDetail() {
         return detail;
     }
 
-    public void setDetail(OneOfrefundRequest detail) {
+    public void setDetail(RefundRequest detail) {
         this.detail = detail;
     }
 

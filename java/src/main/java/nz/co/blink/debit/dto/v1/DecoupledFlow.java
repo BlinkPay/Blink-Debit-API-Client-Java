@@ -62,7 +62,7 @@ public class DecoupledFlow extends AuthFlowDetail implements OneOfauthFlowDetail
      *
      * @return bank
      **/
-    @Schema(required = true, description = "")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
     @NotNull(message = "Bank must not be null")
     @Valid
     public Bank getBank() {
@@ -83,7 +83,7 @@ public class DecoupledFlow extends AuthFlowDetail implements OneOfauthFlowDetail
      *
      * @return identifierType
      **/
-    @Schema(required = true, description = "The value type used to identify the customer with their bank.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The value type used to identify the customer with their bank.")
     @NotNull(message = "Identifier type must not be null")
     public IdentifierType getIdentifierType() {
         return identifierType;
@@ -103,7 +103,7 @@ public class DecoupledFlow extends AuthFlowDetail implements OneOfauthFlowDetail
      *
      * @return identifierValue
      **/
-    @Schema(required = true, description = "The identifier value.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The identifier value.")
     @NotNull(message = "Identifier value must not be null")
     public String getIdentifierValue() {
         return identifierValue;
