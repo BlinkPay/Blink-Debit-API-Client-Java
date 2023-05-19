@@ -49,7 +49,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.IDEMPOTENCY_KEY;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.PAYMENTS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -217,7 +217,6 @@ public class PaymentsApiClient {
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -228,17 +227,14 @@ public class PaymentsApiClient {
                         .path(PAYMENTS_PATH.getValue() + "/{paymentId}")
                         .build(paymentId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(Payment.class));
     }
 
     private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, String requestId)
             throws BlinkServiceException {
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
+        String idempotencyKey = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
@@ -250,7 +246,7 @@ public class PaymentsApiClient {
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
                     httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
+                    httpHeaders.add(IDEMPOTENCY_KEY.getValue(), idempotencyKey);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(PaymentResponse.class))

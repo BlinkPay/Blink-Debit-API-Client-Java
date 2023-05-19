@@ -56,7 +56,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.IDEMPOTENCY_KEY;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.QUICK_PAYMENTS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -246,7 +246,6 @@ public class QuickPaymentsApiClient {
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -257,10 +256,7 @@ public class QuickPaymentsApiClient {
                         .path(QUICK_PAYMENTS_PATH.getValue() + "/{quickPaymentId}")
                         .build(quickPaymentId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(QuickPaymentResponse.class));
     }
 
@@ -288,7 +284,6 @@ public class QuickPaymentsApiClient {
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -299,10 +294,7 @@ public class QuickPaymentsApiClient {
                         .path(QUICK_PAYMENTS_PATH.getValue() + "/{quickPaymentId}")
                         .build(quickPaymentId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(Void.class))
                 .transformDeferred(RetryOperator.of(retry));
     }
@@ -310,7 +302,7 @@ public class QuickPaymentsApiClient {
     private Mono<CreateQuickPaymentResponse> createQuickPaymentMono(QuickPaymentRequest request, String requestId)
             throws BlinkServiceException {
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
+        String idempotencyKey = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
@@ -322,7 +314,7 @@ public class QuickPaymentsApiClient {
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
                     httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
+                    httpHeaders.add(IDEMPOTENCY_KEY.getValue(), idempotencyKey);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(CreateQuickPaymentResponse.class))

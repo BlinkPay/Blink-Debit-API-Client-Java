@@ -171,7 +171,6 @@ public class RefundsApiClient {
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -182,16 +181,12 @@ public class RefundsApiClient {
                         .path(REFUNDS_PATH.getValue() + "/{refundId}")
                         .build(refundId))
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
     }
 
     private Mono<RefundResponse> createRefundMono(RefundDetail request, String requestId) throws BlinkServiceException {
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
@@ -201,10 +196,7 @@ public class RefundsApiClient {
                 .uri(REFUNDS_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(RefundResponse.class))
                 .transformDeferred(RetryOperator.of(retry));

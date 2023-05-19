@@ -40,7 +40,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.METADATA_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -92,7 +91,6 @@ public class MetaApiClient {
      */
     public Flux<BankMetadata> getMeta(final String requestId) throws BlinkServiceException {
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestIdFinal)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -101,10 +99,7 @@ public class MetaApiClient {
                 .get()
                 .uri(METADATA_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .exchangeToFlux(ResponseHandler.handleResponseFlux(BankMetadata.class));
     }
 

@@ -43,7 +43,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.TOKEN_PATH;
 
@@ -112,7 +111,6 @@ public class OAuthApiClient {
 
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
-        String correlationId = UUID.randomUUID().toString();
 
         return getWebClientBuilder()
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
@@ -122,10 +120,7 @@ public class OAuthApiClient {
                 .uri(TOKEN_PATH.getValue())
                 .accept(MediaType.APPLICATION_JSON)
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(httpHeaders -> {
-                    httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal);
-                    httpHeaders.add(CORRELATION_ID.getValue(), correlationId);
-                })
+                .headers(httpHeaders -> httpHeaders.add(REQUEST_ID.getValue(), requestIdFinal))
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(AccessTokenResponse.class))
                 .transformDeferred(RetryOperator.of(retry));

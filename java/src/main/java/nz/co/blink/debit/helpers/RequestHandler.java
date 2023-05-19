@@ -31,7 +31,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 /**
@@ -57,10 +59,15 @@ public final class RequestHandler {
      */
     public static Mono<ClientResponse> logRequest(Object request, ClientRequest clientRequest,
                                                   ExchangeFunction exchangeFunction) {
-        log.debug("Action: {} {}\nHeaders: {}\nBody: {}", clientRequest.method(), clientRequest.url(),
-                sanitiseHeaders(clientRequest.headers()), request);
+        // clone the request to add a new correlation ID even for retries
+        ClientRequest modifiedClientRequest = ClientRequest.from(clientRequest)
+                .header(CORRELATION_ID.getValue(), UUID.randomUUID().toString())
+                .build();
 
-        return exchangeFunction.exchange(clientRequest);
+        log.debug("Action: {} {}\nHeaders: {}\nBody: {}", clientRequest.method(), clientRequest.url(),
+                sanitiseHeaders(modifiedClientRequest.headers()), request);
+
+        return exchangeFunction.exchange(modifiedClientRequest);
     }
 
     private static Map<String, String> sanitiseHeaders(HttpHeaders headers) {
