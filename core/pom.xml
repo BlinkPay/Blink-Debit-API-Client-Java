@@ -5,12 +5,12 @@
     <parent>
         <groupId>nz.co.blinkpay</groupId>
         <artifactId>blink-debit-api-client-java-parent</artifactId>
-        <version>${revision}</version>
+        <version>1.1.1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>blink-debit-api-client-java-core</artifactId>
-    <version>${revision}</version>
+    <version>1.1.1</version>
 
     <name>blink-debit-api-client-java-core</name>
     <description>Blink Debit API Client shared library</description>
@@ -20,7 +20,6 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
 
-        <revision>1.0-SNAPSHOT</revision>
         <snakeyaml.version>2.0</snakeyaml.version>
         <system.stubs.jupiter.version>2.0.2</system.stubs.jupiter.version>
     </properties>
@@ -39,13 +38,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>versioning</id>
-            <properties>
-                <revision>1.1.0</revision>
-            </properties>
-        </profile>
-    </profiles>
 </project>
