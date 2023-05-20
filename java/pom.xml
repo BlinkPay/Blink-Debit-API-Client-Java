@@ -5,12 +5,12 @@
     <parent>
         <groupId>nz.co.blinkpay</groupId>
         <artifactId>blink-debit-api-client-java-parent</artifactId>
-        <version>${revision}</version>
+        <version>1.1.1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>blink-debit-api-client-java</artifactId>
-    <version>${revision}</version>
+    <version>1.1.1</version>
 
     <name>blink-debit-api-client-java</name>
     <description>Blink Debit API Client for Java 8 with or without Spring Boot 2</description>
@@ -20,7 +20,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
 
-        <revision>1.0-SNAPSHOT</revision>
+        <core.version>1.1.1</core.version>
         <spring.boot.version>2.7.12</spring.boot.version>
         <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.7</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>1.7.1</resilience4j.version>
@@ -40,7 +40,7 @@
         <dependency>
             <groupId>nz.co.blinkpay</groupId>
             <artifactId>blink-debit-api-client-java-core</artifactId>
-            <version>${revision}</version>
+            <version>${core.version}</version>
         </dependency>
 
         <!-- Spring dependencies -->
@@ -179,13 +179,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>versioning</id>
-            <properties>
-                <revision>1.1.0</revision>
-            </properties>
-        </profile>
-    </profiles>
 </project>
