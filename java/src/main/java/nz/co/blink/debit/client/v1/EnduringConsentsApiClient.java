@@ -37,7 +37,6 @@ import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.OneOfauthFlowDetail;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.RequestHandler;
@@ -121,90 +120,90 @@ public class EnduringConsentsApiClient {
     public Mono<CreateConsentResponse> createEnduringConsent(EnduringConsentRequest request, final String requestId)
             throws BlinkServiceException {
         if (request == null) {
-            throw new BlinkInvalidValueException("Enduring consent request must not be null");
+            throw BlinkServiceException.createServiceException("Enduring consent request must not be null");
         }
 
         AuthFlow flow = request.getFlow();
         if (flow == null) {
-            throw new BlinkInvalidValueException("Authorisation flow must not be null");
+            throw BlinkServiceException.createServiceException("Authorisation flow must not be null");
         }
 
         OneOfauthFlowDetail detail = flow.getDetail();
         if (detail == null) {
-            throw new BlinkInvalidValueException("Authorisation flow detail must not be null");
+            throw BlinkServiceException.createServiceException("Authorisation flow detail must not be null");
         }
 
         if (detail instanceof RedirectFlow) {
             RedirectFlow redirectFlow = (RedirectFlow) flow.getDetail();
             if (redirectFlow.getBank() == null) {
-                throw new BlinkInvalidValueException("Bank must not be null");
+                throw BlinkServiceException.createServiceException("Bank must not be null");
             }
 
             if (StringUtils.isBlank(redirectFlow.getRedirectUri())) {
-                throw new BlinkInvalidValueException("Redirect URI must not be blank");
+                throw BlinkServiceException.createServiceException("Redirect URI must not be blank");
             }
         } else if (detail instanceof DecoupledFlow) {
             DecoupledFlow decoupledFlow = (DecoupledFlow) flow.getDetail();
             if (decoupledFlow.getBank() == null) {
-                throw new BlinkInvalidValueException("Bank must not be null");
+                throw BlinkServiceException.createServiceException("Bank must not be null");
             }
 
             if (decoupledFlow.getIdentifierType() == null) {
-                throw new BlinkInvalidValueException("Identifier type must not be null");
+                throw BlinkServiceException.createServiceException("Identifier type must not be null");
             }
 
             if (StringUtils.isBlank(decoupledFlow.getIdentifierValue())) {
-                throw new BlinkInvalidValueException("Identifier value must not be blank");
+                throw BlinkServiceException.createServiceException("Identifier value must not be blank");
             }
 
             if (StringUtils.isBlank(decoupledFlow.getCallbackUrl())) {
-                throw new BlinkInvalidValueException("Callback/webhook URL must not be blank");
+                throw BlinkServiceException.createServiceException("Callback/webhook URL must not be blank");
             }
         } else if (detail instanceof GatewayFlow) {
             GatewayFlow gatewayFlow = (GatewayFlow) flow.getDetail();
             if (StringUtils.isBlank(gatewayFlow.getRedirectUri())) {
-                throw new BlinkInvalidValueException("Redirect URI must not be blank");
+                throw BlinkServiceException.createServiceException("Redirect URI must not be blank");
             }
 
             FlowHint flowHint = gatewayFlow.getFlowHint();
             if (flowHint != null) {
                 if (flowHint.getBank() == null) {
-                    throw new BlinkInvalidValueException("Bank must not be null");
+                    throw BlinkServiceException.createServiceException("Bank must not be null");
                 }
 
                 FlowHint.TypeEnum flowHintType = flowHint.getType();
                 if (flowHintType == null) {
-                    throw new BlinkInvalidValueException("Flow hint type must not be null");
+                    throw BlinkServiceException.createServiceException("Flow hint type must not be null");
                 }
 
                 if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
                     DecoupledFlowHint decoupledFlowHint = (DecoupledFlowHint) flowHint;
                     if (decoupledFlowHint.getIdentifierType() == null) {
-                        throw new BlinkInvalidValueException("Identifier type must not be null");
+                        throw BlinkServiceException.createServiceException("Identifier type must not be null");
                     }
 
                     if (StringUtils.isBlank(decoupledFlowHint.getIdentifierValue())) {
-                        throw new BlinkInvalidValueException("Identifier value must not be blank");
+                        throw BlinkServiceException.createServiceException("Identifier value must not be blank");
                     }
                 }
             }
         }
 
         if (request.getPeriod() == null) {
-            throw new BlinkInvalidValueException("Period must not be null");
+            throw BlinkServiceException.createServiceException("Period must not be null");
         }
 
         if (request.getFromTimestamp() == null) {
-            throw new BlinkInvalidValueException("Start date must not be null");
+            throw BlinkServiceException.createServiceException("Start date must not be null");
         }
 
         Amount amount = request.getMaximumAmountPeriod();
         if (amount == null) {
-            throw new BlinkInvalidValueException("Maximum amount period must not be null");
+            throw BlinkServiceException.createServiceException("Maximum amount period must not be null");
         }
 
         if (amount.getCurrency() == null) {
-            throw new BlinkInvalidValueException("Currency must not be null");
+            throw BlinkServiceException.createServiceException("Currency must not be null");
         }
 
         validationService.validateRequest("enduring consent", request);
@@ -234,7 +233,7 @@ public class EnduringConsentsApiClient {
     public Mono<Consent> getEnduringConsent(UUID consentId, final String requestId)
             throws BlinkServiceException {
         if (consentId == null) {
-            throw new BlinkInvalidValueException("Consent ID must not be null");
+            throw BlinkServiceException.createServiceException("Consent ID must not be null");
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -272,7 +271,7 @@ public class EnduringConsentsApiClient {
     public Mono<Void> revokeEnduringConsent(UUID consentId, final String requestId)
             throws BlinkServiceException {
         if (consentId == null) {
-            throw new BlinkInvalidValueException("Consent ID must not be null");
+            throw BlinkServiceException.createServiceException("Consent ID must not be null");
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());

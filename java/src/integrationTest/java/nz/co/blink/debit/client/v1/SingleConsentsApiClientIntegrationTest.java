@@ -38,7 +38,7 @@ import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -226,7 +226,7 @@ class SingleConsentsApiClientIntegrationTest {
                     .containsExactly(Amount.CurrencyEnum.NZD, "1.50");
         } catch (RuntimeException e) {
             assertThat(e.getCause())
-                    .isInstanceOf(BlinkResourceNotFoundException.class)
+                    .isInstanceOf(BlinkServiceException.class)
                     .hasMessage("Consent with ID [0a52bdff-4d63-4c21-ae4f-8ef438d74532] does not exist");
         }
     }

@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Generated;
@@ -66,11 +66,11 @@ public class Amount {
         }
 
         @JsonCreator
-        public static CurrencyEnum fromValue(String currency) throws BlinkInvalidValueException {
+        public static CurrencyEnum fromValue(String currency) throws BlinkServiceException {
             return Arrays.stream(CurrencyEnum.values())
                     .filter(currencyEnum -> String.valueOf(currencyEnum.value).equals(currency))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown currency: " + currency));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown currency: " + currency));
         }
     }
 

@@ -27,14 +27,8 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import nz.co.blink.debit.exception.BlinkClientException;
-import nz.co.blink.debit.exception.BlinkForbiddenException;
-import nz.co.blink.debit.exception.BlinkNotImplementedException;
-import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
-import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
-import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkRetryableException;
 import nz.co.blink.debit.exception.BlinkServiceException;
-import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import nz.co.blink.debit.service.ValidationService;
 import nz.co.blink.debit.service.impl.JakartaValidationServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,17 +135,11 @@ public class BlinkDebitConfiguration {
                         .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
                 // retries are triggered for 408 (request timeout) and 5xx exceptions
                 // and for network errors thrown by WebFlux if the request didn't get to the server at all
-                .retryExceptions(BlinkRequestTimeoutException.class,
-                        BlinkServiceException.class,
+                .retryExceptions(BlinkRetryableException.class,
                         ConnectException.class,
                         WebClientRequestException.class)
                 // ignore 4xx and 501 (not implemented) exceptions
-                .ignoreExceptions(BlinkUnauthorisedException.class,
-                        BlinkForbiddenException.class,
-                        BlinkResourceNotFoundException.class,
-                        BlinkRateLimitExceededException.class,
-                        BlinkNotImplementedException.class,
-                        BlinkClientException.class)
+                .ignoreExceptions(BlinkServiceException.class)
                 .failAfterMaxAttempts(true)
                 .build();
 

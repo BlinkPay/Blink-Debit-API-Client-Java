@@ -1,6 +1,6 @@
 package nz.co.blink.debit.service;
 
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 
 public interface ValidationService {
     /**
@@ -8,7 +8,7 @@ public interface ValidationService {
      *
      * @param type    the request type
      * @param payload the request to be validated
-     * @throws BlinkInvalidValueException thrown if the request is invalid
+     * @throws BlinkServiceException thrown if the request is invalid
      */
-    void validateRequest(String type, Object payload) throws BlinkInvalidValueException;
+    void validateRequest(String type, Object payload) throws BlinkServiceException;
 }

@@ -31,7 +31,7 @@ import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.service.ValidationService;
@@ -114,8 +114,8 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createSinglePaymentWithNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -127,8 +127,8 @@ class PaymentsApiClientTest {
     void createSinglePaymentWithNullConsentId() {
         PaymentRequest request = new PaymentRequest();
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -138,8 +138,8 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createEnduringPaymentWithNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(null).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -151,8 +151,8 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithNullConsentId() {
         PaymentRequest request = new PaymentRequest();
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -169,8 +169,8 @@ class PaymentsApiClientTest {
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("25.50")));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -193,8 +193,8 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -215,8 +215,8 @@ class PaymentsApiClientTest {
                                 .code("merchant code")
                                 .reference("merchant reference")));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -234,8 +234,8 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -255,8 +255,8 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -279,8 +279,8 @@ class PaymentsApiClientTest {
                                 .code("code")
                                 .reference("reference")));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -290,8 +290,8 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createWestpacPaymentWithNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createWestpacPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createWestpacPayment(null).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -303,8 +303,8 @@ class PaymentsApiClientTest {
     void createWestpacPaymentWithNullConsentId() {
         PaymentRequest request = new PaymentRequest();
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createWestpacPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createWestpacPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -317,8 +317,8 @@ class PaymentsApiClientTest {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createWestpacPayment(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.createWestpacPayment(request).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -328,8 +328,8 @@ class PaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null refund ID is handled")
     void getPaymentWithNullPaymentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.getPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.getPayment(null).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()

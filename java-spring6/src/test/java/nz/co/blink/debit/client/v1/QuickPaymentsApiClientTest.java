@@ -44,7 +44,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.service.ValidationService;
@@ -132,8 +132,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithRedirectFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(null).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -152,8 +152,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -173,8 +173,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -196,8 +196,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -221,8 +221,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -242,8 +242,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -265,8 +265,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -291,8 +291,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -310,8 +310,8 @@ class QuickPaymentsApiClientTest {
                 .amount(new Amount()
                         .total("1.25"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -336,8 +336,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -360,8 +360,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -371,8 +371,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithDecoupledFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(null).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -391,8 +391,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -412,8 +412,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -437,8 +437,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -460,8 +460,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -485,8 +485,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -513,8 +513,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -534,8 +534,8 @@ class QuickPaymentsApiClientTest {
                 .amount(new Amount()
                         .total("1.25"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -562,8 +562,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -588,8 +588,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -613,8 +613,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -640,8 +640,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -667,8 +667,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -678,8 +678,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null request is handled")
     void createQuickPaymentWithGatewayFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(null).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -698,8 +698,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -719,8 +719,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -743,8 +743,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -765,8 +765,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -789,8 +789,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -816,8 +816,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -837,8 +837,8 @@ class QuickPaymentsApiClientTest {
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -864,8 +864,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -889,8 +889,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -958,8 +958,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -984,8 +984,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1010,8 +1010,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1038,8 +1038,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1067,8 +1067,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1094,8 +1094,8 @@ class QuickPaymentsApiClientTest {
                         .code("merchant code")
                         .reference("merchant reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1120,8 +1120,8 @@ class QuickPaymentsApiClientTest {
                         .code("code")
                         .reference("reference"));
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.createQuickPayment(request).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1131,9 +1131,9 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null quick payment ID is handled")
     void getQuickPaymentWithNullQuickPaymentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
+        BlinkServiceException exception = catchThrowableOfType(() ->
                         client.getQuickPayment(null).block(),
-                BlinkInvalidValueException.class);
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -1221,8 +1221,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null quick payment ID is handled")
     void revokeQuickPaymentWithNullQuickPaymentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeQuickPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() -> client.revokeQuickPayment(null).block(),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()

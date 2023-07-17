@@ -23,7 +23,7 @@ package nz.co.blink.debit.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 
 import java.util.Arrays;
 
@@ -55,10 +55,10 @@ public enum IdentifierType {
     }
 
     @JsonCreator
-    public static IdentifierType fromValue(String identifierType) throws BlinkInvalidValueException {
+    public static IdentifierType fromValue(String identifierType) throws BlinkServiceException {
         return Arrays.stream(IdentifierType.values())
                 .filter(type -> String.valueOf(type.value).equals(identifierType))
                 .findFirst()
-                .orElseThrow(() -> new BlinkInvalidValueException("Unknown identifier type: " + identifierType));
+                .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown identifier type: " + identifierType));
     }
 }

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>nz.co.blinkpay</groupId>
     <artifactId>blink-debit-api-client-java-parent</artifactId>
-    <version>1.1.1</version>
+    <version>1.2.0</version>
     <packaging>pom</packaging>
 
     <name>blink-debit-api-client-java-parent</name>
@@ -60,12 +60,12 @@
             src/integrationTest/**
         </sonar.test.exclusions>
 
-        <lombok.version>1.18.26</lombok.version>
+        <lombok.version>1.18.28</lombok.version>
         <commons.lang.version>3.12.0</commons.lang.version>
-        <netty.version>4.1.92.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
+        <netty.version>4.1.94.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
         <slf4j.version>1.7.36</slf4j.version> <!-- latest 2.0.7 is not compatible -->
-        <logback.version>1.2.12</logback.version> <!-- latest 1.4.7 is not compatible -->
-        <jackson.version>2.15.1</jackson.version>
+        <logback.version>1.2.12</logback.version> <!-- latest 1.4.8 is not compatible -->
+        <jackson.version>2.15.2</jackson.version>
 
         <junit.version>5.9.3</junit.version>
         <assertj.version>3.24.2</assertj.version>

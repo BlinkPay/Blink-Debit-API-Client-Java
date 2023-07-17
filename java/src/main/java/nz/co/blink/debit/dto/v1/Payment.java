@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeDeserializer;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeSerializer;
 import org.springframework.validation.annotation.Validated;
@@ -77,11 +77,11 @@ public class Payment {
         }
 
         @JsonCreator
-        public static TypeEnum fromValue(String type) throws BlinkInvalidValueException {
+        public static TypeEnum fromValue(String type) throws BlinkServiceException {
             return Arrays.stream(TypeEnum.values())
                     .filter(typeEnum -> String.valueOf(typeEnum.value).equals(type))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown type: " + type));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown type: " + type));
         }
     }
 
@@ -114,11 +114,11 @@ public class Payment {
         }
 
         @JsonCreator
-        public static StatusEnum fromValue(String status) throws BlinkInvalidValueException {
+        public static StatusEnum fromValue(String status) throws BlinkServiceException {
             return Arrays.stream(StatusEnum.values())
                     .filter(statusEnum -> String.valueOf(statusEnum.value).equals(status))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown status: " + status));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown status: " + status));
         }
     }
 
@@ -146,11 +146,11 @@ public class Payment {
         }
 
         @JsonCreator
-        public static AcceptedReasonEnum fromValue(String acceptedReason) throws BlinkInvalidValueException {
+        public static AcceptedReasonEnum fromValue(String acceptedReason) throws BlinkServiceException {
             return Arrays.stream(AcceptedReasonEnum.values())
                     .filter(acceptedReasonEnum -> String.valueOf(acceptedReasonEnum.value).equals(acceptedReason))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown accepted reason: " + acceptedReason));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown accepted reason: " + acceptedReason));
         }
     }
 

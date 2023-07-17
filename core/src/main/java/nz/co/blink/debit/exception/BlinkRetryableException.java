@@ -22,19 +22,19 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The exception thrown when payment was not completed within the bank's request timeout window.
+ * The exception thrown when an API call failed but can be retried.
  */
-public class BlinkPaymentTimeoutException extends BlinkPaymentFailureException {
+public class BlinkRetryableException extends Exception {
 
-    public BlinkPaymentTimeoutException() {
-        this("Payment timed out");
+    public BlinkRetryableException() {
+        this("Operation failed and will be retried");
     }
 
-    public BlinkPaymentTimeoutException(String message) {
+    public BlinkRetryableException(String message) {
         super(message);
     }
 
-    public BlinkPaymentTimeoutException(String message, Throwable cause) {
+    public BlinkRetryableException(String message, Throwable cause) {
         super(message, cause);
     }
 }

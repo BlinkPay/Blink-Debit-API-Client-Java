@@ -23,7 +23,7 @@ package nz.co.blink.debit.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 
 import java.util.Arrays;
 
@@ -55,10 +55,10 @@ public enum Period {
     }
 
     @JsonCreator
-    public static Period fromValue(String text) throws BlinkInvalidValueException {
+    public static Period fromValue(String text) throws BlinkServiceException {
         return Arrays.stream(Period.values())
                 .filter(period -> String.valueOf(period.value).equals(text))
                 .findFirst()
-                .orElseThrow(() -> new BlinkInvalidValueException("Unknown period: " + text));
+                .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown period: " + text));
     }
 }

@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Generated;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Arrays;
@@ -53,7 +53,7 @@ public class Amount {
     public enum CurrencyEnum {
         NZD("NZD");
 
-        private String value;
+        private final String value;
 
         CurrencyEnum(String value) {
             this.value = value;
@@ -66,11 +66,11 @@ public class Amount {
         }
 
         @JsonCreator
-        public static CurrencyEnum fromValue(String currency) throws BlinkInvalidValueException {
+        public static CurrencyEnum fromValue(String currency) throws BlinkServiceException {
             return Arrays.stream(CurrencyEnum.values())
                     .filter(currencyEnum -> String.valueOf(currencyEnum.value).equals(currency))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown currency: " + currency));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown currency: " + currency));
         }
     }
 

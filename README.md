@@ -15,18 +15,26 @@
 
 
 # Table of Contents
-1. [Minimum Requirements](#minimum-requirements)
-2. [Dependency](#adding-the-dependency)
-3. [Quick Start](#quick-start)
-4. [Configuration](#configuration)
-5. [Client Creation](#client-creation)
-6. [Correlation ID](#correlation-id)
-7. [Full Examples](#full-examples)
-8. [Individual API Call Examples](#individual-api-call-examples)
+1. [Introduction](#introduction)
+2. [Contributing](#contributing)
+3. [Minimum Requirements](#minimum-requirements)
+4. [Dependency](#adding-the-dependency)
+5. [Quick Start](#quick-start)
+6. [Configuration](#configuration)
+7. [Client Creation](#client-creation)
+8. [Correlation ID](#correlation-id)
+9. [Full Examples](#full-examples)
+10. [Individual API Call Examples](#individual-api-call-examples)
 
+## Introduction
 This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
 
-This SDK internally uses WebClient, a reactive web client introduced in Spring Framework 5, for making API calls.
+This SDK internally uses WebClient, a reactive Web client introduced in Spring Framework 5, for making API calls.
+
+## Contributing
+We welcome contributions from the community. Your pull request will be reviewed by our team.
+
+This project is licensed under the MIT License.
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7

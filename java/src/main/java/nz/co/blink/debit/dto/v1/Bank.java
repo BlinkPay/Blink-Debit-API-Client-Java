@@ -23,7 +23,7 @@ package nz.co.blink.debit.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 
 import java.util.Arrays;
 
@@ -60,11 +60,11 @@ public enum Bank {
     }
 
     @JsonCreator
-    public static Bank fromValue(String text) throws BlinkInvalidValueException {
+    public static Bank fromValue(String text) throws BlinkServiceException {
         // `value` comparison is for data transfer object, `name` comparison is for domain model object (entity)
         return Arrays.stream(Bank.values())
                 .filter(bank -> bank.value.equals(text) ||  bank.name().equals(text))
                 .findFirst()
-                .orElseThrow(() -> new BlinkInvalidValueException("Unknown bank: " + text));
+                .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown bank: " + text));
     }
 }

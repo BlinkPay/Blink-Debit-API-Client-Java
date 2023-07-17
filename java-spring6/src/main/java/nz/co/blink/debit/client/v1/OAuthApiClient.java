@@ -27,7 +27,6 @@ import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.RequestHandler;
 import nz.co.blink.debit.helpers.ResponseHandler;
@@ -100,7 +99,7 @@ public class OAuthApiClient {
      */
     public Mono<AccessTokenResponse> generateAccessToken(final String requestId) throws BlinkServiceException {
         if (StringUtils.isBlank(clientId) || StringUtils.isBlank(clientSecret)) {
-            throw new BlinkInvalidValueException("Client ID and client secret must not be blank");
+            throw BlinkServiceException.createServiceException("Client ID and client secret must not be blank");
         }
 
         AccessTokenRequest request = AccessTokenRequest.builder()

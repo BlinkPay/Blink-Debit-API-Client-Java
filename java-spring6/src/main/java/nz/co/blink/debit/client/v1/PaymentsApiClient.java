@@ -31,7 +31,6 @@ import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
 import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.RequestHandler;
@@ -114,36 +113,36 @@ public class PaymentsApiClient {
     public Mono<PaymentResponse> createPayment(PaymentRequest request, final String requestId)
             throws BlinkServiceException {
         if (request == null) {
-            throw new BlinkInvalidValueException("Payment request must not be null");
+            throw BlinkServiceException.createServiceException("Payment request must not be null");
         }
 
         if (request.getConsentId() == null) {
-            throw new BlinkInvalidValueException("Consent ID must not be null");
+            throw BlinkServiceException.createServiceException("Consent ID must not be null");
         }
 
         EnduringPaymentRequest enduringPayment = request.getEnduringPayment();
         if (enduringPayment != null) {
             Pcr pcr = enduringPayment.getPcr();
             if (pcr == null) {
-                throw new BlinkInvalidValueException("PCR must not be null");
+                throw BlinkServiceException.createServiceException("PCR must not be null");
             }
 
             if (StringUtils.isBlank(pcr.getParticulars())) {
-                throw new BlinkInvalidValueException("Particulars must have at least 1 character");
+                throw BlinkServiceException.createServiceException("Particulars must have at least 1 character");
             }
 
             if (StringUtils.length(pcr.getParticulars()) > 12
                     || StringUtils.length(pcr.getCode()) > 12
                     || StringUtils.length(pcr.getReference()) > 12) {
-                throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
+                throw BlinkServiceException.createServiceException("PCR must not exceed 12 characters");
             }
 
             if (enduringPayment.getAmount() == null) {
-                throw new BlinkInvalidValueException("Amount must not be null");
+                throw BlinkServiceException.createServiceException("Amount must not be null");
             }
 
             if (enduringPayment.getAmount().getCurrency() == null) {
-                throw new BlinkInvalidValueException("Currency must not be null");
+                throw BlinkServiceException.createServiceException("Currency must not be null");
             }
         }
 
@@ -176,15 +175,15 @@ public class PaymentsApiClient {
     public Mono<PaymentResponse> createWestpacPayment(PaymentRequest request, final String requestId)
             throws BlinkServiceException {
         if (request == null) {
-            throw new BlinkInvalidValueException("Payment request must not be null");
+            throw BlinkServiceException.createServiceException("Payment request must not be null");
         }
 
         if (request.getConsentId() == null) {
-            throw new BlinkInvalidValueException("Consent ID must not be null");
+            throw BlinkServiceException.createServiceException("Consent ID must not be null");
         }
 
         if (request.getAccountReferenceId() == null) {
-            throw new BlinkInvalidValueException("Account reference ID must not be null");
+            throw BlinkServiceException.createServiceException("Account reference ID must not be null");
         }
 
         validationService.validateRequest("Westpac payment", request);
@@ -213,7 +212,7 @@ public class PaymentsApiClient {
      */
     public Mono<Payment> getPayment(UUID paymentId, final String requestId) throws BlinkServiceException {
         if (paymentId == null) {
-            throw new BlinkInvalidValueException("Payment ID must not be null");
+            throw BlinkServiceException.createServiceException("Payment ID must not be null");
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());

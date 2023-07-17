@@ -33,7 +33,6 @@ import nz.co.blink.debit.dto.v1.Refund;
 import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.RequestHandler;
@@ -115,11 +114,11 @@ public class RefundsApiClient {
     public Mono<RefundResponse> createRefund(RefundDetail request, final String requestId)
             throws BlinkServiceException {
         if (request == null) {
-            throw new BlinkInvalidValueException("Refund request must not be null");
+            throw BlinkServiceException.createServiceException("Refund request must not be null");
         }
 
         if (request.getPaymentId() == null) {
-            throw new BlinkInvalidValueException("Payment ID must not be null");
+            throw BlinkServiceException.createServiceException("Payment ID must not be null");
         }
 
         if (request instanceof PartialRefundRequest) {
@@ -128,11 +127,11 @@ public class RefundsApiClient {
             validatePcr(partialRefundRequest.getPcr());
 
             if (partialRefundRequest.getAmount() == null) {
-                throw new BlinkInvalidValueException("Amount must not be null");
+                throw BlinkServiceException.createServiceException("Amount must not be null");
             }
 
             if (partialRefundRequest.getAmount().getCurrency() == null) {
-                throw new BlinkInvalidValueException("Currency must not be null");
+                throw BlinkServiceException.createServiceException("Currency must not be null");
             }
         } else if (request instanceof FullRefundRequest) {
             FullRefundRequest fullRefundRequest = (FullRefundRequest) request;
@@ -166,7 +165,7 @@ public class RefundsApiClient {
      */
     public Mono<Refund> getRefund(UUID refundId, final String requestId) throws BlinkServiceException {
         if (refundId == null) {
-            throw new BlinkInvalidValueException("Refund ID must not be null");
+            throw BlinkServiceException.createServiceException("Refund ID must not be null");
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -215,17 +214,17 @@ public class RefundsApiClient {
 
     private static void validatePcr(Pcr pcr) throws BlinkServiceException {
         if (pcr == null) {
-            throw new BlinkInvalidValueException("PCR must not be null");
+            throw BlinkServiceException.createServiceException("PCR must not be null");
         }
 
         if (StringUtils.isBlank(pcr.getParticulars())) {
-            throw new BlinkInvalidValueException("Particulars must have at least 1 character");
+            throw BlinkServiceException.createServiceException("Particulars must have at least 1 character");
         }
 
         if (StringUtils.length(pcr.getParticulars()) > 12
                 || StringUtils.length(pcr.getCode()) > 12
                 || StringUtils.length(pcr.getReference()) > 12) {
-            throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
+            throw BlinkServiceException.createServiceException("PCR must not exceed 12 characters");
         }
     }
 }

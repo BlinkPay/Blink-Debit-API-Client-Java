@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import io.swagger.v3.oas.annotations.media.Schema;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeDeserializer;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeSerializer;
@@ -77,11 +77,11 @@ public class Refund {
         }
 
         @JsonCreator
-        public static StatusEnum fromValue(String status) throws BlinkInvalidValueException {
+        public static StatusEnum fromValue(String status) throws BlinkServiceException {
             return Arrays.stream(StatusEnum.values())
                     .filter(statusEnum -> String.valueOf(statusEnum.value).equals(status))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown status: " + status));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown status: " + status));
         }
     }
 

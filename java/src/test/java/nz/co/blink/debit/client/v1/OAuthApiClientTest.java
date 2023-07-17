@@ -25,7 +25,6 @@ import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -100,7 +99,7 @@ class OAuthApiClientTest {
         AccessTokenResponse response = new AccessTokenResponse();
         response.setAccessToken(System.getenv("ACCESS_TOKEN"));
         response.setTokenType("Bearer");
-        response.setExpiresIn(86400);
+        response.setExpiresIn(3600);
         response.setScope("create:payment view:payment create:single_consent view:single_consent view:metadata create:enduring_consent view:enduring_consent revoke:enduring_consent view:transaction create:quick_payment view:quick_payment create:refund view:refund revoke:single_consent");
 
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
@@ -124,7 +123,7 @@ class OAuthApiClientTest {
                 .extracting(AccessTokenResponse::getTokenType, AccessTokenResponse::getExpiresIn,
                         AccessTokenResponse::getRefreshToken, AccessTokenResponse::getIdToken,
                         AccessTokenResponse::getScope)
-                .containsExactly("Bearer", 86400, null, null, "create:payment view:payment create:single_consent"
+                .containsExactly("Bearer", 3600, null, null, "create:payment view:payment create:single_consent"
                         + " view:single_consent view:metadata create:enduring_consent view:enduring_consent"
                         + " revoke:enduring_consent view:transaction create:quick_payment view:quick_payment"
                         + " create:refund view:refund revoke:single_consent");
@@ -140,8 +139,8 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", clientId);
         ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -155,8 +154,8 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", "BLINKPAY_CLIENT_ID");
         ReflectionTestUtils.setField(client, "clientSecret", clientSecret);
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkInvalidValueException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()

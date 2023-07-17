@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeDeserializer;
 import nz.co.blink.debit.helpers.CustomOffsetDateTimeSerializer;
 import org.springframework.validation.annotation.Validated;
@@ -89,11 +89,11 @@ public class Consent {
         }
 
         @JsonCreator
-        public static StatusEnum fromValue(String status) throws BlinkInvalidValueException {
+        public static StatusEnum fromValue(String status) throws BlinkServiceException {
             return Arrays.stream(StatusEnum.values())
                     .filter(statusEnum -> String.valueOf(statusEnum.value).equals(status))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown status: " + status));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown status: " + status));
         }
     }
 

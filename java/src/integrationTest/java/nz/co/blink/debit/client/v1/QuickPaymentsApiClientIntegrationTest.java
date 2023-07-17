@@ -40,7 +40,7 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -245,7 +245,7 @@ class QuickPaymentsApiClientIntegrationTest {
                     .containsExactly(Amount.CurrencyEnum.NZD, "1.50");
         } catch (RuntimeException e) {
             assertThat(e.getCause())
-                    .isInstanceOf(BlinkResourceNotFoundException.class)
+                    .isInstanceOf(BlinkServiceException.class)
                     .hasMessage("Consent with ID [057a08f7-4ee1-499d-8726-e4fe802d64fc] does not exist");
         }
     }

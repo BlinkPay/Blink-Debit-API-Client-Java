@@ -38,7 +38,6 @@ import nz.co.blink.debit.dto.v1.QuickPaymentRequest;
 import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.RequestHandler;
@@ -122,70 +121,70 @@ public class QuickPaymentsApiClient {
     public Mono<CreateQuickPaymentResponse> createQuickPayment(QuickPaymentRequest request, final String requestId)
             throws BlinkServiceException {
         if (request == null) {
-            throw new BlinkInvalidValueException("Quick payment request must not be null");
+            throw BlinkServiceException.createServiceException("Quick payment request must not be null");
         }
 
         AuthFlow flow = request.getFlow();
         if (flow == null) {
-            throw new BlinkInvalidValueException("Authorisation flow must not be null");
+            throw BlinkServiceException.createServiceException("Authorisation flow must not be null");
         }
 
         OneOfauthFlowDetail detail = flow.getDetail();
         if (detail == null) {
-            throw new BlinkInvalidValueException("Authorisation flow detail must not be null");
+            throw BlinkServiceException.createServiceException("Authorisation flow detail must not be null");
         }
 
         if (detail instanceof RedirectFlow) {
             RedirectFlow redirectFlow = (RedirectFlow) flow.getDetail();
             if (redirectFlow.getBank() == null) {
-                throw new BlinkInvalidValueException("Bank must not be null");
+                throw BlinkServiceException.createServiceException("Bank must not be null");
             }
 
             if (StringUtils.isBlank(redirectFlow.getRedirectUri())) {
-                throw new BlinkInvalidValueException("Redirect URI must not be blank");
+                throw BlinkServiceException.createServiceException("Redirect URI must not be blank");
             }
         } else if (detail instanceof DecoupledFlow) {
             DecoupledFlow decoupledFlow = (DecoupledFlow) flow.getDetail();
             if (decoupledFlow.getBank() == null) {
-                throw new BlinkInvalidValueException("Bank must not be null");
+                throw BlinkServiceException.createServiceException("Bank must not be null");
             }
 
             if (decoupledFlow.getIdentifierType() == null) {
-                throw new BlinkInvalidValueException("Identifier type must not be null");
+                throw BlinkServiceException.createServiceException("Identifier type must not be null");
             }
 
             if (StringUtils.isBlank(decoupledFlow.getIdentifierValue())) {
-                throw new BlinkInvalidValueException("Identifier value must not be blank");
+                throw BlinkServiceException.createServiceException("Identifier value must not be blank");
             }
 
             if (StringUtils.isBlank(decoupledFlow.getCallbackUrl())) {
-                throw new BlinkInvalidValueException("Callback/webhook URL must not be blank");
+                throw BlinkServiceException.createServiceException("Callback/webhook URL must not be blank");
             }
         } else if (detail instanceof GatewayFlow) {
             GatewayFlow gatewayFlow = (GatewayFlow) flow.getDetail();
             if (StringUtils.isBlank(gatewayFlow.getRedirectUri())) {
-                throw new BlinkInvalidValueException("Redirect URI must not be blank");
+                throw BlinkServiceException.createServiceException("Redirect URI must not be blank");
             }
 
             FlowHint flowHint = gatewayFlow.getFlowHint();
             if (flowHint != null) {
                 if (flowHint.getBank() == null) {
-                    throw new BlinkInvalidValueException("Bank must not be null");
+                    throw BlinkServiceException.createServiceException("Bank must not be null");
                 }
 
                 FlowHint.TypeEnum flowHintType = flowHint.getType();
                 if (flowHintType == null) {
-                    throw new BlinkInvalidValueException("Flow hint type must not be null");
+                    throw BlinkServiceException.createServiceException("Flow hint type must not be null");
                 }
 
                 if (FlowHint.TypeEnum.DECOUPLED == flowHintType) {
                     DecoupledFlowHint decoupledFlowHint = (DecoupledFlowHint) flowHint;
                     if (decoupledFlowHint.getIdentifierType() == null) {
-                        throw new BlinkInvalidValueException("Identifier type must not be null");
+                        throw BlinkServiceException.createServiceException("Identifier type must not be null");
                     }
 
                     if (StringUtils.isBlank(decoupledFlowHint.getIdentifierValue())) {
-                        throw new BlinkInvalidValueException("Identifier value must not be blank");
+                        throw BlinkServiceException.createServiceException("Identifier value must not be blank");
                     }
                 }
             }
@@ -193,26 +192,26 @@ public class QuickPaymentsApiClient {
 
         Pcr pcr = request.getPcr();
         if (pcr == null) {
-            throw new BlinkInvalidValueException("PCR must not be null");
+            throw BlinkServiceException.createServiceException("PCR must not be null");
         }
 
         if (StringUtils.isBlank(pcr.getParticulars())) {
-            throw new BlinkInvalidValueException("Particulars must have at least 1 character");
+            throw BlinkServiceException.createServiceException("Particulars must have at least 1 character");
         }
 
         if (StringUtils.length(pcr.getParticulars()) > 12
                 || StringUtils.length(pcr.getCode()) > 12
                 || StringUtils.length(pcr.getReference()) > 12) {
-            throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
+            throw BlinkServiceException.createServiceException("PCR must not exceed 12 characters");
         }
 
         Amount amount = request.getAmount();
         if (amount == null) {
-            throw new BlinkInvalidValueException("Amount must not be null");
+            throw BlinkServiceException.createServiceException("Amount must not be null");
         }
 
         if (amount.getCurrency() == null) {
-            throw new BlinkInvalidValueException("Currency must not be null");
+            throw BlinkServiceException.createServiceException("Currency must not be null");
         }
 
         validationService.validateRequest("quick payment", request);
@@ -242,7 +241,7 @@ public class QuickPaymentsApiClient {
     public Mono<QuickPaymentResponse> getQuickPayment(UUID quickPaymentId, final String requestId)
             throws BlinkServiceException {
         if (quickPaymentId == null) {
-            throw new BlinkInvalidValueException("Quick payment ID must not be null");
+            throw BlinkServiceException.createServiceException("Quick payment ID must not be null");
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());
@@ -280,7 +279,7 @@ public class QuickPaymentsApiClient {
     public Mono<Void> revokeQuickPayment(UUID quickPaymentId, final String requestId)
             throws BlinkServiceException {
         if (quickPaymentId == null) {
-            throw new BlinkInvalidValueException("Quick payment ID must not be null");
+            throw BlinkServiceException.createServiceException("Quick payment ID must not be null");
         }
 
         String requestIdFinal = StringUtils.defaultIfBlank(requestId, UUID.randomUUID().toString());

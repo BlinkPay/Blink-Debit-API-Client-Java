@@ -45,11 +45,6 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.BlinkConsentFailureException;
-import nz.co.blink.debit.exception.BlinkConsentRejectedException;
-import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
-import nz.co.blink.debit.exception.BlinkPaymentFailureException;
-import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.Disabled;
@@ -136,8 +131,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentSingleConsentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsent(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedSingleConsent(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -234,8 +229,8 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        BlinkConsentTimeoutException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5), BlinkConsentTimeoutException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedSingleConsentOrThrowException(consentId, 1), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -248,8 +243,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentSingleConsentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -259,7 +254,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is retrieved")
     @Order(6)
-    void awaitAuthorisedSingleConsentOrThrowException() throws BlinkServiceException, BlinkConsentFailureException {
+    void awaitAuthorisedSingleConsentOrThrowException() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -358,8 +353,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentEnduringConsentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsent(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedEnduringConsent(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -450,8 +445,8 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        BlinkConsentTimeoutException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkConsentTimeoutException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 1), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -464,8 +459,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentEnduringConsentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -475,7 +470,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved")
     @Order(16)
-    void awaitAuthorisedEnduringConsentOrThrowException() throws BlinkServiceException, BlinkConsentFailureException {
+    void awaitAuthorisedEnduringConsentOrThrowException() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -572,8 +567,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentQuickPaymentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulQuickPayment(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitSuccessfulQuickPayment(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -687,13 +682,13 @@ class BlinkDebitClientIntegrationTest {
         UUID quickPaymentId = actual.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
-        BlinkConsentTimeoutException exception = catchThrowableOfType(() ->
-                        client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 5),
-                BlinkConsentTimeoutException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                        client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 1),
+                BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
-                .isInstanceOf(BlinkConsentTimeoutException.class)
+                .isInstanceOf(BlinkServiceException.class)
                 .hasMessage("Consent timed out");
     }
 
@@ -703,8 +698,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentQuickPaymentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -741,9 +736,9 @@ class BlinkDebitClientIntegrationTest {
 
         client.revokeQuickPayment(quickPaymentId);
 
-        BlinkConsentRejectedException exception = catchThrowableOfType(() ->
+        BlinkServiceException exception = catchThrowableOfType(() ->
                         client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 30),
-                BlinkConsentRejectedException.class);
+                BlinkServiceException.class);
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Quick payment [" + quickPaymentId + "] has been rejected or revoked");
@@ -752,8 +747,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
     @Order(27)
-    void awaitSuccessfulQuickPaymentOrThrowException()
-            throws BlinkConsentFailureException, BlinkServiceException {
+    void awaitSuccessfulQuickPaymentOrThrowException() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
@@ -833,8 +827,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentPaymentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulPayment(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitSuccessfulPayment(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -931,8 +925,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentPaymentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulPaymentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkServiceException exception = catchThrowableOfType(() ->
+                client.awaitSuccessfulPaymentOrThrowException(consentId, 5), BlinkServiceException.class);
 
         assertThat(exception)
                 .isNotNull()
@@ -942,7 +936,7 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment is retrieved")
     @Order(34)
-    void awaitSuccessfulPaymentOrThrowException() throws BlinkServiceException, BlinkPaymentFailureException {
+    void awaitSuccessfulPaymentOrThrowException() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()

@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Generated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
+import nz.co.blink.debit.exception.BlinkServiceException;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Arrays;
@@ -72,11 +72,11 @@ public class RefundDetail {
         }
 
         @JsonCreator
-        public static TypeEnum fromValue(String type) throws BlinkInvalidValueException {
+        public static TypeEnum fromValue(String type) throws BlinkServiceException {
             return Arrays.stream(TypeEnum.values())
                     .filter(typeEnum -> String.valueOf(typeEnum.value).equals(type))
                     .findFirst()
-                    .orElseThrow(() -> new BlinkInvalidValueException("Unknown type: " + type));
+                    .orElseThrow(() -> BlinkServiceException.createServiceException("Unknown type: " + type));
         }
     }
 
