@@ -22,6 +22,7 @@
 package nz.co.blink.debit.helpers;
 
 import lombok.extern.slf4j.Slf4j;
+import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ClientRequest;
@@ -64,8 +65,13 @@ public final class RequestHandler {
                 .header(CORRELATION_ID.getValue(), UUID.randomUUID().toString())
                 .build();
 
-        log.debug("Action: {} {}\nHeaders: {}\nBody: {}", clientRequest.method(), clientRequest.url(),
-                sanitiseHeaders(modifiedClientRequest.headers()), request);
+        if (request instanceof AccessTokenRequest) {
+            log.debug("Action: {} {}\nHeaders: {}\nBody: {}", clientRequest.method(), clientRequest.url(),
+                    sanitiseHeaders(modifiedClientRequest.headers()), "***REDACTED ACCESS TOKEN REQUEST PAYLOAD***");
+        } else {
+            log.debug("Action: {} {}\nHeaders: {}\nBody: {}", clientRequest.method(), clientRequest.url(),
+                    sanitiseHeaders(modifiedClientRequest.headers()), request);
+        }
 
         return exchangeFunction.exchange(modifiedClientRequest);
     }

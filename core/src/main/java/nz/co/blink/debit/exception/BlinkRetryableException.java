@@ -22,19 +22,19 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The exception thrown when the request timed out (408).
+ * The exception thrown when an API call failed but can be retried.
  */
-public class BlinkRequestTimeoutException extends BlinkServiceException {
+public class BlinkRetryableException extends Exception {
 
-    public BlinkRequestTimeoutException() {
-        this("Request timed out");
+    public BlinkRetryableException() {
+        this("Operation failed and will be retried");
     }
 
-    public BlinkRequestTimeoutException(String message) {
+    public BlinkRetryableException(String message) {
         super(message);
     }
 
-    public BlinkRequestTimeoutException(String message, Throwable cause) {
+    public BlinkRetryableException(String message, Throwable cause) {
         super(message, cause);
     }
 }

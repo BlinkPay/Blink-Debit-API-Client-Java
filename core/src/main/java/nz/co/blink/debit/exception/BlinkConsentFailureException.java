@@ -22,9 +22,9 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The base checked exception for Blink Debit consents.
+ * The exception for Blink Debit consents.
  */
-public class BlinkConsentFailureException extends Exception {
+public class BlinkConsentFailureException extends BlinkServiceException {
 
     public BlinkConsentFailureException() {
         this("Consent operation failed");

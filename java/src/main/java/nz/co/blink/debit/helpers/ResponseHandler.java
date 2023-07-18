@@ -27,8 +27,8 @@ import nz.co.blink.debit.exception.BlinkClientException;
 import nz.co.blink.debit.exception.BlinkForbiddenException;
 import nz.co.blink.debit.exception.BlinkNotImplementedException;
 import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
-import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkRetryableException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import org.springframework.http.HttpStatus;
@@ -39,7 +39,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.function.Function;
 
-import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.CORRELATION_ID;
 
 /**
  * The helper class for handling HTTP responses.
@@ -107,11 +107,11 @@ public final class ResponseHandler {
             } else if (HttpStatus.REQUEST_TIMEOUT == clientResponse.statusCode()) {
                 return clientResponse
                         .bodyToMono(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new BlinkRequestTimeoutException()))
+                        .switchIfEmpty(Mono.error(new BlinkRetryableException()))
                         .flatMap(body -> {
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(),
                                     clientResponse.headers().asHttpHeaders(), body.getMessage());
-                            return Mono.error(new BlinkRequestTimeoutException(body.getMessage()));
+                            return Mono.error(new BlinkRetryableException(body.getMessage()));
                         });
             } else if (HttpStatus.TOO_MANY_REQUESTS == clientResponse.statusCode()) {
                 return clientResponse
@@ -143,23 +143,23 @@ public final class ResponseHandler {
             } else if (clientResponse.statusCode().is5xxServerError()) {
                 return clientResponse
                         .bodyToMono(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new BlinkServiceException()))
+                        .switchIfEmpty(Mono.error(new BlinkRetryableException()))
                         .flatMap(body -> {
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(),
                                     clientResponse.headers().asHttpHeaders(), body.getMessage());
-                            return Mono.error(new BlinkServiceException(body.getMessage()));
+                            return Mono.error(new BlinkRetryableException(body.getMessage()));
                         });
             } else {
                 return clientResponse
                         .createException()
                         .flatMap(error -> {
-                            List<String> requestId = clientResponse.headers().header(REQUEST_ID.getValue());
+                            List<String> correlationId = clientResponse.headers().header(CORRELATION_ID.getValue());
                             String errorMessage = error.getMessage();
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(),
                                     clientResponse.headers().asHttpHeaders(), errorMessage);
                             return Mono.error(new BlinkServiceException("Service call to Blink Debit failed with error: "
-                                    + errorMessage + ", please contact BlinkPay with the request ID: "
-                                    + requestId));
+                                    + errorMessage + ", please contact BlinkPay with the correlation ID: "
+                                    + correlationId));
                         });
             }
         };
@@ -216,11 +216,11 @@ public final class ResponseHandler {
             } else if (HttpStatus.REQUEST_TIMEOUT == clientResponse.statusCode()) {
                 return clientResponse
                         .bodyToFlux(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new BlinkRequestTimeoutException()))
+                        .switchIfEmpty(Mono.error(new BlinkRetryableException()))
                         .flatMap(body -> {
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(),
                                     clientResponse.headers().asHttpHeaders(), body.getMessage());
-                            return Mono.error(new BlinkRequestTimeoutException(body.getMessage()));
+                            return Mono.error(new BlinkRetryableException(body.getMessage()));
                         });
             } else if (HttpStatus.TOO_MANY_REQUESTS == clientResponse.statusCode()) {
                 return clientResponse
@@ -252,24 +252,24 @@ public final class ResponseHandler {
             } else if (clientResponse.statusCode().is5xxServerError()) {
                 return clientResponse
                         .bodyToFlux(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new BlinkServiceException()))
+                        .switchIfEmpty(Mono.error(new BlinkRetryableException()))
                         .flatMap(body -> {
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(),
                                     clientResponse.headers().asHttpHeaders(), body.getMessage());
-                            return Mono.error(new BlinkServiceException(body.getMessage()));
+                            return Mono.error(new BlinkRetryableException(body.getMessage()));
                         });
             } else {
                 return clientResponse
                         .createException()
                         .flux()
                         .flatMap(error -> {
-                            List<String> requestId = clientResponse.headers().header(REQUEST_ID.getValue());
+                            List<String> correlationId = clientResponse.headers().header(CORRELATION_ID.getValue());
                             String errorMessage = error.getMessage();
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(),
                                     clientResponse.headers().asHttpHeaders(), errorMessage);
                             return Mono.error(new BlinkServiceException("Service call to Blink Debit failed with error: "
                                     + errorMessage + ", please contact BlinkPay with the correlation ID: "
-                                    + requestId));
+                                    + correlationId));
                         });
             }
         };
