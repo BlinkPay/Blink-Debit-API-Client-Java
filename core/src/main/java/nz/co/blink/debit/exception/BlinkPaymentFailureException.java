@@ -22,9 +22,9 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The base checked exception for Blink Debit payments.
+ * The exception for Blink Debit payments.
  */
-public class BlinkPaymentFailureException extends Exception {
+public class BlinkPaymentFailureException extends BlinkServiceException {
 
     public BlinkPaymentFailureException() {
         this("Payment operation failure");

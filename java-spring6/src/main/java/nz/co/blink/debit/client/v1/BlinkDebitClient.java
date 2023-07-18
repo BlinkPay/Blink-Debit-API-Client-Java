@@ -43,20 +43,12 @@ import nz.co.blink.debit.dto.v1.RefundDetail;
 import nz.co.blink.debit.dto.v1.RefundResponse;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
 import nz.co.blink.debit.enums.BlinkPayProperty;
-import nz.co.blink.debit.exception.BlinkClientException;
-import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkConsentRejectedException;
 import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
-import nz.co.blink.debit.exception.BlinkForbiddenException;
-import nz.co.blink.debit.exception.BlinkNotImplementedException;
-import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkPaymentRejectedException;
 import nz.co.blink.debit.exception.BlinkPaymentTimeoutException;
-import nz.co.blink.debit.exception.BlinkRateLimitExceededException;
-import nz.co.blink.debit.exception.BlinkRequestTimeoutException;
-import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
+import nz.co.blink.debit.exception.BlinkRetryableException;
 import nz.co.blink.debit.exception.BlinkServiceException;
-import nz.co.blink.debit.exception.BlinkUnauthorisedException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import nz.co.blink.debit.helpers.DefaultPropertyProvider;
 import nz.co.blink.debit.helpers.EnvironmentVariablePropertyProvider;
@@ -296,17 +288,11 @@ public class BlinkDebitClient {
                             .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
                     // retries are triggered for 408 (request timeout) and 5xx exceptions
                     // and for network errors thrown by WebFlux if the request didn't get to the server at all
-                    .retryExceptions(BlinkRequestTimeoutException.class,
-                            BlinkServiceException.class,
+                    .retryExceptions(BlinkRetryableException.class,
                             ConnectException.class,
                             WebClientRequestException.class)
                     // ignore 4xx and 501 (not implemented) exceptions
-                    .ignoreExceptions(BlinkUnauthorisedException.class,
-                            BlinkForbiddenException.class,
-                            BlinkResourceNotFoundException.class,
-                            BlinkRateLimitExceededException.class,
-                            BlinkNotImplementedException.class,
-                            BlinkClientException.class)
+                    .ignoreExceptions(BlinkServiceException.class)
                     .failAfterMaxAttempts(true)
                     .build();
             retry = Retry.of("retry", retryConfig);
@@ -520,10 +506,10 @@ public class BlinkDebitClient {
                             return consentMono;
                         }
 
-                        return Mono.error(new BlinkConsentFailureException());
+                        return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
                             .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                            .filter(BlinkConsentFailureException.class::isInstance)
+                            .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
                                 throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
@@ -543,18 +529,15 @@ public class BlinkDebitClient {
      * @param consentId      the consent ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Consent}
-     * @throws BlinkConsentFailureException thrown when a consent exception occurs
-     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     * @throws BlinkServiceException thrown when a Blink Debit service exception occurs
      */
     public Consent awaitAuthorisedSingleConsentOrThrowException(UUID consentId, final int maxWaitSeconds)
-            throws BlinkConsentFailureException, BlinkServiceException {
+            throws BlinkServiceException {
         try {
             return awaitAuthorisedSingleConsentAsMono(consentId, maxWaitSeconds).block();
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof BlinkConsentFailureException) {
-                throw (BlinkConsentFailureException) cause;
-            } else if (cause instanceof BlinkServiceException) {
+            if (cause instanceof BlinkServiceException) {
                 throw (BlinkServiceException) cause;
             }
 
@@ -598,9 +581,8 @@ public class BlinkDebitClient {
                             return Mono.error(exception2);
                         case GATEWAYAWAITINGSUBMISSION:
                         case AWAITINGAUTHORISATION:
-                            BlinkConsentFailureException exception3 =
-                                    new BlinkConsentFailureException("Single consent [" + consentId
-                                            + "] is waiting for authorisation");
+                            BlinkRetryableException exception3 = new BlinkRetryableException("Single consent ["
+                                    + consentId + "] is waiting for authorisation");
                             return Mono.error(exception3);
                     }
 
@@ -609,7 +591,7 @@ public class BlinkDebitClient {
                 })
                 .retryWhen(reactor.util.retry.Retry
                         .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkDebitClient::filterConsentException)
+                        .filter(BlinkRetryableException.class::isInstance)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
                             throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
@@ -823,10 +805,10 @@ public class BlinkDebitClient {
                             return consentMono;
                         }
 
-                        return Mono.error(new BlinkConsentFailureException());
+                        return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
                             .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                            .filter(BlinkConsentFailureException.class::isInstance)
+                            .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
                                 try {
@@ -854,18 +836,15 @@ public class BlinkDebitClient {
      * @param consentId      the consent ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Consent}
-     * @throws BlinkConsentFailureException thrown when a consent exception occurs
-     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     * @throws BlinkServiceException thrown when a Blink Debit service exception occurs
      */
     public Consent awaitAuthorisedEnduringConsentOrThrowException(UUID consentId, final int maxWaitSeconds)
-            throws BlinkConsentFailureException, BlinkServiceException {
+            throws BlinkServiceException {
         try {
             return awaitAuthorisedEnduringConsentAsMono(consentId, maxWaitSeconds).block();
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof BlinkConsentFailureException) {
-                throw (BlinkConsentFailureException) cause;
-            } else if (cause instanceof BlinkServiceException) {
+            if (cause instanceof BlinkServiceException) {
                 throw (BlinkServiceException) cause;
             }
 
@@ -910,9 +889,8 @@ public class BlinkDebitClient {
                                 return Mono.error(exception2);
                             case GATEWAYAWAITINGSUBMISSION:
                             case AWAITINGAUTHORISATION:
-                                BlinkConsentFailureException exception3 =
-                                        new BlinkConsentFailureException("Enduring consent [" + consentId
-                                                + "] is waiting for authorisation");
+                                BlinkRetryableException exception3 = new BlinkRetryableException("Enduring consent ["
+                                        + consentId + "] is waiting for authorisation");
                                 return Mono.error(exception3);
                         }
 
@@ -921,7 +899,7 @@ public class BlinkDebitClient {
                     })
                     .retryWhen(reactor.util.retry.Retry
                             .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                            .filter(BlinkDebitClient::filterConsentException)
+                            .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
                                 try {
@@ -1153,10 +1131,10 @@ public class BlinkDebitClient {
                             return quickPaymentResponseMono;
                         }
 
-                        return Mono.error(new BlinkConsentFailureException());
+                        return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
                             .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                            .filter(BlinkConsentFailureException.class::isInstance)
+                            .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 // Gateway timed out. Revoke so it can't be used anymore
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
@@ -1185,18 +1163,15 @@ public class BlinkDebitClient {
      * @param quickPaymentId the quick payment ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link QuickPaymentResponse}
-     * @throws BlinkConsentFailureException thrown when a consent exception occurs
-     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     * @throws BlinkServiceException thrown when a Blink Debit service exception occurs
      */
     public QuickPaymentResponse awaitSuccessfulQuickPaymentOrThrowException(UUID quickPaymentId, final int maxWaitSeconds)
-            throws BlinkConsentFailureException, BlinkServiceException {
+            throws BlinkServiceException {
         try {
             return awaitSuccessfulQuickPaymentAsMono(quickPaymentId, maxWaitSeconds).block();
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof BlinkConsentFailureException) {
-                throw (BlinkConsentFailureException) cause;
-            } else if (cause instanceof BlinkServiceException) {
+            if (cause instanceof BlinkServiceException) {
                 throw (BlinkServiceException) cause;
             }
 
@@ -1239,9 +1214,8 @@ public class BlinkDebitClient {
                             return Mono.error(exception2);
                         case GATEWAYAWAITINGSUBMISSION:
                         case AWAITINGAUTHORISATION:
-                            BlinkConsentFailureException exception3 =
-                                    new BlinkConsentFailureException("Quick payment [" + quickPaymentId
-                                            + "] is waiting for authorisation");
+                            BlinkRetryableException exception3 = new BlinkRetryableException("Quick payment ["
+                                    + quickPaymentId + "] is waiting for authorisation");
                             return Mono.error(exception3);
                     }
 
@@ -1251,7 +1225,7 @@ public class BlinkDebitClient {
                 })
                 .retryWhen(reactor.util.retry.Retry
                         .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkDebitClient::filterConsentException)
+                        .filter(BlinkRetryableException.class::isInstance)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             // Gateway timed out. Revoke so it can't be used anymore
                             BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
@@ -1535,10 +1509,10 @@ public class BlinkDebitClient {
                             return paymentMono;
                         }
 
-                        return Mono.error(new BlinkPaymentFailureException());
+                        return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
                             .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                            .filter(BlinkPaymentFailureException.class::isInstance)
+                            .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
                                 throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
@@ -1558,18 +1532,15 @@ public class BlinkDebitClient {
      * @param paymentId      the payment ID
      * @param maxWaitSeconds the number of seconds to wait
      * @return the {@link Payment}
-     * @throws BlinkPaymentFailureException thrown when a payment exception occurs
-     * @throws BlinkServiceException        thrown when a Blink Debit service exception occurs
+     * @throws BlinkServiceException thrown when a Blink Debit service exception occurs
      */
     public Payment awaitSuccessfulPaymentOrThrowException(UUID paymentId, final int maxWaitSeconds)
-            throws BlinkPaymentFailureException, BlinkServiceException {
+            throws BlinkServiceException {
         try {
             return awaitSuccessfulPaymentAsMono(paymentId, maxWaitSeconds).block();
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof BlinkPaymentFailureException) {
-                throw (BlinkPaymentFailureException) cause;
-            } else if (cause instanceof BlinkServiceException) {
+            if (cause instanceof BlinkServiceException) {
                 throw (BlinkServiceException) cause;
             }
 
@@ -1605,9 +1576,8 @@ public class BlinkDebitClient {
                             return Mono.error(exception1);
                         case ACCEPTEDSETTLEMENTINPROCESS:
                         case PENDING:
-                            BlinkPaymentFailureException exception3 =
-                                    new BlinkPaymentFailureException("Payment [" + paymentId
-                                            + "] is pending or being processed");
+                            BlinkRetryableException exception3 = new BlinkRetryableException("Payment [" + paymentId
+                                    + "] is pending or being processed");
                             return Mono.error(exception3);
                     }
 
@@ -1616,7 +1586,7 @@ public class BlinkDebitClient {
                 })
                 .retryWhen(reactor.util.retry.Retry
                         .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
-                        .filter(BlinkDebitClient::filterPaymentException)
+                        .filter(BlinkRetryableException.class::isInstance)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
                             throw Exceptions.retryExhausted(awaitException.getMessage(), awaitException);
@@ -1743,17 +1713,5 @@ public class BlinkDebitClient {
      */
     public Mono<Refund> getRefundAsMono(UUID refundId, final String requestId) throws BlinkServiceException {
         return refundsApiClient.getRefund(refundId, requestId);
-    }
-
-    private static boolean filterConsentException(Throwable throwable) {
-        return !(throwable instanceof BlinkConsentRejectedException
-                || throwable instanceof BlinkConsentTimeoutException
-                || throwable instanceof BlinkServiceException);
-    }
-
-    private static boolean filterPaymentException(Throwable throwable) {
-        return !(throwable instanceof BlinkPaymentRejectedException
-                || throwable instanceof BlinkPaymentTimeoutException
-                || throwable instanceof BlinkServiceException);
     }
 }
