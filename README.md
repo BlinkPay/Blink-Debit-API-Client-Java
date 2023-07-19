@@ -3,27 +3,17 @@
 
 ---
 ## blink-debit-api-client-java
-[![Maven Central](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java%22)
+[![Maven Central](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/nz.co.blinkpay/blink-debit-api-client-java)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=bugs)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java)
-[![Known Vulnerabilities](https://snyk.io/test/github/BlinkPay/Blink-Debit-API-Client-Java/badge.svg)](https://security.snyk.io/package/maven/nz.co.blinkpay:blink-debit-api-client-java)
+[![Snyk security](https://snyk.io/test/github/BlinkPay/Blink-Debit-API-Client-Java/badge.svg)](https://security.snyk.io/package/maven/nz.co.blinkpay:blink-debit-api-client-java)
 
 ---
 ## blink-debit-api-client-java-spring6
-[![Maven Central](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java-spring6.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22nz.co.blinkpay%22%20AND%20a:%22blink-debit-api-client-java-spring6%22)
+[![Maven Central](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java-spring6.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/nz.co.blinkpay/blink-debit-api-client-java-spring6)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=bugs)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=blink-debit-api-client-java-spring6&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=blink-debit-api-client-java-spring6)
-[![Known Vulnerabilities](https://snyk.io/test/github/BlinkPay/Blink-Debit-API-Client-Java/badge.svg)](https://security.snyk.io/package/maven/nz.co.blinkpay:blink-debit-api-client-java-spring6)
+[![Snyk security](https://snyk.io/test/github/BlinkPay/Blink-Debit-API-Client-Java/badge.svg)](https://security.snyk.io/package/maven/nz.co.blinkpay:blink-debit-api-client-java-spring6)
 
 # Table of Contents
 1. [Introduction](#introduction)
@@ -38,7 +28,7 @@
 10. [Individual API Call Examples](#individual-api-call-examples)
 
 ## Introduction
-This SDK allows merchants with Java-based e-commerce site to integrate with Blink PayNow and Blink AutoPay.
+This SDK allows merchants with Java-based e-commerce site to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
 
 This SDK internally uses WebClient, a reactive Web client introduced in Spring Framework 5, for making API calls.
 
