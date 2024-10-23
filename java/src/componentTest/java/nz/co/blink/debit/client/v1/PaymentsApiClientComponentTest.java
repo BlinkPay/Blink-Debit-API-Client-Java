@@ -193,22 +193,4 @@ class PaymentsApiClientComponentTest {
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
                 .containsExactly("particulars", "code", "reference");
     }
-
-    @Test
-    @DisplayName("Verify that payment for single consent is created in Westpac")
-    @Order(5)
-    void createWestpacPayment() throws BlinkServiceException {
-        PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"))
-                .accountReferenceId(UUID.randomUUID());
-
-        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPayment(request);
-
-        assertThat(paymentResponseMono).isNotNull();
-        PaymentResponse actual = paymentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId)
-                .isEqualTo(UUID.fromString("76ac9fa3-4793-45fe-8682-c7876fc5262e"));
-    }
 }

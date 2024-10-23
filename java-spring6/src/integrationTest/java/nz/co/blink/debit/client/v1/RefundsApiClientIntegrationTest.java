@@ -106,7 +106,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -114,7 +114,8 @@ class RefundsApiClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono =
                 singleConsentsApiClient.createSingleConsent(request);
@@ -201,13 +202,14 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID));
+                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono =
                 enduringConsentsApiClient.createEnduringConsent(request);
@@ -302,7 +304,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -310,7 +312,8 @@ class RefundsApiClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono =
                 singleConsentsApiClient.createSingleConsent(request);
@@ -375,7 +378,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -383,7 +386,8 @@ class RefundsApiClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono =
                 singleConsentsApiClient.createSingleConsent(request);

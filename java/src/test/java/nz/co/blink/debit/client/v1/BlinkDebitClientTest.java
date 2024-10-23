@@ -277,14 +277,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createSingleConsent(request);
 
@@ -307,14 +309,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createSingleConsent(request, UUID.randomUUID().toString());
 
@@ -337,14 +341,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request);
 
@@ -369,14 +375,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request,
                 UUID.randomUUID().toString());
@@ -402,7 +410,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -410,7 +418,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createSingleConsent(request);
 
@@ -433,7 +442,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -441,7 +450,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createSingleConsent(request, UUID.randomUUID().toString());
 
@@ -464,7 +474,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -472,7 +482,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request);
 
@@ -497,7 +508,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -505,7 +516,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request,
                 UUID.randomUUID().toString());
@@ -538,7 +550,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createSingleConsent(request, UUID.randomUUID().toString());
 
@@ -568,7 +581,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createSingleConsent(request);
 
@@ -598,7 +612,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request);
 
@@ -630,7 +645,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsentAsMono(request,
                 UUID.randomUUID().toString());
@@ -655,6 +671,7 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .pcr(new Pcr()
                                 .particulars("particulars")
@@ -663,6 +680,7 @@ class BlinkDebitClientTest {
                         .amount(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("1.25"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
                 .payments(Collections.emptySet());
         when(singleConsentsApiClient.getSingleConsent(consentId))
@@ -712,6 +730,7 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .pcr(new Pcr()
                                 .particulars("particulars")
@@ -720,6 +739,7 @@ class BlinkDebitClientTest {
                         .amount(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("1.25"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
                 .payments(Collections.emptySet());
         when(singleConsentsApiClient.getSingleConsent(consentId, requestId))
@@ -768,6 +788,7 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .pcr(new Pcr()
                                 .particulars("particulars")
@@ -776,6 +797,7 @@ class BlinkDebitClientTest {
                         .amount(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("1.25"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
                 .payments(Collections.emptySet());
         when(singleConsentsApiClient.getSingleConsent(consentId))
@@ -826,6 +848,7 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .pcr(new Pcr()
                                 .particulars("particulars")
@@ -834,6 +857,7 @@ class BlinkDebitClientTest {
                         .amount(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("1.25"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
                 .payments(Collections.emptySet());
         when(singleConsentsApiClient.getSingleConsent(consentId, requestId))
@@ -929,7 +953,8 @@ class BlinkDebitClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createEnduringConsent(request);
 
@@ -960,7 +985,8 @@ class BlinkDebitClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createEnduringConsent(request, UUID.randomUUID().toString());
 
@@ -990,7 +1016,8 @@ class BlinkDebitClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request);
 
@@ -1023,7 +1050,8 @@ class BlinkDebitClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request,
                 UUID.randomUUID().toString());
@@ -1049,14 +1077,15 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createEnduringConsent(request);
 
@@ -1080,14 +1109,15 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createEnduringConsent(request, UUID.randomUUID().toString());
 
@@ -1110,14 +1140,15 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request);
 
@@ -1143,14 +1174,15 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request,
                 UUID.randomUUID().toString());
@@ -1177,14 +1209,15 @@ class BlinkDebitClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createEnduringConsent(request);
 
@@ -1208,14 +1241,15 @@ class BlinkDebitClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse actual = client.createEnduringConsent(request, UUID.randomUUID().toString());
 
@@ -1239,14 +1273,15 @@ class BlinkDebitClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request);
 
@@ -1272,14 +1307,15 @@ class BlinkDebitClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsentAsMono(request,
                 UUID.randomUUID().toString());
@@ -1305,12 +1341,14 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .period(Period.MONTHLY)
                         .fromTimestamp(now)
                         .maximumAmountPeriod(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("50.00"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
                 .payments(Collections.emptySet());
         when(enduringConsentsApiClient.getEnduringConsent(consentId))
@@ -1359,12 +1397,14 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .period(Period.MONTHLY)
                         .fromTimestamp(now)
                         .maximumAmountPeriod(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("50.00"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
                 .payments(Collections.emptySet());
         when(enduringConsentsApiClient.getEnduringConsent(consentId, requestId))
@@ -1412,12 +1452,14 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .period(Period.MONTHLY)
                         .fromTimestamp(now)
                         .maximumAmountPeriod(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("50.00"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
                 .payments(Collections.emptySet());
         when(enduringConsentsApiClient.getEnduringConsent(consentId))
@@ -1467,12 +1509,14 @@ class BlinkDebitClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .period(Period.MONTHLY)
                         .fromTimestamp(now)
                         .maximumAmountPeriod(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("50.00"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
                 .payments(Collections.emptySet());
         when(enduringConsentsApiClient.getEnduringConsent(consentId, requestId))
@@ -1559,14 +1603,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request);
 
@@ -1589,14 +1635,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request,
                 UUID.randomUUID().toString());
@@ -1620,14 +1668,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPaymentAsMono(request);
@@ -1653,14 +1703,16 @@ class BlinkDebitClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPaymentAsMono(request, UUID.randomUUID().toString());
@@ -1686,7 +1738,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1694,7 +1746,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request);
 
@@ -1717,7 +1770,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1725,7 +1778,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request,
                 UUID.randomUUID().toString());
@@ -1749,7 +1803,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1757,7 +1811,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPaymentAsMono(request);
@@ -1783,7 +1838,7 @@ class BlinkDebitClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1791,7 +1846,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPaymentAsMono(request, UUID.randomUUID().toString());
@@ -1825,7 +1881,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request);
 
@@ -1856,7 +1913,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request,
                 UUID.randomUUID().toString());
@@ -1888,7 +1946,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPaymentAsMono(request);
@@ -1922,7 +1981,8 @@ class BlinkDebitClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPaymentAsMono(request, UUID.randomUUID().toString());
@@ -1952,6 +2012,7 @@ class BlinkDebitClientTest {
                                         .detail((OneOfauthFlowDetail) new RedirectFlow()
                                                 .bank(Bank.PNZ)
                                                 .redirectUri(REDIRECT_URI)
+                                                .redirectToApp(true)
                                                 .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                                 .pcr(new Pcr()
                                         .particulars("particulars")
@@ -1960,6 +2021,7 @@ class BlinkDebitClientTest {
                                 .amount(new Amount()
                                         .currency(Amount.CurrencyEnum.NZD)
                                         .total("1.25"))
+                                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
                         .payments(Collections.emptySet()));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId))
@@ -2019,6 +2081,7 @@ class BlinkDebitClientTest {
                                         .detail((OneOfauthFlowDetail) new RedirectFlow()
                                                 .bank(Bank.PNZ)
                                                 .redirectUri(REDIRECT_URI)
+                                                .redirectToApp(true)
                                                 .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                                 .pcr(new Pcr()
                                         .particulars("particulars")
@@ -2027,6 +2090,7 @@ class BlinkDebitClientTest {
                                 .amount(new Amount()
                                         .currency(Amount.CurrencyEnum.NZD)
                                         .total("1.25"))
+                                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
                         .payments(Collections.emptySet()));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId))
@@ -2085,6 +2149,7 @@ class BlinkDebitClientTest {
                                         .detail((OneOfauthFlowDetail) new RedirectFlow()
                                                 .bank(Bank.PNZ)
                                                 .redirectUri(REDIRECT_URI)
+                                                .redirectToApp(true)
                                                 .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                                 .pcr(new Pcr()
                                         .particulars("particulars")
@@ -2093,6 +2158,7 @@ class BlinkDebitClientTest {
                                 .amount(new Amount()
                                         .currency(Amount.CurrencyEnum.NZD)
                                         .total("1.25"))
+                                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
                         .payments(Collections.emptySet()));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId))
@@ -2154,6 +2220,7 @@ class BlinkDebitClientTest {
                                         .detail((OneOfauthFlowDetail) new RedirectFlow()
                                                 .bank(Bank.PNZ)
                                                 .redirectUri(REDIRECT_URI)
+                                                .redirectToApp(true)
                                                 .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                                 .pcr(new Pcr()
                                         .particulars("particulars")
@@ -2162,6 +2229,7 @@ class BlinkDebitClientTest {
                                 .amount(new Amount()
                                         .currency(Amount.CurrencyEnum.NZD)
                                         .total("1.25"))
+                                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
                         .payments(Collections.emptySet()));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId))
@@ -2427,91 +2495,6 @@ class BlinkDebitClientTest {
                                 .reference("reference")));
 
         Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request,
-                UUID.randomUUID().toString());
-
-        assertThat(paymentResponseMono).isNotNull();
-        PaymentResponse actual = paymentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId)
-                .isEqualTo(paymentId);
-    }
-
-    @Test
-    void createWestpacPayment() throws BlinkServiceException {
-        UUID paymentId = UUID.randomUUID();
-        PaymentResponse response = new PaymentResponse()
-                .paymentId(paymentId);
-        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class)))
-                .thenReturn(Mono.just(response));
-
-        PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.randomUUID())
-                .accountReferenceId(UUID.randomUUID());
-
-        PaymentResponse actual = client.createWestpacPayment(request);
-
-        assertThat(actual)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId)
-                .isEqualTo(paymentId);
-    }
-
-    @Test
-    void createWestpacPaymentWithRequestId() throws BlinkServiceException {
-        UUID paymentId = UUID.randomUUID();
-        PaymentResponse response = new PaymentResponse()
-                .paymentId(paymentId);
-        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class), anyString()))
-                .thenReturn(Mono.just(response));
-
-        PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.randomUUID())
-                .accountReferenceId(UUID.randomUUID());
-
-        PaymentResponse actual = client.createWestpacPayment(request, UUID.randomUUID().toString());
-
-        assertThat(actual)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId)
-                .isEqualTo(paymentId);
-    }
-
-    @Test
-    void createWestpacPaymentAsMono() throws BlinkServiceException {
-        UUID paymentId = UUID.randomUUID();
-        PaymentResponse response = new PaymentResponse()
-                .paymentId(paymentId);
-        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class)))
-                .thenReturn(Mono.just(response));
-
-        PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.randomUUID())
-                .accountReferenceId(UUID.randomUUID());
-
-        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPaymentAsMono(request);
-
-        assertThat(paymentResponseMono).isNotNull();
-        PaymentResponse actual = paymentResponseMono.block();
-        assertThat(actual)
-                .isNotNull()
-                .extracting(PaymentResponse::getPaymentId)
-                .isEqualTo(paymentId);
-    }
-
-    @Test
-    void createWestpacPaymentAsMonoWithRequestId() throws BlinkServiceException {
-        UUID paymentId = UUID.randomUUID();
-        PaymentResponse response = new PaymentResponse()
-                .paymentId(paymentId);
-        when(paymentsApiClient.createWestpacPayment(any(PaymentRequest.class), anyString()))
-                .thenReturn(Mono.just(response));
-
-        PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.randomUUID())
-                .accountReferenceId(UUID.randomUUID());
-
-        Mono<PaymentResponse> paymentResponseMono = client.createWestpacPaymentAsMono(request,
                 UUID.randomUUID().toString());
 
         assertThat(paymentResponseMono).isNotNull();
@@ -3098,7 +3081,7 @@ class BlinkDebitClientTest {
     }
 
     @Test
-    void constructNoArgs() throws IOException {
+    void constructNoArgs() {
         assertThatNoException().isThrownBy(BlinkDebitClient::new);
     }
 }

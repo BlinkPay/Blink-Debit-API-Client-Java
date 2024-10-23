@@ -114,9 +114,9 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that null request is handled")
-    void createAccountNumberRefundWithNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(null).block(),
-                BlinkInvalidValueException.class);
+    void createRefundWithNullRequest() {
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -128,8 +128,8 @@ class RefundsApiClientTest {
     void createAccountNumberRefundWithNullPaymentId() {
         AccountNumberRefundRequest request = new AccountNumberRefundRequest();
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createRefund(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -137,23 +137,12 @@ class RefundsApiClientTest {
     }
 
     @Test
-    @DisplayName("Verify that null request is handled")
-    void createFullRefundWithNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(null).block(),
-                BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Refund request must not be null");
-    }
-
-    @Test
     @DisplayName("Verify that null payment ID is handled")
     void createFullRefundWithNullPaymentId() {
         FullRefundRequest request = new FullRefundRequest();
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -167,8 +156,8 @@ class RefundsApiClientTest {
                 .consentRedirect("https://www.mymerchant.co.nz")
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -188,8 +177,8 @@ class RefundsApiClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -207,8 +196,8 @@ class RefundsApiClientTest {
                         .reference("merchant reference"))
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -216,23 +205,12 @@ class RefundsApiClientTest {
     }
 
     @Test
-    @DisplayName("Verify that null request is handled")
-    void createPartialRefundWithNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(null).block(),
-                BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Refund request must not be null");
-    }
-
-    @Test
     @DisplayName("Verify that null payment ID is handled")
     void createPartialRefundWithNullPaymentId() {
         PartialRefundRequest request = new PartialRefundRequest();
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -246,8 +224,8 @@ class RefundsApiClientTest {
                 .consentRedirect("https://www.mymerchant.co.nz")
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -270,8 +248,8 @@ class RefundsApiClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -289,8 +267,8 @@ class RefundsApiClientTest {
                         .reference("reference"))
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -310,8 +288,8 @@ class RefundsApiClientTest {
                         .total("25.50"))
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -334,8 +312,8 @@ class RefundsApiClientTest {
                         .total(total))
                 .paymentId(UUID.randomUUID());
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.createRefund(request).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createRefund(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -345,9 +323,8 @@ class RefundsApiClientTest {
     @Test
     @DisplayName("Verify that null refund ID is handled")
     void getRefundWithNullRefundId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                        client.getRefund(null, UUID.randomUUID().toString()).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.getRefund(null, UUID.randomUUID().toString()).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -356,6 +333,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that refund is retrieved")
+    @SuppressWarnings("unchecked")
     void getRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -400,6 +378,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that account number refund is created")
+    @SuppressWarnings("unchecked")
     void createAccountNumberRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -433,6 +412,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that full refund is created")
+    @SuppressWarnings("unchecked")
     void createFullRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -471,6 +451,7 @@ class RefundsApiClientTest {
 
     @Test
     @DisplayName("Verify that partial refund is created")
+    @SuppressWarnings("unchecked")
     void createPartialRefund() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");

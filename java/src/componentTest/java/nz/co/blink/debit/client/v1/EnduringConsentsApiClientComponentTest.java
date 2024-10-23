@@ -119,13 +119,15 @@ class EnduringConsentsApiClientComponentTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -135,7 +137,7 @@ class EnduringConsentsApiClientComponentTest {
                 .isNotNull()
                 .extracting(CreateConsentResponse::getConsentId, CreateConsentResponse::getRedirectUri)
                 .containsExactly(UUID.fromString("8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458"),
-                        "https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize?scope=openid%20payments&response_type=code%20id_token&request=header.payload.signature&state=8e916a6f-2a5d-4cb1-8b0b-8e8bb9677458&nonce=b53c608b-bee8-4d31-9962-d8c566994f73&redirect_uri=https%3A%2F%2Fsandbox.debit.blinkpay.co.nz%2Fbank%2F1.0%2Freturn&client_id=clientId");
+                        "https://obabank.glueware.dev/auth/login?oba_request=eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCIsImtpZCI6ImZkYzAzZmJlLWExOTAtNDFlZS1iNDk2LWE1ODRmM2Y0YTZkMiJ9.eyJoeWJyaWRfcmVxX2lkIjoiYTU0NmE0MzMtOTk3OS00MGU5LWIwNjctY2VmNDQ0ZmMyMDY5LWRwY182NzE4NGFmMGRjMzM2ZjAwMjMzNzlkMDYiLCJpYXQiOjE3Mjk2NDUyOTcsImV4cCI6MTcyOTY0NzA5NywiaXNzIjoiaHR0cHM6Ly9hcGktbm9tYXRscy5hcGljZW50cmUubWlkZGxld2FyZS5jby5uei8iLCJqdGkiOiI3NGU3NDQ1Yi1hOWUzLTRkNmUtODE5Yy00OTVlYzU4MmNiMzYifQ.rVZ6JUVdAPz954WSgSNVyz9xQXnc6itbKqF3dTlAD0hKevBI1e10k3Af35XBqlszqjMlF6zXJzql8vhIZ0QiJ3OzWyr_vUTYneKJ03npo0-qWznVKluTQQnTPYz00pF8JRSuWfHvTpBtXM1vU_JBqfbPPDj0kWPzHl4ojw4hD4oKoA0uDcJHB9CgArcXsDUhI6lmQy0h7-tT2PmHUB8qJCBU-XoPnSpEMRwwazhQTeMu1_7BiM8RPi2PAibrZuZmffwZ419_Y5Etn--5ll8U0XvssY5Qq7wkkyY4M1qJeQe8mPztwoAexLTgmPgd_H8FzYoboRSfFcXo7saaybH-ysPObKq_l9xP26S1ES3uzJQsBuIs4jieUDYkDrPfhtIBCjctosMY7a1BNkM1WtLeu0jjWTJNxsgjcYPDSPxeEELweI0yYHmE-LUegSb5oqrtZTKtfIs6DONKQ52tIO1qudZJ14-HoBHiUZhx_3CGWn31ZRX-LS8HFEzfEe0RF9uo5vwamUv4OfOk9Q51cDJFNty-UhVy-vHEekYLviAqkz0IeDYprQmndEnWViumDooXGkHL_rWL_2yplUk8rjnQhWTbz8MboQ5kUARoe2R481bcTgkKvJOuROlUOiK89SdL5tZVHpCZzUwykpQgPNIdxjWOrXDEIQkzAXA08N4KwW0");
     }
 
     @Test
@@ -191,14 +193,15 @@ class EnduringConsentsApiClientComponentTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl("callbackUrl")))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -239,7 +242,7 @@ class EnduringConsentsApiClientComponentTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425");
+                        "+64-259531933");
         assertThat(detail.getPeriod()).isEqualTo(Period.FORTNIGHTLY);
         assertThat(detail.getFromTimestamp()).isNotNull();
         assertThat(detail.getExpiryTimestamp()).isNotNull();
@@ -264,7 +267,8 @@ class EnduringConsentsApiClientComponentTest {
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -287,14 +291,15 @@ class EnduringConsentsApiClientComponentTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 

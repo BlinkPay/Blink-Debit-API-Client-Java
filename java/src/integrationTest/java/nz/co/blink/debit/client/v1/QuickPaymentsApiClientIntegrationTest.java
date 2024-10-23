@@ -88,14 +88,16 @@ class QuickPaymentsApiClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
@@ -107,11 +109,7 @@ class QuickPaymentsApiClientIntegrationTest {
         assertThat(quickPaymentId).isNotNull();
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
     }
 
     @Test
@@ -259,7 +257,7 @@ class QuickPaymentsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -267,7 +265,8 @@ class QuickPaymentsApiClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
@@ -314,7 +313,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -361,7 +360,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -388,7 +387,8 @@ class QuickPaymentsApiClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
@@ -516,7 +516,7 @@ class QuickPaymentsApiClientIntegrationTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -524,7 +524,8 @@ class QuickPaymentsApiClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono = client.createQuickPayment(request);
 
@@ -581,7 +582,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .extracting(DecoupledFlowHint::getType, DecoupledFlowHint::getBank,
                         DecoupledFlowHint::getIdentifierType, DecoupledFlowHint::getIdentifierValue)
                 .containsExactly(FlowHint.TypeEnum.DECOUPLED, Bank.PNZ,
-                        IdentifierType.PHONE_NUMBER, "+6449144425");
+                        IdentifierType.PHONE_NUMBER, "+64-259531933");
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -632,7 +633,7 @@ class QuickPaymentsApiClientIntegrationTest {
                 .extracting(DecoupledFlowHint::getType, DecoupledFlowHint::getBank,
                         DecoupledFlowHint::getIdentifierType, DecoupledFlowHint::getIdentifierValue)
                 .containsExactly(FlowHint.TypeEnum.DECOUPLED, Bank.PNZ,
-                        IdentifierType.PHONE_NUMBER, "+6449144425");
+                        IdentifierType.PHONE_NUMBER, "+64-259531933");
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)

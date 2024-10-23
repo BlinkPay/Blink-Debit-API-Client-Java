@@ -115,14 +115,16 @@ class SingleConsentsApiClientComponentTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.BNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -199,7 +201,8 @@ class SingleConsentsApiClientComponentTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -241,7 +244,7 @@ class SingleConsentsApiClientComponentTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425");
+                        "+64-259531933");
         assertThat(detail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -268,7 +271,8 @@ class SingleConsentsApiClientComponentTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -299,7 +303,8 @@ class SingleConsentsApiClientComponentTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 

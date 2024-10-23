@@ -64,6 +64,9 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
     @JsonProperty("period")
     private Period period = null;
 
+    @JsonProperty("hashed_customer_identifier")
+    private String hashedCustomerIdentifier = null;
+
     public EnduringConsentRequest flow(AuthFlow flow) {
         this.flow = flow;
         return this;
@@ -168,6 +171,25 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
         this.period = period;
     }
 
+    public EnduringConsentRequest hashedCustomerIdentifier(String hashedCustomerIdentifier) {
+        this.hashedCustomerIdentifier = hashedCustomerIdentifier;
+        return this;
+    }
+
+    /**
+     * The hashed unique ID of the customer e.g. customer internal ID. SHA-256 is recommended.
+     *
+     * @return hashedCustomerIdentifier
+     **/
+    @Schema(description = "The hashed unique ID of the customer e.g. customer internal ID. SHA-256 is recommended.")
+    public String getHashedCustomerIdentifier() {
+        return hashedCustomerIdentifier;
+    }
+
+    public void setHashedCustomerIdentifier(String hashedCustomerIdentifier) {
+        this.hashedCustomerIdentifier = hashedCustomerIdentifier;
+    }
+
     @Override
     public TypeEnum getType() {
         return TypeEnum.ENDURING;
@@ -187,12 +209,14 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
                 && Objects.equals(this.fromTimestamp, enduringConsentRequest.fromTimestamp)
                 && Objects.equals(this.maximumAmountPeriod, enduringConsentRequest.maximumAmountPeriod)
                 && Objects.equals(this.period, enduringConsentRequest.period)
+                && Objects.equals(this.hashedCustomerIdentifier, enduringConsentRequest.hashedCustomerIdentifier)
                 && super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(flow, expiryTimestamp, fromTimestamp, maximumAmountPeriod, period, super.hashCode());
+        return Objects.hash(flow, expiryTimestamp, fromTimestamp, maximumAmountPeriod, period, hashedCustomerIdentifier,
+                super.hashCode());
     }
 
     @Override
@@ -205,6 +229,7 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
         sb.append("    fromTimestamp: ").append(toIndentedString(fromTimestamp)).append("\n");
         sb.append("    maximumAmountPeriod: ").append(toIndentedString(maximumAmountPeriod)).append("\n");
         sb.append("    period: ").append(toIndentedString(period)).append("\n");
+        sb.append("    hashedCustomerIdentifier: ").append(toIndentedString(hashedCustomerIdentifier)).append("\n");
         sb.append("}");
         return sb.toString();
     }

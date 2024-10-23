@@ -45,10 +45,8 @@ import nz.co.blink.debit.dto.v1.QuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.RedirectFlow;
 import nz.co.blink.debit.dto.v1.RedirectFlowHint;
 import nz.co.blink.debit.dto.v1.SingleConsentRequest;
-import nz.co.blink.debit.exception.BlinkConsentFailureException;
 import nz.co.blink.debit.exception.BlinkConsentRejectedException;
 import nz.co.blink.debit.exception.BlinkConsentTimeoutException;
-import nz.co.blink.debit.exception.BlinkPaymentFailureException;
 import nz.co.blink.debit.exception.BlinkResourceNotFoundException;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
@@ -100,30 +98,28 @@ class BlinkDebitClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createSingleConsent(request);
         assertThat(response).isNotNull();
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        BlinkServiceException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsent(consentId, 5), BlinkServiceException.class);
+        BlinkServiceException exception = catchThrowableOfType(BlinkServiceException.class,
+                () -> client.awaitAuthorisedSingleConsent(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -136,8 +132,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentSingleConsentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsent(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitAuthorisedSingleConsent(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -153,7 +149,7 @@ class BlinkDebitClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -161,7 +157,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createSingleConsent(request);
         assertThat(response)
@@ -201,7 +198,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
     }
 
     @Test
@@ -212,30 +209,28 @@ class BlinkDebitClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createSingleConsent(request);
         assertThat(response).isNotNull();
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        BlinkConsentTimeoutException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5), BlinkConsentTimeoutException.class);
+        BlinkConsentTimeoutException exception = catchThrowableOfType(BlinkConsentTimeoutException.class,
+                () -> client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -248,8 +243,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentSingleConsentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -259,13 +254,13 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that single consent with decoupled flow is retrieved")
     @Order(6)
-    void awaitAuthorisedSingleConsentOrThrowException() throws BlinkServiceException, BlinkConsentFailureException {
+    void awaitAuthorisedSingleConsentOrThrowException() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -273,7 +268,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createSingleConsent(request);
         assertThat(response)
@@ -313,7 +309,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
     }
 
     @Test
@@ -324,28 +320,26 @@ class BlinkDebitClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")));
+                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createEnduringConsent(request);
         assertThat(response).isNotNull();
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        BlinkServiceException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsent(consentId, 5), BlinkServiceException.class);
+        BlinkServiceException exception = catchThrowableOfType(BlinkServiceException.class,
+                () -> client.awaitAuthorisedEnduringConsent(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -358,8 +352,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentEnduringConsentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsent(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitAuthorisedEnduringConsent(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -375,13 +369,14 @@ class BlinkDebitClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")));
+                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createEnduringConsent(request);
         assertThat(response)
@@ -419,7 +414,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
     }
 
     @Test
@@ -430,28 +425,26 @@ class BlinkDebitClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")));
+                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createEnduringConsent(request);
         assertThat(response).isNotNull();
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
-        BlinkConsentTimeoutException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkConsentTimeoutException.class);
+        BlinkConsentTimeoutException exception = catchThrowableOfType(BlinkConsentTimeoutException.class,
+                () -> client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -464,8 +457,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentEnduringConsentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -475,19 +468,20 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is retrieved")
     @Order(16)
-    void awaitAuthorisedEnduringConsentOrThrowException() throws BlinkServiceException, BlinkConsentFailureException {
+    void awaitAuthorisedEnduringConsentOrThrowException() throws BlinkServiceException {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")));
+                .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createEnduringConsent(request);
         assertThat(response)
@@ -525,7 +519,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
     }
 
     @Test
@@ -536,30 +530,28 @@ class BlinkDebitClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse response = client.createQuickPayment(request);
         assertThat(response).isNotNull();
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
         UUID quickPaymentId = response.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
-        BlinkServiceException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulQuickPayment(quickPaymentId, 5), BlinkServiceException.class);
+        BlinkServiceException exception = catchThrowableOfType(BlinkServiceException.class,
+                () -> client.awaitSuccessfulQuickPayment(quickPaymentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -572,8 +564,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentQuickPaymentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulQuickPayment(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitSuccessfulQuickPayment(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -590,7 +582,7 @@ class BlinkDebitClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -598,7 +590,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse response = client.createQuickPayment(request);
         assertThat(response)
@@ -654,7 +647,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
     }
 
     @Test
@@ -665,31 +658,28 @@ class BlinkDebitClientIntegrationTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request);
         assertThat(actual).isNotNull();
         String redirectUri = actual.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/middleware-nz-sandbox/v2.0/oauth/authorize"
-                        + "?scope=openid%20payments&response_type=code%20id_token")
-                .contains("&request=", "&state=", "&nonce=")
-                .contains("&redirect_uri=")
-                .contains("&client_id=");
+                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
         UUID quickPaymentId = actual.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
-        BlinkConsentTimeoutException exception = catchThrowableOfType(() ->
-                        client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 5),
-                BlinkConsentTimeoutException.class);
+        BlinkConsentTimeoutException exception = catchThrowableOfType(BlinkConsentTimeoutException.class,
+                () -> client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -703,8 +693,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentQuickPaymentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitSuccessfulQuickPaymentOrThrowException(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -728,7 +718,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse actual = client.createQuickPayment(request);
         assertThat(actual).isNotNull();
@@ -741,9 +732,8 @@ class BlinkDebitClientIntegrationTest {
 
         client.revokeQuickPayment(quickPaymentId);
 
-        BlinkConsentRejectedException exception = catchThrowableOfType(() ->
-                        client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 30),
-                BlinkConsentRejectedException.class);
+        BlinkConsentRejectedException exception = catchThrowableOfType(BlinkConsentRejectedException.class,
+                () -> client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 30));
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Quick payment [" + quickPaymentId + "] has been rejected or revoked");
@@ -752,14 +742,13 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is retrieved")
     @Order(27)
-    void awaitSuccessfulQuickPaymentOrThrowException()
-            throws BlinkConsentFailureException, BlinkServiceException {
+    void awaitSuccessfulQuickPaymentOrThrowException() throws BlinkServiceException {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -767,7 +756,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateQuickPaymentResponse response = client.createQuickPayment(request);
         assertThat(response)
@@ -824,7 +814,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
     }
 
     @Test
@@ -833,8 +823,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentPaymentThenThrowRuntimeException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulPayment(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitSuccessfulPayment(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -850,7 +840,7 @@ class BlinkDebitClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -858,7 +848,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createSingleConsent(request);
         assertThat(response)
@@ -898,7 +889,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
 
         PaymentRequest paymentRequest = new PaymentRequest()
                 .consentId(consentId);
@@ -931,8 +922,8 @@ class BlinkDebitClientIntegrationTest {
     void awaitNonExistentPaymentThenThrowResourceNotFoundException() {
         UUID consentId = UUID.randomUUID();
 
-        BlinkResourceNotFoundException exception = catchThrowableOfType(() ->
-                client.awaitSuccessfulPaymentOrThrowException(consentId, 5), BlinkResourceNotFoundException.class);
+        BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
+                () -> client.awaitSuccessfulPaymentOrThrowException(consentId, 5));
 
         assertThat(exception)
                 .isNotNull()
@@ -942,13 +933,13 @@ class BlinkDebitClientIntegrationTest {
     @Test
     @DisplayName("Verify that payment is retrieved")
     @Order(34)
-    void awaitSuccessfulPaymentOrThrowException() throws BlinkServiceException, BlinkPaymentFailureException {
+    void awaitSuccessfulPaymentOrThrowException() throws BlinkServiceException {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -956,7 +947,8 @@ class BlinkDebitClientIntegrationTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         CreateConsentResponse response = client.createSingleConsent(request);
         assertThat(response)
@@ -996,7 +988,7 @@ class BlinkDebitClientIntegrationTest {
                 .extracting(DecoupledFlow::getType, DecoupledFlow::getBank, DecoupledFlow::getIdentifierType,
                         DecoupledFlow::getIdentifierValue, DecoupledFlow::getCallbackUrl)
                 .containsExactly(AuthFlowDetail.TypeEnum.DECOUPLED, Bank.PNZ, IdentifierType.PHONE_NUMBER,
-                        "+6449144425", CALLBACK_URL);
+                        "+64-259531933", CALLBACK_URL);
 
         PaymentRequest paymentRequest = new PaymentRequest()
                 .consentId(consentId);

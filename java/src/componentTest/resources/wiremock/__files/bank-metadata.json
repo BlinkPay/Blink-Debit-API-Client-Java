@@ -2,6 +2,10 @@
   {
     "name": "BNZ",
     "features": {
+      "enduring_consent": {
+        "enabled": true,
+        "consent_indefinite": false
+      },
       "decoupled_flow": {
         "enabled": true,
         "available_identifiers": [
@@ -48,6 +52,37 @@
   {
     "name": "Westpac",
     "features": {},
+    "redirect_flow": {
+      "enabled": true,
+      "request_timeout": "PT10M"
+    }
+  },
+  {
+    "name": "ANZ",
+    "features": {
+      "decoupled_flow": {
+        "enabled": true,
+        "available_identifiers": [
+          {
+            "type": "mobile_number",
+            "name": "Mobile Number"
+          }
+        ],
+        "request_timeout": "PT7M"
+      }
+    },
+    "redirect_flow": {
+      "enabled": false
+    }
+  },
+  {
+    "name": "ASB",
+    "features": {
+      "enduring_consent": {
+        "enabled": true,
+        "consent_indefinite": false
+      }
+    },
     "redirect_flow": {
       "enabled": true,
       "request_timeout": "PT10M"

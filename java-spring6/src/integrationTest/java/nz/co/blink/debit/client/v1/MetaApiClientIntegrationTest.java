@@ -74,7 +74,10 @@ class MetaApiClientIntegrationTest {
                                         new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
                                                 .type(IdentifierType.CONSENT_ID)
                                                 .name("Consent ID")))
-                                .requestTimeout("PT4M")))
+                                .requestTimeout("PT4M"))
+                        .enduringConsent(new BankmetadataFeaturesEnduringConsent()
+                                .enabled(true)
+                                .consentIndefinite(false)))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
                         .requestTimeout("PT5M"));
@@ -94,7 +97,7 @@ class MetaApiClientIntegrationTest {
                                                 new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
                                                         .type(IdentifierType.MOBILE_NUMBER)
                                                         .name("Mobile Number"))
-                                        .collect(Collectors.toList()))
+                                        .toList())
                                 .requestTimeout("PT3M")))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
@@ -109,7 +112,10 @@ class MetaApiClientIntegrationTest {
 
         BankMetadata asb = new BankMetadata()
                 .name(Bank.ASB)
-                .features(new BankmetadataFeatures())
+                .features(new BankmetadataFeatures()
+                        .enduringConsent(new BankmetadataFeaturesEnduringConsent()
+                                .enabled(true)
+                                .consentIndefinite(false)))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
                         .requestTimeout("PT10M"));
@@ -123,7 +129,7 @@ class MetaApiClientIntegrationTest {
                                                 new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
                                                         .type(IdentifierType.MOBILE_NUMBER)
                                                         .name("Mobile Number"))
-                                        .collect(Collectors.toList()))
+                                        .toList())
                                 .requestTimeout("PT7M")))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(false));

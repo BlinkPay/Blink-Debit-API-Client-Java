@@ -106,7 +106,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -201,7 +201,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -302,7 +302,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -355,8 +355,8 @@ class RefundsApiClientIntegrationTest {
                         .reference("reference"))
                 .paymentId(paymentId);
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(refundRequest).block(),
-                RuntimeException.class);
+        RuntimeException exception = catchThrowableOfType(RuntimeException.class,
+                () -> client.createRefund(refundRequest).block());
 
         assertThat(exception).isNotNull();
         assertThat(exception.getCause())
@@ -375,7 +375,7 @@ class RefundsApiClientIntegrationTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -431,8 +431,8 @@ class RefundsApiClientIntegrationTest {
                         .total("25.50"))
                 .paymentId(paymentId);
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(refundRequest).block(),
-                RuntimeException.class);
+        RuntimeException exception = catchThrowableOfType(RuntimeException.class,
+                () -> client.createRefund(refundRequest).block());
 
         assertThat(exception).isNotNull();
         assertThat(exception.getCause())
