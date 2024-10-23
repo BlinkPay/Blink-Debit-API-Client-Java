@@ -23,7 +23,6 @@ package nz.co.blink.debit.client.v1;
 
 import io.github.resilience4j.retry.Retry;
 import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
@@ -131,9 +130,9 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null request is handled")
-    void createQuickPaymentWithRedirectFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
+    void createQuickPaymentWithNullRequest() {
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -142,7 +141,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow is handled")
-    void createQuickPaymentWithRedirectFlowAndNullAuthorisationFlow() {
+    void createQuickPaymentWithNullAuthorisationFlow() {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -150,10 +149,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -162,7 +162,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow detail is handled")
-    void createQuickPaymentWithRedirectFlowAndNullAuthorisationFlowDetail() {
+    void createQuickPaymentWithNullAuthorisationFlowDetail() {
         QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
                 .flow(new AuthFlow())
                 .amount(new Amount()
@@ -171,10 +171,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -194,10 +195,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -219,10 +221,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -240,10 +243,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -263,10 +267,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -289,10 +294,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -308,10 +314,11 @@ class QuickPaymentsApiClientTest {
                                 .bank(Bank.PNZ)
                                 .redirectUri(REDIRECT_URI)))
                 .amount(new Amount()
-                        .total("1.25"));
+                        .total("1.25"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -334,10 +341,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -358,66 +366,15 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("PCR must not exceed 12 characters");
-    }
-
-    @Test
-    @DisplayName("Verify that null request is handled")
-    void createQuickPaymentWithDecoupledFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Quick payment request must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow is handled")
-    void createQuickPaymentWithDecoupledFlowAndNullAuthorisationFlow() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow detail is handled")
-    void createQuickPaymentWithDecoupledFlowAndNullAuthorisationFlowDetail() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow())
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must not be null");
     }
 
     @Test
@@ -427,7 +384,7 @@ class QuickPaymentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -435,10 +392,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -453,15 +411,16 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -476,17 +435,18 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -503,7 +463,7 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -511,10 +471,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -529,13 +490,14 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
-                        .total("1.25"));
+                        .total("1.25"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -552,7 +514,7 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -560,10 +522,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -578,7 +541,7 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -586,10 +549,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -603,7 +567,7 @@ class QuickPaymentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -611,10 +575,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -638,10 +603,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -657,7 +623,7 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(callbackUrl)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -665,66 +631,15 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Callback/webhook URL must not be blank");
-    }
-
-    @Test
-    @DisplayName("Verify that null request is handled")
-    void createQuickPaymentWithGatewayFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(null).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Quick payment request must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow is handled")
-    void createQuickPaymentWithGatewayFlowAndNullAuthorisationFlow() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow detail is handled")
-    void createQuickPaymentWithGatewayFlowAndNullAuthorisationFlowDetail() {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow())
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must not be null");
     }
 
     @Test
@@ -741,10 +656,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -763,10 +679,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -787,10 +704,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -814,10 +732,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -835,10 +754,11 @@ class QuickPaymentsApiClientTest {
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"));
+                        .total("1.25"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -862,10 +782,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -887,10 +808,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -899,6 +821,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow hint is handled")
+    @SuppressWarnings("unchecked")
     void createQuickPaymentWithGatewayFlowAndNullFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -928,7 +851,8 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPayment(request);
@@ -956,10 +880,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -982,10 +907,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1000,7 +926,7 @@ class QuickPaymentsApiClientTest {
                         .detail(new GatewayFlow()
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1008,10 +934,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1036,10 +963,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1057,7 +985,7 @@ class QuickPaymentsApiClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1065,10 +993,11 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1084,7 +1013,7 @@ class QuickPaymentsApiClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1092,48 +1021,22 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createQuickPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("PCR must not exceed 12 characters");
     }
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"abc.de", "/!@#$%^&*()[{}]/=',.\"<>`~;:|\\"})
-    @DisplayName("Verify that invalid total is handled")
-    void createQuickPaymentWithInvalidTotal(String total) {
-        QuickPaymentRequest request = (QuickPaymentRequest) new QuickPaymentRequest()
-                .flow(new AuthFlow()
-                        .detail(new RedirectFlow()
-                                .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total(total))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createQuickPayment(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessageStartingWith("Validation failed for quick payment request");
-    }
-
     @Test
     @DisplayName("Verify that null quick payment ID is handled")
     void getQuickPaymentWithNullQuickPaymentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                        client.getQuickPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.getQuickPayment(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1142,6 +1045,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment is retrieved")
+    @SuppressWarnings("unchecked")
     void getQuickPayment() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1169,6 +1073,7 @@ class QuickPaymentsApiClientTest {
                                 .amount(new Amount()
                                         .currency(Amount.CurrencyEnum.NZD)
                                         .total("1.25"))
+                                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
                         .payments(Collections.emptySet()));
 
@@ -1221,8 +1126,8 @@ class QuickPaymentsApiClientTest {
     @Test
     @DisplayName("Verify that null quick payment ID is handled")
     void revokeQuickPaymentWithNullQuickPaymentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeQuickPayment(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.revokeQuickPayment(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1231,6 +1136,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment is revoked")
+    @SuppressWarnings("unchecked")
     void revokeQuickPayment() {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1249,6 +1155,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with redirect flow is created")
+    @SuppressWarnings("unchecked")
     void createQuickPaymentWithRedirectFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1279,7 +1186,8 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPayment(request);
@@ -1294,6 +1202,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with decoupled flow is created")
+    @SuppressWarnings("unchecked")
     void createQuickPaymentWithDecoupledFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1317,7 +1226,7 @@ class QuickPaymentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1325,7 +1234,8 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPayment(request);
@@ -1340,6 +1250,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and redirect flow hint is created")
+    @SuppressWarnings("unchecked")
     void createQuickPaymentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1371,7 +1282,8 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPayment(request);
@@ -1386,6 +1298,7 @@ class QuickPaymentsApiClientTest {
 
     @Test
     @DisplayName("Verify that quick payment with gateway flow and decoupled flow hint is created")
+    @SuppressWarnings("unchecked")
     void createQuickPaymentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1410,7 +1323,7 @@ class QuickPaymentsApiClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1418,7 +1331,8 @@ class QuickPaymentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateQuickPaymentResponse> createQuickPaymentResponseMono =
                 client.createQuickPayment(request);

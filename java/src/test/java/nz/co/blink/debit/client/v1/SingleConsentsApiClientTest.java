@@ -129,9 +129,9 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null request is handled")
-    void createSingleConsentWithRedirectFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(null).block(), BlinkInvalidValueException.class);
+    void createSingleConsentWithNullRequest() {
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -140,7 +140,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow is handled")
-    void createSingleConsentWithRedirectFlowAndNullAuthorisationFlow() {
+    void createSingleConsentWithNullAuthorisationFlow() {
         SingleConsentRequest request = new SingleConsentRequest()
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -148,10 +148,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -160,7 +161,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow detail is handled")
-    void createSingleConsentWithRedirectFlowAndNullAuthorisationFlowDetail() {
+    void createSingleConsentWithNullAuthorisationFlowDetail() {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow())
                 .amount(new Amount()
@@ -169,10 +170,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -185,17 +187,19 @@ class SingleConsentsApiClientTest {
         SingleConsentRequest request = new SingleConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -210,17 +214,19 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(redirectUri)))
+                                .redirectUri(redirectUri)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -234,14 +240,16 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -255,16 +263,18 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -280,17 +290,19 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total(total))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -304,12 +316,14 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
-                        .total("1.25"));
+                        .total("1.25"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -325,17 +339,19 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -349,73 +365,23 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("PCR must not exceed 12 characters");
-    }
-
-    @Test
-    @DisplayName("Verify that null request is handled")
-    void createSingleConsentWithDecoupledFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(null).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Single consent request must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow is handled")
-    void createSingleConsentWithDecoupledFlowAndNullAuthorisationFlow() {
-        SingleConsentRequest request = new SingleConsentRequest()
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow detail is handled")
-    void createSingleConsentWithDecoupledFlowAndNullAuthorisationFlowDetail() {
-        SingleConsentRequest request = new SingleConsentRequest()
-                .flow(new AuthFlow())
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must not be null");
     }
 
     @Test
@@ -425,7 +391,7 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -433,10 +399,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -451,15 +418,16 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -474,17 +442,18 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -501,7 +470,7 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -509,10 +478,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -527,14 +497,15 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"));
+                        .total("1.25"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -551,7 +522,7 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -559,10 +530,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -577,7 +549,7 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -585,10 +557,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -602,7 +575,7 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -610,10 +583,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -637,10 +611,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -656,7 +631,7 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(callbackUrl)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -664,66 +639,15 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Callback/webhook URL must not be blank");
-    }
-
-    @Test
-    @DisplayName("Verify that null request is handled")
-    void createSingleConsentWithGatewayFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(null).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Single consent request must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow is handled")
-    void createSingleConsentWithGatewayFlowAndNullAuthorisationFlow() {
-        SingleConsentRequest request = new SingleConsentRequest()
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow detail is handled")
-    void createSingleConsentWithGatewayFlowAndNullAuthorisationFlowDetail() {
-        SingleConsentRequest request = new SingleConsentRequest()
-                .flow(new AuthFlow())
-                .amount(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"))
-                .pcr(new Pcr()
-                        .particulars("particulars")
-                        .code("code")
-                        .reference("reference"));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must not be null");
     }
 
     @Test
@@ -740,10 +664,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -762,10 +687,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -786,10 +712,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -813,10 +740,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -834,10 +762,11 @@ class SingleConsentsApiClientTest {
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
-                        .total("1.25"));
+                        .total("1.25"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -861,10 +790,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars(particulars)
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -886,10 +816,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("merchant particulars")
                         .code("merchant code")
-                        .reference("merchant reference"));
+                        .reference("merchant reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -898,6 +829,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and null flow hint is created")
+    @SuppressWarnings("unchecked")
     void createSingleConsentWithGatewayFlowAndNullFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -926,7 +858,8 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -953,10 +886,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -979,10 +913,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -997,7 +932,7 @@ class SingleConsentsApiClientTest {
                         .detail(new GatewayFlow()
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1005,10 +940,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1033,10 +969,11 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createSingleConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createSingleConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1046,8 +983,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void getSingleConsentWithNullConsentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.getSingleConsent(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.getSingleConsent(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1056,6 +993,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent is retrieved")
+    @SuppressWarnings("unchecked")
     void getSingleConsent() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1070,6 +1008,7 @@ class SingleConsentsApiClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .pcr(new Pcr()
                                 .particulars("particulars")
@@ -1078,6 +1017,7 @@ class SingleConsentsApiClientTest {
                         .amount(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("1.25"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
                 .payments(Collections.emptySet());
 
@@ -1124,8 +1064,8 @@ class SingleConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void revokeSingleConsentWithNullConsentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeSingleConsent(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.revokeSingleConsent(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1134,6 +1074,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent is revoked")
+    @SuppressWarnings("unchecked")
     void revokeSingleConsent() {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1152,6 +1093,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with redirect flow is created")
+    @SuppressWarnings("unchecked")
     void createSingleConsentWithRedirectFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1175,14 +1117,16 @@ class SingleConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("1.25"))
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -1196,6 +1140,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with decoupled flow is created")
+    @SuppressWarnings("unchecked")
     void createSingleConsentWithDecoupledFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1219,7 +1164,7 @@ class SingleConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1227,7 +1172,8 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -1241,6 +1187,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and redirect flow hint is created")
+    @SuppressWarnings("unchecked")
     void createSingleConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1271,7 +1218,8 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 
@@ -1285,6 +1233,7 @@ class SingleConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that single consent with gateway flow and decoupled flow hint is created")
+    @SuppressWarnings("unchecked")
     void createSingleConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1309,7 +1258,7 @@ class SingleConsentsApiClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .amount(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
@@ -1317,7 +1266,8 @@ class SingleConsentsApiClientTest {
                 .pcr(new Pcr()
                         .particulars("particulars")
                         .code("code")
-                        .reference("reference"));
+                        .reference("reference"))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createSingleConsent(request);
 

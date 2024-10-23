@@ -62,8 +62,7 @@ public class DecoupledFlow extends AuthFlowDetail implements OneOfauthFlowDetail
      *
      * @return bank
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Bank must not be null")
+    @Schema(description = "")
     @Valid
     public Bank getBank() {
         return bank;

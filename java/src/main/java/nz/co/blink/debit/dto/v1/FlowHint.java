@@ -116,8 +116,7 @@ public class FlowHint {
      *
      * @return bank
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Bank must not be null")
+    @Schema(description = "")
     @Valid
     public Bank getBank() {
         return bank;

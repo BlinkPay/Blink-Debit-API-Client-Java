@@ -46,6 +46,9 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
     @JsonProperty("bank")
     private Bank bank = null;
 
+    @JsonProperty("redirect_to_app")
+    private Boolean redirectToApp = null;
+
     public RedirectFlow redirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
         return this;
@@ -87,6 +90,25 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
         this.bank = bank;
     }
 
+    public RedirectFlow redirectToApp(Boolean redirectToApp) {
+        this.redirectToApp = redirectToApp;
+        return this;
+    }
+
+    /**
+     * Whether the redirect URI goes back to an app directly. If this value is true, the app will receive code and state parameters with this redirection. The app must pass these through to us at: https://debit.blinkpay.co.nz/bank/1.0/return?state={state}&code={code}, along with other query parameters like error. Applies only to Redirect flow.
+     *
+     * @return redirectToApp
+     **/
+    @Schema(description = "Whether the redirect URI goes back to an app directly. If this value is true, the app will receive code and state parameters with this redirection. The app must pass these through to us at: https://debit.blinkpay.co.nz/bank/1.0/return?state={state}&code={code}, along with other query parameters like error. Applies only to Redirect flow.")
+    public Boolean getRedirectToApp() {
+        return redirectToApp;
+    }
+
+    public void setRedirectToApp(Boolean redirectToApp) {
+        this.redirectToApp = redirectToApp;
+    }
+
     @Override
     public TypeEnum getType() {
         return TypeEnum.REDIRECT;
@@ -103,12 +125,13 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
         RedirectFlow redirectFlow = (RedirectFlow) o;
         return Objects.equals(this.redirectUri, redirectFlow.redirectUri)
                 && Objects.equals(this.bank, redirectFlow.bank)
+                && Objects.equals(this.redirectToApp, redirectFlow.redirectToApp)
                 && super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(redirectUri, bank, super.hashCode());
+        return Objects.hash(redirectUri, bank, redirectToApp, super.hashCode());
     }
 
     @Override
@@ -118,6 +141,7 @@ public class RedirectFlow extends AuthFlowDetail implements OneOfauthFlowDetail 
         sb.append("    ").append(toIndentedString(super.toString())).append("\n");
         sb.append("    redirectUri: ").append(toIndentedString(redirectUri)).append("\n");
         sb.append("    bank: ").append(toIndentedString(bank)).append("\n");
+        sb.append("    redirectToApp: ").append(toIndentedString(redirectToApp)).append("\n");
         sb.append("}");
         return sb.toString();
     }

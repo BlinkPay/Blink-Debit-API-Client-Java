@@ -597,17 +597,6 @@ PaymentRequest request = new PaymentRequest()
 
 PaymentResponse paymentResponse = client.createPayment(request);
 ```
-#### Westpac
-Westpac requires you to specify which account of the customers to debit. 
-
-The available selection of accounts is supplied to you in the consent response of an Authorised Westpac consent object, and the ID of the selected account in supplied here.
-```java
-PaymentRequest request = new PaymentRequest()
-        .consentId(consentId)
-        .accountReferenceId(accountReferenceId);
-
-PaymentResponse paymentResponse = client.createWestpacPayment(request);
-```
 #### Retrieval
 ```java
 Payment payment = client.getPayment(paymentId);

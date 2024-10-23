@@ -49,6 +49,9 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
     @JsonProperty("amount")
     private Amount amount = null;
 
+    @JsonProperty("hashed_customer_identifier")
+    private String hashedCustomerIdentifier = null;
+
     public SingleConsentRequest flow(AuthFlow flow) {
         this.flow = flow;
         return this;
@@ -112,6 +115,25 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
         this.amount = amount;
     }
 
+    public SingleConsentRequest hashedCustomerIdentifier(String hashedCustomerIdentifier) {
+        this.hashedCustomerIdentifier = hashedCustomerIdentifier;
+        return this;
+    }
+
+    /**
+     * The hashed unique ID of the customer e.g. customer internal ID. SHA-256 is recommended.
+     *
+     * @return hashedCustomerIdentifier
+     **/
+    @Schema(description = "The hashed unique ID of the customer e.g. customer internal ID. SHA-256 is recommended.")
+    public String getHashedCustomerIdentifier() {
+        return hashedCustomerIdentifier;
+    }
+
+    public void setHashedCustomerIdentifier(String hashedCustomerIdentifier) {
+        this.hashedCustomerIdentifier = hashedCustomerIdentifier;
+    }
+
     @Override
     public TypeEnum getType() {
         return TypeEnum.SINGLE;
@@ -129,12 +151,13 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
         return Objects.equals(this.flow, singleConsentRequest.flow)
                 && Objects.equals(this.pcr, singleConsentRequest.pcr)
                 && Objects.equals(this.amount, singleConsentRequest.amount)
+                && Objects.equals(this.hashedCustomerIdentifier, singleConsentRequest.hashedCustomerIdentifier)
                 && super.equals(o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(flow, pcr, amount, super.hashCode());
+        return Objects.hash(flow, pcr, amount, hashedCustomerIdentifier, super.hashCode());
     }
 
     @Override
@@ -145,6 +168,7 @@ public class SingleConsentRequest extends ConsentDetail implements OneOfconsentD
         sb.append("    flow: ").append(toIndentedString(flow)).append("\n");
         sb.append("    pcr: ").append(toIndentedString(pcr)).append("\n");
         sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
+        sb.append("    hashedCustomerIdentifier: ").append(toIndentedString(hashedCustomerIdentifier)).append("\n");
         sb.append("}");
         return sb.toString();
     }

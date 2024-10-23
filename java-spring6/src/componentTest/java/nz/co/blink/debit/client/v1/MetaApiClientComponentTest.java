@@ -50,7 +50,6 @@ import reactor.test.StepVerifier;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,7 +103,10 @@ class MetaApiClientComponentTest {
                                         new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
                                                 .type(IdentifierType.CONSENT_ID)
                                                 .name("Consent ID")))
-                                .requestTimeout("PT4M")))
+                                .requestTimeout("PT4M"))
+                        .enduringConsent(new BankmetadataFeaturesEnduringConsent()
+                                .enabled(true)
+                                .consentIndefinite(false)))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
                         .requestTimeout("PT5M"));
@@ -124,7 +126,7 @@ class MetaApiClientComponentTest {
                                                 new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
                                                         .type(IdentifierType.MOBILE_NUMBER)
                                                         .name("Mobile Number"))
-                                        .collect(Collectors.toList()))
+                                        .toList())
                                 .requestTimeout("PT3M")))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
@@ -137,6 +139,30 @@ class MetaApiClientComponentTest {
                         .enabled(true)
                         .requestTimeout("PT10M"));
 
+        BankMetadata asb = new BankMetadata()
+                .name(Bank.ASB)
+                .features(new BankmetadataFeatures()
+                        .enduringConsent(new BankmetadataFeaturesEnduringConsent()
+                                .enabled(true)
+                                .consentIndefinite(false)))
+                .redirectFlow(new BankmetadataRedirectFlow()
+                        .enabled(true)
+                        .requestTimeout("PT10M"));
+
+        BankMetadata anz = new BankMetadata()
+                .name(Bank.ANZ)
+                .features(new BankmetadataFeatures()
+                        .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                                .enabled(true)
+                                .availableIdentifiers(Stream.of(
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.MOBILE_NUMBER)
+                                                        .name("Mobile Number"))
+                                        .toList())
+                                .requestTimeout("PT7M")))
+                .redirectFlow(new BankmetadataRedirectFlow()
+                        .enabled(false));
+
         Flux<BankMetadata> actual = client.getMeta();
 
         assertThat(actual).isNotNull();
@@ -146,9 +172,11 @@ class MetaApiClientComponentTest {
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
                 .verifyComplete();
         assertThat(set)
-                .hasSize(3)
-                .containsExactlyInAnyOrder(bnz, pnz, westpac);
+                .hasSize(5)
+                .containsExactlyInAnyOrder(bnz, pnz, westpac, asb, anz);
     }
 }

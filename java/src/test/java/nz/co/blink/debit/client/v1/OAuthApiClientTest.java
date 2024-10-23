@@ -90,6 +90,7 @@ class OAuthApiClientTest {
 
     @Test
     @DisplayName("Verify that access token is generated")
+    @SuppressWarnings("unchecked")
     void generateAccessToken() throws BlinkServiceException {
         // GIVEN
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
@@ -140,8 +141,8 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", clientId);
         ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.generateAccessToken(UUID.randomUUID().toString()).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -155,8 +156,8 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", "BLINKPAY_CLIENT_ID");
         ReflectionTestUtils.setField(client, "clientSecret", clientSecret);
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.generateAccessToken(UUID.randomUUID().toString()).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.generateAccessToken(UUID.randomUUID().toString()).block());
 
         assertThat(exception)
                 .isNotNull()

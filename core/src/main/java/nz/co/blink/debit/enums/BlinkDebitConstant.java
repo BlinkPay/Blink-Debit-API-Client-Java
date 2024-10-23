@@ -21,9 +21,12 @@
  */
 package nz.co.blink.debit.enums;
 
+import lombok.Getter;
+
 /**
  * The enumeration of constants.
  */
+@Getter
 public enum BlinkDebitConstant {
 
     REQUEST_ID("request-id"),
@@ -31,6 +34,10 @@ public enum BlinkDebitConstant {
     CORRELATION_ID("x-correlation-id"),
 
     IDEMPOTENCY_KEY("idempotency-key"),
+
+    CUSTOMER_IP("x-customer-ip"),
+
+    CUSTOMER_USER_AGENT("x-customer-user-agent"),
 
     BEARER("Bearer "),
 
@@ -50,7 +57,7 @@ public enum BlinkDebitConstant {
 
     REFUNDS_PATH("/payments/v1/refunds"),
 
-    USER_AGENT_VALUE("Java/Blink SDK 1.0");
+    USER_AGENT_VALUE("Java/Blink SDK 1.3");
 
     private final String value;
 
@@ -61,14 +68,5 @@ public enum BlinkDebitConstant {
      */
     BlinkDebitConstant(String value) {
         this.value = value;
-    }
-
-    /**
-     * Returns the value of the constant.
-     *
-     * @return the value
-     */
-    public String getValue() {
-        return value;
     }
 }

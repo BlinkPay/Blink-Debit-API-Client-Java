@@ -66,7 +66,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Validation;
-import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -132,9 +131,9 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null request is handled")
-    void createEnduringConsentWithRedirectFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(null).block(), BlinkInvalidValueException.class);
+    void createEnduringConsentWithNullRequest() {
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -143,17 +142,18 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow is handled")
-    void createEnduringConsentWithRedirectFlowAndNullAuthorisationFlow() {
+    void createEnduringConsentWithNullAuthorisationFlow() {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -162,7 +162,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that null authorisation flow detail is handled")
-    void createEnduringConsentWithRedirectFlowAndNullAuthorisationFlowDetail() {
+    void createEnduringConsentWithNullAuthorisationFlowDetail() {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow())
                 .maximumAmountPeriod(new Amount()
@@ -170,10 +170,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -187,15 +188,17 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -209,15 +212,17 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -231,13 +236,15 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -251,15 +258,17 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -275,16 +284,18 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total(total))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -297,16 +308,18 @@ class EnduringConsentsApiClientTest {
         EnduringConsentRequest request = new EnduringConsentRequest()
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -321,70 +334,22 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(redirectUri)))
+                                .redirectUri(redirectUri)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Redirect URI must not be blank");
-    }
-
-    @Test
-    @DisplayName("Verify that null request is handled")
-    void createEnduringConsentWithDecoupledFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(null).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Enduring consent request must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow is handled")
-    void createEnduringConsentWithDecoupledFlowAndNullAuthorisationFlow() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow detail is handled")
-    void createEnduringConsentWithDecoupledFlowAndNullAuthorisationFlowDetail() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .flow(new AuthFlow())
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must not be null");
     }
 
     @Test
@@ -395,16 +360,17 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -419,16 +385,17 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -443,14 +410,15 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -465,16 +433,17 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -491,17 +460,18 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total(total))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -515,17 +485,18 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -539,17 +510,18 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -572,10 +544,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -591,71 +564,22 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(callbackUrl)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Callback/webhook URL must not be blank");
-    }
-
-    @Test
-    @DisplayName("Verify that null request is handled")
-    void createEnduringConsentWithGatewayFlowAndNullRequest() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(null).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Enduring consent request must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow is handled")
-    void createEnduringConsentWithGatewayFlowAndNullAuthorisationFlow() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow must not be null");
-    }
-
-    @Test
-    @DisplayName("Verify that null authorisation flow detail is handled")
-    void createEnduringConsentWithGatewayFlowAndNullAuthorisationFlowDetail() {
-        EnduringConsentRequest request = new EnduringConsentRequest()
-                .flow(new AuthFlow())
-                .maximumAmountPeriod(new Amount()
-                        .currency(Amount.CurrencyEnum.NZD)
-                        .total("50.00"))
-                .period(Period.MONTHLY)
-                .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
-
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
-
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Authorisation flow detail must not be null");
     }
 
     @Test
@@ -671,10 +595,11 @@ class EnduringConsentsApiClientTest {
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -694,10 +619,11 @@ class EnduringConsentsApiClientTest {
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -715,10 +641,11 @@ class EnduringConsentsApiClientTest {
                                         .bank(Bank.PNZ))))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -738,10 +665,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -764,10 +692,11 @@ class EnduringConsentsApiClientTest {
                         .total(total))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -787,10 +716,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -799,6 +729,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and null flow hint is created")
+    @SuppressWarnings("unchecked")
     void createEnduringConsentWithGatewayFlowAndNullFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -827,7 +758,8 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -853,10 +785,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -878,10 +811,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -896,17 +830,18 @@ class EnduringConsentsApiClientTest {
                         .detail(new GatewayFlow()
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -930,10 +865,11 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(() ->
-                client.createEnduringConsent(request).block(), BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.createEnduringConsent(request).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -943,8 +879,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void getEnduringConsentWithNullConsentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.getEnduringConsent(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.getEnduringConsent(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -953,6 +889,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent is retrieved")
+    @SuppressWarnings("unchecked")
     void getEnduringConsent() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -968,12 +905,14 @@ class EnduringConsentsApiClientTest {
                                 .detail((OneOfauthFlowDetail) new RedirectFlow()
                                         .bank(Bank.PNZ)
                                         .redirectUri(REDIRECT_URI)
+                                        .redirectToApp(true)
                                         .type(AuthFlowDetail.TypeEnum.REDIRECT)))
                         .period(Period.MONTHLY)
                         .fromTimestamp(now)
                         .maximumAmountPeriod(new Amount()
                                 .currency(Amount.CurrencyEnum.NZD)
                                 .total("50.00"))
+                        .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
                 .payments(Collections.emptySet());
 
@@ -1018,8 +957,8 @@ class EnduringConsentsApiClientTest {
     @Test
     @DisplayName("Verify that null consent ID is handled")
     void revokeEnduringConsentWithNullConsentId() {
-        BlinkInvalidValueException exception = catchThrowableOfType(() -> client.revokeEnduringConsent(null).block(),
-                BlinkInvalidValueException.class);
+        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+                () -> client.revokeEnduringConsent(null).block());
 
         assertThat(exception)
                 .isNotNull()
@@ -1028,6 +967,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent is revoked")
+    @SuppressWarnings("unchecked")
     void revokeEnduringConsent() {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1046,6 +986,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with redirect flow is created")
+    @SuppressWarnings("unchecked")
     void createEnduringConsentWithRedirectFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1069,13 +1010,15 @@ class EnduringConsentsApiClientTest {
                 .flow(new AuthFlow()
                         .detail(new RedirectFlow()
                                 .bank(Bank.PNZ)
-                                .redirectUri(REDIRECT_URI)))
+                                .redirectUri(REDIRECT_URI)
+                                .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -1089,6 +1032,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with decoupled flow is created")
+    @SuppressWarnings("unchecked")
     void createEnduringConsentWithDecoupledFlow() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1112,14 +1056,15 @@ class EnduringConsentsApiClientTest {
                         .detail(new DecoupledFlow()
                                 .bank(Bank.PNZ)
                                 .identifierType(IdentifierType.PHONE_NUMBER)
-                                .identifierValue("+6449144425")
+                                .identifierValue("+64-259531933")
                                 .callbackUrl(CALLBACK_URL)))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -1133,6 +1078,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and redirect flow hint is created")
+    @SuppressWarnings("unchecked")
     void createEnduringConsentWithGatewayFlowAndRedirectFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1163,7 +1109,8 @@ class EnduringConsentsApiClientTest {
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
@@ -1177,6 +1124,7 @@ class EnduringConsentsApiClientTest {
 
     @Test
     @DisplayName("Verify that enduring consent with gateway flow and decoupled flow hint is created")
+    @SuppressWarnings("unchecked")
     void createEnduringConsentWithGatewayFlowAndDecoupledFlowHint() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
@@ -1201,14 +1149,15 @@ class EnduringConsentsApiClientTest {
                                 .redirectUri(REDIRECT_URI)
                                 .flowHint(new DecoupledFlowHint()
                                         .identifierType(IdentifierType.PHONE_NUMBER)
-                                        .identifierValue("+6449144425")
+                                        .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
-                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11));
+                .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
+                .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
 
         Mono<CreateConsentResponse> createConsentResponseMono = client.createEnduringConsent(request);
 
