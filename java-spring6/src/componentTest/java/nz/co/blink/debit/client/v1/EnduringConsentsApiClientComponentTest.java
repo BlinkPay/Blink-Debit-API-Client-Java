@@ -150,8 +150,8 @@ class EnduringConsentsApiClientComponentTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
@@ -223,8 +223,8 @@ class EnduringConsentsApiClientComponentTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AUTHORISED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AUTHORISED, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
@@ -322,8 +322,8 @@ class EnduringConsentsApiClientComponentTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())

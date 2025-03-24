@@ -42,6 +42,8 @@ public enum Bank {
 
     KIWIBANK("KiwiBank"),
 
+    CYBERSOURCE("Cybersource"),
+
     /**
      * The Payments NZ generic sandbox bank powered by Middleware NZ. FOR SANDBOX PURPOSES ONLY.
      */

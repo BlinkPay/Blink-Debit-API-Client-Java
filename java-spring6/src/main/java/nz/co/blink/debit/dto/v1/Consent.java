@@ -22,7 +22,6 @@
 package nz.co.blink.debit.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -40,10 +39,8 @@ import org.springframework.validation.annotation.Validated;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -76,7 +73,7 @@ public class Consent {
 
         REVOKED("Revoked");
 
-        private String value;
+        private final String value;
 
         StatusEnum(String value) {
             this.value = value;
@@ -113,15 +110,11 @@ public class Consent {
     @JsonProperty("detail")
     private OneOfconsentDetail detail = null;
 
-    @JsonProperty("accounts")
-    @Valid
-    private List<Account> accounts = null;
-
-    @JsonIgnore
-    private Boolean quickPayment = null;
-
     @JsonProperty("payments")
-    private Set<Payment> payments = null;
+    private List<Payment> payments = new ArrayList<>();
+
+    @JsonProperty("card_network")
+    private CardNetwork cardNetwork = null;
 
     public Consent consentId(UUID consentId) {
         this.consentId = consentId;
@@ -225,56 +218,12 @@ public class Consent {
         this.detail = detail;
     }
 
-    public Consent accounts(List<Account> accounts) {
-        this.accounts = accounts;
-        return this;
-    }
-
-    public Consent addAccountsItem(Account accountsItem) {
-        if (this.accounts == null) {
-            this.accounts = new ArrayList<>();
-        }
-        this.accounts.add(accountsItem);
-        return this;
-    }
-
-    /**
-     * If applicable, the Westpac account list for account selection. If this is included, the merchant is required to ask the customer which account they would like to debit the payment from using the information provided.
-     *
-     * @return accounts
-     **/
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "If applicable, the Westpac account list for account selection. If this is included, the merchant is required to ask the customer which account they would like to debit the payment from using the information provided.")
-    @Valid
-    public List<Account> getAccounts() {
-        return accounts;
-    }
-
-    public void setAccounts(List<Account> accounts) {
-        this.accounts = accounts;
-    }
-
-    public Consent quickPayment(Boolean quickPayment) {
-        this.quickPayment = quickPayment;
-        return this;
-    }
-
-    public Boolean getQuickPayment() {
-        return quickPayment;
-    }
-
-    public void setQuickPayment(Boolean quickPayment) {
-        this.quickPayment = quickPayment;
-    }
-
-    public Consent payments(Set<Payment> payments) {
+    public Consent payments(List<Payment> payments) {
         this.payments = payments;
         return this;
     }
 
     public Consent addPaymentsItem(Payment paymentsItem) {
-        if (this.payments == null) {
-            this.payments = new HashSet<>();
-        }
         this.payments.add(paymentsItem);
         return this;
     }
@@ -284,14 +233,33 @@ public class Consent {
      *
      * @return payments
      **/
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY, description = "Payments associated with this consent, if any.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Payments associated with this consent, if any.")
     @Valid
-    public Set<Payment> getPayments() {
+    public List<Payment> getPayments() {
         return payments;
     }
 
-    public void setPayments(Set<Payment> payments) {
+    public void setPayments(List<Payment> payments) {
         this.payments = payments;
+    }
+
+    public Consent cardNetwork(CardNetwork cardNetwork) {
+        this.cardNetwork = cardNetwork;
+        return this;
+    }
+
+    /**
+     * Get cardNetwork
+     *
+     * @return cardNetwork
+     **/
+    @Schema(description = "")
+    public CardNetwork getCardNetwork() {
+        return cardNetwork;
+    }
+
+    public void setCardNetwork(CardNetwork cardNetwork) {
+        this.cardNetwork = cardNetwork;
     }
 
     @Override
@@ -304,17 +272,17 @@ public class Consent {
         }
         Consent consent = (Consent) o;
         return Objects.equals(this.consentId, consent.consentId)
-                && Objects.equals(this.status, consent.status)
-                && Objects.equals(this.creationTimestamp, consent.creationTimestamp)
-                && Objects.equals(this.statusUpdatedTimestamp, consent.statusUpdatedTimestamp)
-                && Objects.equals(this.detail, consent.detail)
-                && Objects.equals(this.accounts, consent.accounts)
-                && Objects.equals(this.payments, consent.payments);
+               && Objects.equals(this.status, consent.status)
+               && Objects.equals(this.creationTimestamp, consent.creationTimestamp)
+               && Objects.equals(this.statusUpdatedTimestamp, consent.statusUpdatedTimestamp)
+               && Objects.equals(this.detail, consent.detail)
+               && Objects.equals(this.payments, consent.payments)
+               && Objects.equals(this.cardNetwork, consent.cardNetwork);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(consentId, status, creationTimestamp, statusUpdatedTimestamp, detail, accounts, payments);
+        return Objects.hash(consentId, status, creationTimestamp, statusUpdatedTimestamp, detail, payments, cardNetwork);
     }
 
     @Override
@@ -326,8 +294,8 @@ public class Consent {
         sb.append("    creationTimestamp: ").append(toIndentedString(creationTimestamp)).append("\n");
         sb.append("    statusUpdatedTimestamp: ").append(toIndentedString(statusUpdatedTimestamp)).append("\n");
         sb.append("    detail: ").append(toIndentedString(detail)).append("\n");
-        sb.append("    accounts: ").append(toIndentedString(accounts)).append("\n");
         sb.append("    payments: ").append(toIndentedString(payments)).append("\n");
+        sb.append("    cardNetwork: ").append(toIndentedString(cardNetwork)).append("\n");
         sb.append("}");
         return sb.toString();
     }

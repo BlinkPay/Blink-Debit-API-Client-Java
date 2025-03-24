@@ -43,6 +43,9 @@ public class BankMetadata {
     @JsonProperty("name")
     private Bank name = null;
 
+    @JsonProperty("payment_limit")
+    private Amount paymentLimit = null;
+
     @JsonProperty("features")
     private BankmetadataFeatures features = null;
 
@@ -68,6 +71,25 @@ public class BankMetadata {
 
     public void setName(Bank name) {
         this.name = name;
+    }
+
+    public BankMetadata paymentLimit(Amount paymentLimit) {
+        this.paymentLimit = paymentLimit;
+        return this;
+    }
+
+    /**
+     * Get paymentLimit
+     *
+     * @return paymentLimit
+     **/
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
+    public Amount getPaymentLimit() {
+        return paymentLimit;
+    }
+
+    public void setPaymentLimit(Amount paymentLimit) {
+        this.paymentLimit = paymentLimit;
     }
 
     public BankMetadata features(BankmetadataFeatures features) {
@@ -122,13 +144,14 @@ public class BankMetadata {
         }
         BankMetadata bankMetadata = (BankMetadata) o;
         return Objects.equals(this.name, bankMetadata.name)
+               && Objects.equals(this.paymentLimit, bankMetadata.paymentLimit)
                 && Objects.equals(this.features, bankMetadata.features)
                 && Objects.equals(this.redirectFlow, bankMetadata.redirectFlow);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, features, redirectFlow);
+        return Objects.hash(name, paymentLimit, features, redirectFlow);
     }
 
     @Override
@@ -136,6 +159,7 @@ public class BankMetadata {
         StringBuilder sb = new StringBuilder();
         sb.append("class BankMetadata {\n");
         sb.append("    name: ").append(toIndentedString(name)).append("\n");
+        sb.append("    paymentLimit: ").append(toIndentedString(paymentLimit)).append("\n");
         sb.append("    features: ").append(toIndentedString(features)).append("\n");
         sb.append("    redirectFlow: ").append(toIndentedString(redirectFlow)).append("\n");
         sb.append("}");

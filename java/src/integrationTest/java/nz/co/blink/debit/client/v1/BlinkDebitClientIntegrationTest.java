@@ -65,7 +65,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -177,7 +177,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getPayments()).isEmpty();
-        assertThat(actual.getAccounts()).isNull();
+        assertThat(actual.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -288,7 +288,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getPayments()).isEmpty();
-        assertThat(actual.getAccounts()).isNull();
+        assertThat(actual.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -395,7 +395,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getPayments()).isEmpty();
-        assertThat(actual.getAccounts()).isNull();
+        assertThat(actual.getCardNetwork()).isNull();
         EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -500,7 +500,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getPayments()).isEmpty();
-        assertThat(actual.getAccounts()).isNull();
+        assertThat(actual.getCardNetwork()).isNull();
         EnduringConsentRequest detail = (EnduringConsentRequest) actual.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -616,7 +616,7 @@ class BlinkDebitClientIntegrationTest {
                 .isIn(Consent.StatusEnum.CONSUMED, Consent.StatusEnum.AUTHORISED);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
-        Set<Payment> payments = consent.getPayments();
+        List<Payment> payments = consent.getPayments();
         assertThat(payments).isNotNull();
         if (!payments.isEmpty()) {
             assertThat(payments)
@@ -626,7 +626,7 @@ class BlinkDebitClientIntegrationTest {
                     .containsExactly(Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
                             Collections.emptyList());
         }
-        assertThat(consent.getAccounts()).isNull();
+        assertThat(consent.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) consent.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -783,7 +783,7 @@ class BlinkDebitClientIntegrationTest {
                 .isIn(Consent.StatusEnum.AUTHORISED, Consent.StatusEnum.CONSUMED);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
-        Set<Payment> payments = consent.getPayments();
+        List<Payment> payments = consent.getPayments();
         assertThat(payments).isNotNull();
         if (!payments.isEmpty()) {
             assertThat(payments)
@@ -793,7 +793,7 @@ class BlinkDebitClientIntegrationTest {
                     .containsExactly(Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
                             Collections.emptyList());
         }
-        assertThat(consent.getAccounts()).isNull();
+        assertThat(consent.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) consent.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -868,7 +868,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getPayments()).isEmpty();
-        assertThat(actual.getAccounts()).isNull();
+        assertThat(actual.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -910,9 +910,8 @@ class BlinkDebitClientIntegrationTest {
         assertThat(payment.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(payment.getDetail())
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getEnduringPayment,
-                        PaymentRequest::getAccountReferenceId)
-                .containsExactly(consentId, null, null);
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
+                .containsExactly(consentId, null, new Amount().currency(Amount.CurrencyEnum.NZD).total("1.25"));
         assertThat(payment.getRefunds()).isEmpty();
     }
 
@@ -967,7 +966,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getPayments()).isEmpty();
-        assertThat(actual.getAccounts()).isNull();
+        assertThat(actual.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) actual.getDetail();
         assertThat(detail)
                 .isNotNull()
@@ -1009,9 +1008,8 @@ class BlinkDebitClientIntegrationTest {
         assertThat(payment.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(payment.getDetail())
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getEnduringPayment,
-                        PaymentRequest::getAccountReferenceId)
-                .containsExactly(consentId, null, null);
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
+                .containsExactly(consentId, null, new Amount().currency(Amount.CurrencyEnum.NZD).total("1.25"));
         assertThat(payment.getRefunds()).isEmpty();
     }
 }

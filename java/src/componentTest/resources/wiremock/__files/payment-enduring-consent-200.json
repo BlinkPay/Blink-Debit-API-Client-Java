@@ -6,16 +6,14 @@
   "status_updated_timestamp": "2022-09-14T15:56:32.873231772+12:00",
   "detail": {
     "consent_id": "0500c560-c156-439f-9aed-753d82884323",
-    "enduring_payment": {
-      "pcr": {
-        "particulars": "particulars",
-        "code": "code",
-        "reference": "reference"
-      },
-      "amount": {
-        "total": "45.00",
-        "currency": "NZD"
-      }
+    "pcr": {
+      "particulars": "particulars",
+      "code": "code",
+      "reference": "reference"
+    },
+    "amount": {
+      "total": "45.00",
+      "currency": "NZD"
     }
   },
   "refunds": []

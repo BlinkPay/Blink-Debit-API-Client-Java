@@ -127,10 +127,10 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
-        assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
+        assertThat(consent.getStatusUpdatedTimestamp()).isNull();
         assertThat(consent.getDetail())
                 .isNotNull()
                 .isInstanceOf(SingleConsentRequest.class);
@@ -171,8 +171,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(consent.getDetail())
@@ -216,8 +216,8 @@ class QuickPaymentsApiClientIntegrationTest {
             Consent consent = actual.getConsent();
             assertThat(consent)
                     .isNotNull()
-                    .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                    .containsExactly(Consent.StatusEnum.REJECTED, null, Collections.emptySet());
+                    .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                    .containsExactly(Consent.StatusEnum.REJECTED, Collections.emptyList(), null);
             assertThat(consent.getCreationTimestamp()).isNotNull();
             assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
             assertThat(consent.getDetail())
@@ -294,8 +294,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(consent.getDetail())
@@ -341,8 +341,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(consent.getDetail())
@@ -419,8 +419,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNull();
         assertThat(consent.getDetail())
@@ -471,8 +471,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(consent.getDetail())
@@ -556,8 +556,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNull();
         assertThat(consent.getDetail())
@@ -610,8 +610,8 @@ class QuickPaymentsApiClientIntegrationTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(consent.getCreationTimestamp()).isNotNull();
         assertThat(consent.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(consent.getDetail())

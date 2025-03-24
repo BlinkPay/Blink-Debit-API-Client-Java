@@ -9,12 +9,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: production
-    if: github.ref == 'refs/heads/master'
+    if: github.event.release.target_commitish == 'master' || startsWith(github.event.release.target_commitish, 'release/')
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Apache Maven Central
+      - name: Set up JDK 21 (Corretto)
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -25,9 +26,21 @@ jobs:
           server-password: MAVEN_PASSWORD
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
       - name: Install GPG secret key
         run: |
-          cat <(echo -e "${{ secrets.OSSRH_GPG_PRIVATE_KEY }}") | gpg --batch --import
+          echo "${{ secrets.OSSRH_GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "use-agent" >> ~/.gnupg/gpg.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          gpgconf --kill gpg-agent
           gpg --list-secret-keys --keyid-format LONG
 
       - name: Publish to Apache Maven Central

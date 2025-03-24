@@ -33,6 +33,7 @@ import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlow;
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlowAvailableIdentifiers;
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesEnduringConsent;
 import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
+import nz.co.blink.debit.dto.v1.CardNetwork;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
@@ -40,7 +41,6 @@ import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
 import nz.co.blink.debit.dto.v1.DecoupledFlowHint;
 import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
 import nz.co.blink.debit.dto.v1.GatewayFlow;
 import nz.co.blink.debit.dto.v1.IdentifierType;
@@ -681,7 +681,8 @@ class BlinkDebitClientTest {
                                 .total("1.25"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(singleConsentsApiClient.getSingleConsent(consentId))
                 .thenReturn(Mono.just(consent));
 
@@ -689,8 +690,8 @@ class BlinkDebitClientTest {
 
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -740,7 +741,8 @@ class BlinkDebitClientTest {
                                 .total("1.25"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(singleConsentsApiClient.getSingleConsent(consentId, requestId))
                 .thenReturn(Mono.just(consent));
 
@@ -748,8 +750,8 @@ class BlinkDebitClientTest {
 
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -798,7 +800,8 @@ class BlinkDebitClientTest {
                                 .total("1.25"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(singleConsentsApiClient.getSingleConsent(consentId))
                 .thenReturn(Mono.just(consent));
 
@@ -807,8 +810,8 @@ class BlinkDebitClientTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -858,7 +861,8 @@ class BlinkDebitClientTest {
                                 .total("1.25"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.SINGLE))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(singleConsentsApiClient.getSingleConsent(consentId, requestId))
                 .thenReturn(Mono.just(consent));
 
@@ -867,8 +871,8 @@ class BlinkDebitClientTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -1349,7 +1353,8 @@ class BlinkDebitClientTest {
                                 .total("50.00"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(enduringConsentsApiClient.getEnduringConsent(consentId))
                 .thenReturn(Mono.just(consent));
 
@@ -1357,8 +1362,8 @@ class BlinkDebitClientTest {
 
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -1405,7 +1410,8 @@ class BlinkDebitClientTest {
                                 .total("50.00"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(enduringConsentsApiClient.getEnduringConsent(consentId, requestId))
                 .thenReturn(Mono.just(consent));
 
@@ -1413,8 +1419,8 @@ class BlinkDebitClientTest {
 
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -1460,7 +1466,8 @@ class BlinkDebitClientTest {
                                 .total("50.00"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(enduringConsentsApiClient.getEnduringConsent(consentId))
                 .thenReturn(Mono.just(consent));
 
@@ -1469,8 +1476,8 @@ class BlinkDebitClientTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -1517,7 +1524,8 @@ class BlinkDebitClientTest {
                                 .total("50.00"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList())
+                .cardNetwork(CardNetwork.VISA);
         when(enduringConsentsApiClient.getEnduringConsent(consentId, requestId))
                 .thenReturn(Mono.just(consent));
 
@@ -1526,8 +1534,8 @@ class BlinkDebitClientTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -2022,7 +2030,8 @@ class BlinkDebitClientTest {
                                         .total("1.25"))
                                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
-                        .payments(Collections.emptySet()));
+                        .payments(Collections.emptyList())
+                        .cardNetwork(CardNetwork.VISA));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId))
                 .thenReturn(Mono.just(response));
 
@@ -2035,8 +2044,8 @@ class BlinkDebitClientTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
         assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
         assertThat(consent.getDetail())
@@ -2091,7 +2100,8 @@ class BlinkDebitClientTest {
                                         .total("1.25"))
                                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
-                        .payments(Collections.emptySet()));
+                        .payments(Collections.emptyList())
+                        .cardNetwork(CardNetwork.VISA));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId))
                 .thenReturn(Mono.just(response));
 
@@ -2104,8 +2114,8 @@ class BlinkDebitClientTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
         assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
         assertThat(consent.getDetail())
@@ -2159,7 +2169,8 @@ class BlinkDebitClientTest {
                                         .total("1.25"))
                                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
-                        .payments(Collections.emptySet()));
+                        .payments(Collections.emptyList())
+                        .cardNetwork(CardNetwork.VISA));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId))
                 .thenReturn(Mono.just(response));
 
@@ -2174,8 +2185,8 @@ class BlinkDebitClientTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
         assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
         assertThat(consent.getDetail())
@@ -2230,7 +2241,8 @@ class BlinkDebitClientTest {
                                         .total("1.25"))
                                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
-                        .payments(Collections.emptySet()));
+                        .payments(Collections.emptyList())
+                        .cardNetwork(CardNetwork.VISA));
         when(quickPaymentsApiClient.getQuickPayment(quickPaymentId, requestId))
                 .thenReturn(Mono.just(response));
 
@@ -2245,8 +2257,8 @@ class BlinkDebitClientTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
         assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
         assertThat(consent.getDetail())
@@ -2401,14 +2413,13 @@ class BlinkDebitClientTest {
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.75"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.75"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         PaymentResponse actual = client.createPayment(request);
 
@@ -2428,14 +2439,13 @@ class BlinkDebitClientTest {
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.75"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.75"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         PaymentResponse actual = client.createPayment(request, UUID.randomUUID().toString());
 
@@ -2455,14 +2465,13 @@ class BlinkDebitClientTest {
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.75"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.75"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request);
 
@@ -2484,14 +2493,13 @@ class BlinkDebitClientTest {
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.75"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.75"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         Mono<PaymentResponse> paymentResponseMono = client.createPaymentAsMono(request,
                 UUID.randomUUID().toString());
@@ -2533,8 +2541,7 @@ class BlinkDebitClientTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
                 .containsExactly(consentId, null, null);
     }
 
@@ -2568,8 +2575,7 @@ class BlinkDebitClientTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
                 .containsExactly(consentId, null, null);
     }
 
@@ -2604,8 +2610,7 @@ class BlinkDebitClientTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
                 .containsExactly(consentId, null, null);
     }
 
@@ -2641,8 +2646,7 @@ class BlinkDebitClientTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
                 .containsExactly(consentId, null, null);
     }
 
