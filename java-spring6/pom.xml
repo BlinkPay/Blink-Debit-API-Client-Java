@@ -23,6 +23,7 @@
 
         <core.version>1.4.0</core.version>
         <spring.boot.version>3.4.4</spring.boot.version>
+        <spring.security.version>6.4.4</spring.security.version>
         <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>3.2.1</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>2.3.0</resilience4j.version>
         <swagger.version>2.2.29</swagger.version>
@@ -150,6 +151,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Force fix for CVE-2025-22228 -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-crypto</artifactId>
+                <version>${spring.security.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
