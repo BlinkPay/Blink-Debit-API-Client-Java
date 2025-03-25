@@ -83,7 +83,8 @@ public class BankMetadata {
      *
      * @return paymentLimit
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
+    @Schema(description = "")
+    @Valid
     public Amount getPaymentLimit() {
         return paymentLimit;
     }
@@ -123,8 +124,7 @@ public class BankMetadata {
      *
      * @return redirectFlow
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Redirect flow must not be null")
+    @Schema(description = "")
     @Valid
     public BankmetadataRedirectFlow getRedirectFlow() {
         return redirectFlow;

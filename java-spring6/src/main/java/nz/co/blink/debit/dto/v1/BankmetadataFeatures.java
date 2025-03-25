@@ -59,8 +59,7 @@ public class BankmetadataFeatures {
      *
      * @return enduringConsent
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Enduring consent must not be null")
+    @Schema(description = "")
     @Valid
     public BankmetadataFeaturesEnduringConsent getEnduringConsent() {
         return enduringConsent;
@@ -80,8 +79,7 @@ public class BankmetadataFeatures {
      *
      * @return decoupledFlow
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Decoupled flow must not be null")
+    @Schema(description = "")
     @Valid
     public BankmetadataFeaturesDecoupledFlow getDecoupledFlow() {
         return decoupledFlow;
@@ -101,7 +99,8 @@ public class BankmetadataFeatures {
      *
      * @return cardPayment
      **/
-    @Schema(required = true, description = "")
+    @Schema(description = "")
+    @Valid
     public BankmetadataFeaturesCardPayment getCardPayment() {
         return cardPayment;
     }
