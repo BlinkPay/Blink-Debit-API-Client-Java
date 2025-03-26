@@ -44,11 +44,11 @@ public class PaymentRequest {
     @JsonProperty("consent_id")
     private UUID consentId = null;
 
-    @JsonProperty("enduring_payment")
-    private EnduringPaymentRequest enduringPayment = null;
+    @JsonProperty("pcr")
+    private Pcr pcr = null;
 
-    @JsonProperty("account_reference_id")
-    private UUID accountReferenceId = null;
+    @JsonProperty("amount")
+    private Amount amount = null;
 
     public PaymentRequest consentId(UUID consentId) {
         this.consentId = consentId;
@@ -71,43 +71,44 @@ public class PaymentRequest {
         this.consentId = consentId;
     }
 
-    public PaymentRequest enduringPayment(EnduringPaymentRequest enduringPayment) {
-        this.enduringPayment = enduringPayment;
+    public PaymentRequest pcr(Pcr pcr) {
+        this.pcr = pcr;
         return this;
     }
 
     /**
-     * Get enduringPayment
+     * Get pcr
      *
-     * @return enduringPayment
+     * @return pcr
      **/
     @Schema(description = "")
     @Valid
-    public EnduringPaymentRequest getEnduringPayment() {
-        return enduringPayment;
+    public Pcr getPcr() {
+        return pcr;
     }
 
-    public void setEnduringPayment(EnduringPaymentRequest enduringPayment) {
-        this.enduringPayment = enduringPayment;
+    public void setPcr(Pcr pcr) {
+        this.pcr = pcr;
     }
 
-    public PaymentRequest accountReferenceId(UUID accountReferenceId) {
-        this.accountReferenceId = accountReferenceId;
+    public PaymentRequest amount(Amount amount) {
+        this.amount = amount;
         return this;
     }
 
     /**
-     * The account reference ID from account list. This is required if the account selection information was provided to you on the consents endpoint.
+     * Get amount
      *
-     * @return accountReferenceId
+     * @return amount
      **/
-    @Schema(description = "The account reference ID from account list. This is required if the account selection information was provided to you on the consents endpoint.")
-    public UUID getAccountReferenceId() {
-        return accountReferenceId;
+    @Schema(description = "")
+    @Valid
+    public Amount getAmount() {
+        return amount;
     }
 
-    public void setAccountReferenceId(UUID accountReferenceId) {
-        this.accountReferenceId = accountReferenceId;
+    public void setAmount(Amount amount) {
+        this.amount = amount;
     }
 
     @Override
@@ -120,13 +121,13 @@ public class PaymentRequest {
         }
         PaymentRequest paymentRequest = (PaymentRequest) o;
         return Objects.equals(this.consentId, paymentRequest.consentId)
-                && Objects.equals(this.enduringPayment, paymentRequest.enduringPayment)
-                && Objects.equals(this.accountReferenceId, paymentRequest.accountReferenceId);
+               && Objects.equals(this.pcr, paymentRequest.pcr)
+               && Objects.equals(this.amount, paymentRequest.amount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(consentId, enduringPayment, accountReferenceId);
+        return Objects.hash(consentId, pcr, amount);
     }
 
     @Override
@@ -134,8 +135,8 @@ public class PaymentRequest {
         StringBuilder sb = new StringBuilder();
         sb.append("class PaymentRequest {\n");
         sb.append("    consentId: ").append(toIndentedString(consentId)).append("\n");
-        sb.append("    enduringPayment: ").append(toIndentedString(enduringPayment)).append("\n");
-        sb.append("    accountReferenceId: ").append(toIndentedString(accountReferenceId)).append("\n");
+        sb.append("    pcr: ").append(toIndentedString(pcr)).append("\n");
+        sb.append("    amount: ").append(toIndentedString(amount)).append("\n");
         sb.append("}");
         return sb.toString();
     }

@@ -914,7 +914,7 @@ class EnduringConsentsApiClientTest {
                                 .total("50.00"))
                         .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                         .type(ConsentDetail.TypeEnum.ENDURING))
-                .payments(Collections.emptySet());
+                .payments(Collections.emptyList());
 
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
@@ -929,8 +929,8 @@ class EnduringConsentsApiClientTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())

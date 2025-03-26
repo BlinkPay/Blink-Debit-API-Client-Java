@@ -23,36 +23,28 @@ package nz.co.blink.debit.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 
 import java.util.Arrays;
 
 /**
- * The bank name. Required if not using Blink's hosted gateway.
+ * The card network.
  */
-public enum Bank {
+public enum CardNetwork {
 
-    ASB("ASB"),
-
-    ANZ("ANZ"),
-
-    BNZ("BNZ"),
-
-    WESTPAC("Westpac"),
-
-    KIWIBANK("KiwiBank"),
-
-    CYBERSOURCE("Cybersource"),
-
-    /**
-     * The Payments NZ generic sandbox bank powered by Middleware NZ. FOR SANDBOX PURPOSES ONLY.
-     */
-    PNZ("PNZ");
+    VISA("VISA", "001"),
+    MASTERCARD("MASTERCARD", "002"),
+    AMEX("AMEX", "003"),
+    DISCOVER("DISCOVER", "004"),
+    DINERSCLUB("DINERSCLUB", "005"),
+    JCB("JCB", "007"),;
 
     private final String value;
 
-    Bank(String value) {
+    private final String type;
+
+    CardNetwork(String value, String type) {
         this.value = value;
+        this.type = type;
     }
 
     @Override
@@ -62,11 +54,18 @@ public enum Bank {
     }
 
     @JsonCreator
-    public static Bank fromValue(String text) throws BlinkInvalidValueException {
+    public static CardNetwork fromValue(String text) {
         // `value` comparison is for data transfer object, `name` comparison is for domain model object (entity)
-        return Arrays.stream(Bank.values())
-                .filter(bank -> bank.value.equals(text) ||  bank.name().equals(text))
+        return Arrays.stream(CardNetwork.values())
+                .filter(cardNetwork -> cardNetwork.value.equals(text) || cardNetwork.name().equals(text))
                 .findFirst()
-                .orElseThrow(() -> new BlinkInvalidValueException("Unknown bank: " + text));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown card network: " + text));
+    }
+
+    public static CardNetwork fromType(String text) {
+        return Arrays.stream(CardNetwork.values())
+                .filter(card -> card.type.equals(text))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown card network type: " + text));
     }
 }

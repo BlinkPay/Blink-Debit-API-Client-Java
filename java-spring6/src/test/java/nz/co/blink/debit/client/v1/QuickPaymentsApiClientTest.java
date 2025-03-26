@@ -28,6 +28,7 @@ import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.AuthFlow;
 import nz.co.blink.debit.dto.v1.AuthFlowDetail;
 import nz.co.blink.debit.dto.v1.Bank;
+import nz.co.blink.debit.dto.v1.CardNetwork;
 import nz.co.blink.debit.dto.v1.Consent;
 import nz.co.blink.debit.dto.v1.ConsentDetail;
 import nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse;
@@ -1075,7 +1076,8 @@ class QuickPaymentsApiClientTest {
                                         .total("1.25"))
                                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e")
                                 .type(ConsentDetail.TypeEnum.SINGLE))
-                        .payments(Collections.emptySet()));
+                        .payments(Collections.emptyList())
+                        .cardNetwork(CardNetwork.VISA));
 
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
@@ -1096,8 +1098,8 @@ class QuickPaymentsApiClientTest {
         Consent consent = actual.getConsent();
         assertThat(consent)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), CardNetwork.VISA);
         assertThat(consent.getCreationTimestamp()).isEqualTo(now.minusMinutes(5));
         assertThat(consent.getStatusUpdatedTimestamp()).isEqualTo(now);
         assertThat(consent.getDetail())

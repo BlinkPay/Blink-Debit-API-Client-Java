@@ -83,7 +83,7 @@ public class ConsentDetail {
      *
      * @return type
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Whether the consent is single or enduring.")
+    @Schema(description = "Whether the consent is single or enduring.")
     @NotNull(message = "Type must not be null")
     public TypeEnum getType() {
         return type;

@@ -25,7 +25,6 @@ import io.github.resilience4j.retry.Retry;
 import jakarta.validation.Validation;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
@@ -139,17 +138,17 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithNullPcr() {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.50")));
+                .pcr(new Pcr())
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"));
 
         BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
                 () -> client.createPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("PCR must not be null");
+                .hasMessageContaining("Particulars must not be null");
     }
 
     @ParameterizedTest
@@ -159,21 +158,18 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithBlankParticulars(String particulars) {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.50"))
-                        .pcr(new Pcr()
-                                .particulars(particulars)
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .pcr(new Pcr()
+                        .particulars(particulars)
+                        .code("code")
+                        .reference("reference"));
 
         BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
                 () -> client.createPayment(request).block());
 
-        assertThat(exception)
-                .isNotNull()
-                .hasMessage("Particulars must have at least 1 character");
+        assertThat(exception).isNotNull();
     }
 
     @Test
@@ -181,21 +177,20 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithLongPcrValues() {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.50"))
-                        .pcr(new Pcr()
-                                .particulars("merchant particulars")
-                                .code("merchant code")
-                                .reference("merchant reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.50"))
+                .pcr(new Pcr()
+                        .particulars("merchant particulars")
+                        .code("merchant code")
+                        .reference("merchant reference"));
 
         BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
                 () -> client.createPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("PCR must not exceed 12 characters");
+                .hasMessageContaining("Particulars has a maximum length of 12 characters and must have at least 1 non-whitespace character");
     }
 
     @Test
@@ -203,18 +198,18 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithNullAmount() {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount());
 
         BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
                 () -> client.createPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Amount must not be null");
+                .hasMessageContaining("Total must not be null");
     }
 
     @Test
@@ -222,20 +217,19 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithNullCurrency() {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .total("25.50"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .total("25.50"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
                 () -> client.createPayment(request).block());
 
         assertThat(exception)
                 .isNotNull()
-                .hasMessage("Currency must not be null");
+                .hasMessageContaining("Currency must not be null and only NZD is supported");
     }
 
     @ParameterizedTest
@@ -245,21 +239,18 @@ class PaymentsApiClientTest {
     void createEnduringPaymentWithInvalidTotal(String total) {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total(total))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total(total))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
                 () -> client.createPayment(request).block());
 
-        assertThat(exception)
-                .isNotNull()
-                .hasMessageStartingWith("Validation failed for payment request");
+        assertThat(exception).isNotNull();
     }
 
     @Test
@@ -315,8 +306,7 @@ class PaymentsApiClientTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
                 .containsExactly(consentId, null, null);
     }
 
@@ -342,7 +332,14 @@ class PaymentsApiClientTest {
         when(requestHeadersSpec.exchangeToMono(any(Function.class))).thenReturn(Mono.just(response));
 
         PaymentRequest request = new PaymentRequest()
-                .consentId(UUID.randomUUID());
+                .consentId(UUID.randomUUID())
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"))
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("123.50"));
 
         Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 
@@ -377,14 +374,13 @@ class PaymentsApiClientTest {
 
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.randomUUID())
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("25.75"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("25.75"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 

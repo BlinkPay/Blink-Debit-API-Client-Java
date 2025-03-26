@@ -25,7 +25,6 @@ import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
@@ -131,8 +130,7 @@ class PaymentsApiClientComponentTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
                 .containsExactly(UUID.fromString("c14427fb-8ae8-4e5f-8685-3f6ab4c2f99a"), null, null);
     }
 
@@ -142,14 +140,13 @@ class PaymentsApiClientComponentTest {
     void createEnduringPayment() throws BlinkServiceException {
         PaymentRequest request = new PaymentRequest()
                 .consentId(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"))
-                .enduringPayment(new EnduringPaymentRequest()
-                        .amount(new Amount()
-                                .currency(Amount.CurrencyEnum.NZD)
-                                .total("45.00"))
-                        .pcr(new Pcr()
-                                .particulars("particulars")
-                                .code("code")
-                                .reference("reference")));
+                .amount(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("45.00"))
+                .pcr(new Pcr()
+                        .particulars("particulars")
+                        .code("code")
+                        .reference("reference"));
 
         Mono<PaymentResponse> paymentResponseMono = client.createPayment(request);
 
@@ -180,15 +177,13 @@ class PaymentsApiClientComponentTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId)
-                .containsExactly(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"), null);
-        EnduringPaymentRequest enduringPaymentRequest = paymentRequest.getEnduringPayment();
-        assertThat(enduringPaymentRequest).isNotNull();
-        assertThat(enduringPaymentRequest.getAmount())
+                .extracting(PaymentRequest::getConsentId)
+                .isEqualTo(UUID.fromString("0500c560-c156-439f-9aed-753d82884323"));
+        assertThat(paymentRequest.getAmount())
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "45.00");
-        assertThat(enduringPaymentRequest.getPcr())
+        assertThat(paymentRequest.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
                 .containsExactly("particulars", "code", "reference");

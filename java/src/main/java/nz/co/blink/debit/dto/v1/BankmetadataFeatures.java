@@ -46,6 +46,9 @@ public class BankmetadataFeatures {
     @JsonProperty("decoupled_flow")
     private BankmetadataFeaturesDecoupledFlow decoupledFlow = null;
 
+    @JsonProperty("card_payment")
+    private BankmetadataFeaturesCardPayment cardPayment = null;
+
     public BankmetadataFeatures enduringConsent(BankmetadataFeaturesEnduringConsent enduringConsent) {
         this.enduringConsent = enduringConsent;
         return this;
@@ -56,8 +59,7 @@ public class BankmetadataFeatures {
      *
      * @return enduringConsent
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Enduring consent must not be null")
+    @Schema(description = "")
     @Valid
     public BankmetadataFeaturesEnduringConsent getEnduringConsent() {
         return enduringConsent;
@@ -77,8 +79,7 @@ public class BankmetadataFeatures {
      *
      * @return decoupledFlow
      **/
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
-    @NotNull(message = "Decoupled flow must not be null")
+    @Schema(description = "")
     @Valid
     public BankmetadataFeaturesDecoupledFlow getDecoupledFlow() {
         return decoupledFlow;
@@ -86,6 +87,26 @@ public class BankmetadataFeatures {
 
     public void setDecoupledFlow(BankmetadataFeaturesDecoupledFlow decoupledFlow) {
         this.decoupledFlow = decoupledFlow;
+    }
+
+    public BankmetadataFeatures cardPayment(BankmetadataFeaturesCardPayment cardPayment) {
+        this.cardPayment = cardPayment;
+        return this;
+    }
+
+    /**
+     * Get cardPayment
+     *
+     * @return cardPayment
+     **/
+    @Schema(description = "")
+    @Valid
+    public BankmetadataFeaturesCardPayment getCardPayment() {
+        return cardPayment;
+    }
+
+    public void setCardPayment(BankmetadataFeaturesCardPayment cardPayment) {
+        this.cardPayment = cardPayment;
     }
 
     @Override
@@ -98,12 +119,13 @@ public class BankmetadataFeatures {
         }
         BankmetadataFeatures bankmetadataFeatures = (BankmetadataFeatures) o;
         return Objects.equals(this.enduringConsent, bankmetadataFeatures.enduringConsent)
-                && Objects.equals(this.decoupledFlow, bankmetadataFeatures.decoupledFlow);
+               && Objects.equals(this.decoupledFlow, bankmetadataFeatures.decoupledFlow)
+               && Objects.equals(this.cardPayment, bankmetadataFeatures.cardPayment);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(enduringConsent, decoupledFlow);
+        return Objects.hash(enduringConsent, decoupledFlow, cardPayment);
     }
 
     @Override
@@ -112,6 +134,7 @@ public class BankmetadataFeatures {
         sb.append("class BankmetadataFeatures {\n");
         sb.append("    enduringConsent: ").append(toIndentedString(enduringConsent)).append("\n");
         sb.append("    decoupledFlow: ").append(toIndentedString(decoupledFlow)).append("\n");
+        sb.append("    cardPayment: ").append(toIndentedString(cardPayment)).append("\n");
         sb.append("}");
         return sb.toString();
     }

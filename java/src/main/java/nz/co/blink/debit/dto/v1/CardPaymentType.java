@@ -23,35 +23,22 @@ package nz.co.blink.debit.dto.v1;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import nz.co.blink.debit.exception.BlinkInvalidValueException;
 
 import java.util.Arrays;
 
 /**
- * The bank name. Required if not using Blink's hosted gateway.
+ * The type of card payment.
  */
-public enum Bank {
+public enum CardPaymentType {
 
-    ASB("ASB"),
-
-    ANZ("ANZ"),
-
-    BNZ("BNZ"),
-
-    WESTPAC("Westpac"),
-
-    KIWIBANK("KiwiBank"),
-
-    CYBERSOURCE("Cybersource"),
-
-    /**
-     * The Payments NZ generic sandbox bank powered by Middleware NZ. FOR SANDBOX PURPOSES ONLY.
-     */
-    PNZ("PNZ");
+    APPLEPAY("APPLEPAY"),
+    CLICKTOPAY("CLICKTOPAY"),
+    GOOGLEPAY("GOOGLEPAY"),
+    PANENTRY("PANENTRY");
 
     private final String value;
 
-    Bank(String value) {
+    CardPaymentType(String value) {
         this.value = value;
     }
 
@@ -62,11 +49,10 @@ public enum Bank {
     }
 
     @JsonCreator
-    public static Bank fromValue(String text) throws BlinkInvalidValueException {
-        // `value` comparison is for data transfer object, `name` comparison is for domain model object (entity)
-        return Arrays.stream(Bank.values())
-                .filter(bank -> bank.value.equals(text) ||  bank.name().equals(text))
+    public static CardPaymentType fromValue(String text) {
+        return Arrays.stream(CardPaymentType.values())
+                .filter(cardPaymentType -> cardPaymentType.name().equals(text))
                 .findFirst()
-                .orElseThrow(() -> new BlinkInvalidValueException("Unknown bank: " + text));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown card payment type: " + text));
     }
 }

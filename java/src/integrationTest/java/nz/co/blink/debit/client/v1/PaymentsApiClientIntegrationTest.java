@@ -28,7 +28,6 @@ import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
 import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
@@ -164,9 +163,8 @@ class PaymentsApiClientIntegrationTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId,
-                        PaymentRequest::getEnduringPayment)
-                .containsExactly(consentId, null, null);
+                .extracting(PaymentRequest::getConsentId, PaymentRequest::getPcr, PaymentRequest::getAmount)
+                .containsExactly(consentId, null, new Amount().currency(Amount.CurrencyEnum.NZD).total("50.00"));
     }
 
     @Test
@@ -202,14 +200,13 @@ class PaymentsApiClientIntegrationTest {
             try {
                 PaymentRequest paymentRequest = new PaymentRequest()
                         .consentId(consentId)
-                        .enduringPayment(new EnduringPaymentRequest()
-                                .amount(new Amount()
-                                        .currency(Amount.CurrencyEnum.NZD)
-                                        .total("45.00"))
-                                .pcr(new Pcr()
-                                        .particulars("particulars")
-                                        .code("code")
-                                        .reference("reference")));
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("45.00"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference"));
 
                 Mono<PaymentResponse> paymentResponseMono = client.createPayment(paymentRequest);
 
@@ -253,15 +250,13 @@ class PaymentsApiClientIntegrationTest {
         PaymentRequest paymentRequest = actual.getDetail();
         assertThat(paymentRequest)
                 .isNotNull()
-                .extracting(PaymentRequest::getConsentId, PaymentRequest::getAccountReferenceId)
-                .containsExactly(consentId, null);
-        EnduringPaymentRequest enduringPaymentRequest = paymentRequest.getEnduringPayment();
-        assertThat(enduringPaymentRequest).isNotNull();
-        assertThat(enduringPaymentRequest.getAmount())
+                .extracting(PaymentRequest::getConsentId)
+                .isEqualTo(consentId);
+        assertThat(paymentRequest.getAmount())
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "45.00");
-        assertThat(enduringPaymentRequest.getPcr())
+        assertThat(paymentRequest.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
                 .containsExactly("particulars", "code", "reference");

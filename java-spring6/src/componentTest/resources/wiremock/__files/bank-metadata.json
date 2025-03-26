@@ -1,6 +1,10 @@
 [
   {
     "name": "BNZ",
+    "payment_limit": {
+      "total": "50000",
+      "currency": "NZD"
+    },
     "features": {
       "enduring_consent": {
         "enabled": true,
@@ -24,6 +28,10 @@
   },
   {
     "name": "PNZ",
+    "payment_limit": {
+      "total": "50000",
+      "currency": "NZD"
+    },
     "features": {
       "enduring_consent": {
         "enabled": true,
@@ -51,6 +59,10 @@
   },
   {
     "name": "Westpac",
+    "payment_limit": {
+      "total": "10000",
+      "currency": "NZD"
+    },
     "features": {},
     "redirect_flow": {
       "enabled": true,
@@ -58,7 +70,28 @@
     }
   },
   {
+    "name": "ASB",
+    "payment_limit": {
+      "total": "30000",
+      "currency": "NZD"
+    },
+    "features": {
+      "enduring_consent": {
+        "enabled": true,
+        "consent_indefinite": false
+      }
+    },
+    "redirect_flow": {
+      "enabled": true,
+      "request_timeout": "PT10M"
+    }
+  },
+  {
     "name": "ANZ",
+    "payment_limit": {
+      "total": "1000",
+      "currency": "NZD"
+    },
     "features": {
       "decoupled_flow": {
         "enabled": true,
@@ -72,20 +105,25 @@
       }
     },
     "redirect_flow": {
-      "enabled": false
+      "enabled": true,
+      "request_timeout": "PT10M"
     }
   },
   {
-    "name": "ASB",
+    "name": "Cybersource",
     "features": {
-      "enduring_consent": {
+      "card_payment": {
         "enabled": true,
-        "consent_indefinite": false
+        "allowed_card_payment_types": [
+          "PANENTRY",
+          "GOOGLEPAY"
+        ],
+        "allowed_card_networks": [
+          "VISA",
+          "MASTERCARD",
+          "AMEX"
+        ]
       }
-    },
-    "redirect_flow": {
-      "enabled": true,
-      "request_timeout": "PT10M"
     }
   }
 ]

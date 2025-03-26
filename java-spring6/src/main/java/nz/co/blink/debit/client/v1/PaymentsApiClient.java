@@ -25,11 +25,9 @@ import io.github.resilience4j.reactor.retry.RetryOperator;
 import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.config.BlinkPayProperties;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.Payment;
 import nz.co.blink.debit.dto.v1.PaymentRequest;
 import nz.co.blink.debit.dto.v1.PaymentResponse;
-import nz.co.blink.debit.dto.v1.Pcr;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
 import nz.co.blink.debit.exception.BlinkInvalidValueException;
 import nz.co.blink.debit.exception.BlinkServiceException;
@@ -142,30 +140,14 @@ public class PaymentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        EnduringPaymentRequest enduringPayment = request.getEnduringPayment();
-        if (enduringPayment != null) {
-            Pcr pcr = enduringPayment.getPcr();
-            if (pcr == null) {
-                throw new BlinkInvalidValueException("PCR must not be null");
-            }
+        if (request.getPcr() != null) {
+            String particulars = StringUtils.trim(request.getPcr().getParticulars());
+            request.getPcr().setParticulars(particulars);
+        }
 
-            if (StringUtils.isBlank(pcr.getParticulars())) {
-                throw new BlinkInvalidValueException("Particulars must have at least 1 character");
-            }
-
-            if (StringUtils.length(pcr.getParticulars()) > 12
-                || StringUtils.length(pcr.getCode()) > 12
-                || StringUtils.length(pcr.getReference()) > 12) {
-                throw new BlinkInvalidValueException("PCR must not exceed 12 characters");
-            }
-
-            if (enduringPayment.getAmount() == null) {
-                throw new BlinkInvalidValueException("Amount must not be null");
-            }
-
-            if (enduringPayment.getAmount().getCurrency() == null) {
-                throw new BlinkInvalidValueException("Currency must not be null");
-            }
+        if (request.getAmount() != null) {
+            String total = StringUtils.trim(request.getAmount().getTotal());
+            request.getAmount().setTotal(total);
         }
 
         validationService.validateRequest("payment", request);

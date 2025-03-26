@@ -29,7 +29,6 @@ import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.CreateConsentResponse;
 import nz.co.blink.debit.dto.v1.DecoupledFlow;
 import nz.co.blink.debit.dto.v1.EnduringConsentRequest;
-import nz.co.blink.debit.dto.v1.EnduringPaymentRequest;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.dto.v1.PartialRefundRequest;
@@ -226,14 +225,13 @@ class RefundsApiClientIntegrationTest {
             try {
                 PaymentRequest paymentRequest = new PaymentRequest()
                         .consentId(consentId)
-                        .enduringPayment(new EnduringPaymentRequest()
-                                .amount(new Amount()
-                                        .currency(Amount.CurrencyEnum.NZD)
-                                        .total("45.00"))
-                                .pcr(new Pcr()
-                                        .particulars("particulars")
-                                        .code("code")
-                                        .reference("reference")));
+                        .amount(new Amount()
+                                .currency(Amount.CurrencyEnum.NZD)
+                                .total("45.00"))
+                        .pcr(new Pcr()
+                                .particulars("particulars")
+                                .code("code")
+                                .reference("reference"));
 
                 Mono<PaymentResponse> paymentResponseMono = paymentsApiClient.createPayment(paymentRequest);
 
@@ -358,8 +356,8 @@ class RefundsApiClientIntegrationTest {
                         .reference("reference"))
                 .paymentId(paymentId);
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(refundRequest).block(),
-                RuntimeException.class);
+        RuntimeException exception = catchThrowableOfType(RuntimeException.class,
+                () -> client.createRefund(refundRequest).block());
 
         assertThat(exception).isNotNull();
         assertThat(exception.getCause())
@@ -435,8 +433,8 @@ class RefundsApiClientIntegrationTest {
                         .total("25.50"))
                 .paymentId(paymentId);
 
-        RuntimeException exception = catchThrowableOfType(() -> client.createRefund(refundRequest).block(),
-                RuntimeException.class);
+        RuntimeException exception = catchThrowableOfType(RuntimeException.class,
+                () -> client.createRefund(refundRequest).block());
 
         assertThat(exception).isNotNull();
         assertThat(exception.getCause())

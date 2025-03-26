@@ -22,13 +22,17 @@
 package nz.co.blink.debit.client.v1;
 
 import nz.co.blink.debit.config.BlinkPayProperties;
+import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.Bank;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.dto.v1.BankmetadataFeatures;
+import nz.co.blink.debit.dto.v1.BankmetadataFeaturesCardPayment;
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlow;
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesDecoupledFlowAvailableIdentifiers;
 import nz.co.blink.debit.dto.v1.BankmetadataFeaturesEnduringConsent;
 import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
+import nz.co.blink.debit.dto.v1.CardNetwork;
+import nz.co.blink.debit.dto.v1.CardPaymentType;
 import nz.co.blink.debit.dto.v1.IdentifierType;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
@@ -99,9 +103,11 @@ class MetaApiClientTest {
     void getMeta() throws BlinkServiceException {
         ReflectionTestUtils.setField(client, "webClientBuilder", webClientBuilder);
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
-
         BankMetadata bnz = new BankMetadata()
                 .name(Bank.BNZ)
+                .paymentLimit(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50000"))
                 .features(new BankmetadataFeatures()
                         .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
                                 .enabled(true)
@@ -119,6 +125,9 @@ class MetaApiClientTest {
 
         BankMetadata pnz = new BankMetadata()
                 .name(Bank.PNZ)
+                .paymentLimit(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50000"))
                 .features(new BankmetadataFeatures()
                         .enduringConsent(new BankmetadataFeaturesEnduringConsent()
                                 .enabled(true)
@@ -140,6 +149,9 @@ class MetaApiClientTest {
 
         BankMetadata westpac = new BankMetadata()
                 .name(Bank.WESTPAC)
+                .paymentLimit(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("10000"))
                 .features(new BankmetadataFeatures())
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
@@ -147,6 +159,9 @@ class MetaApiClientTest {
 
         BankMetadata asb = new BankMetadata()
                 .name(Bank.ASB)
+                .paymentLimit(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("30000"))
                 .features(new BankmetadataFeatures()
                         .enduringConsent(new BankmetadataFeaturesEnduringConsent()
                                 .enabled(true)
@@ -157,6 +172,9 @@ class MetaApiClientTest {
 
         BankMetadata anz = new BankMetadata()
                 .name(Bank.ANZ)
+                .paymentLimit(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("2000"))
                 .features(new BankmetadataFeatures()
                         .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
                                 .enabled(true)
@@ -169,13 +187,26 @@ class MetaApiClientTest {
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(false));
 
+        BankMetadata cybersource = new BankMetadata()
+                .name(Bank.CYBERSOURCE)
+                .features(new BankmetadataFeatures()
+                        .cardPayment(new BankmetadataFeaturesCardPayment()
+                                .enabled(true)
+                                .allowedCardPaymentTypes(Stream.of(CardPaymentType.PANENTRY, CardPaymentType.CLICKTOPAY,
+                                                CardPaymentType.GOOGLEPAY)
+                                        .collect(Collectors.toList()))
+                                .allowedCardNetworks(Stream.of(CardNetwork.VISA, CardNetwork.MASTERCARD, CardNetwork.AMEX,
+                                                CardNetwork.DISCOVER, CardNetwork.DINERSCLUB, CardNetwork.JCB)
+                                        .collect(Collectors.toList()))));
+
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(METADATA_PATH.getValue())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.headers(any(Consumer.class))).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.accept(MediaType.APPLICATION_JSON)).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.exchangeToFlux(any(Function.class))).thenReturn(Flux.just(bnz, pnz, westpac, asb, anz));
+        when(requestHeadersSpec.exchangeToFlux(any(Function.class)))
+                .thenReturn(Flux.just(bnz, pnz, westpac, asb, anz, cybersource));
 
         Flux<BankMetadata> actual = client.getMeta();
 
@@ -188,9 +219,10 @@ class MetaApiClientTest {
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
                 .consumeNextWith(set::add)
+                .consumeNextWith(set::add)
                 .verifyComplete();
         assertThat(set)
-                .hasSize(5)
-                .containsExactlyInAnyOrder(bnz, pnz, westpac, asb, anz);
+                .hasSize(6)
+                .containsExactlyInAnyOrder(bnz, pnz, westpac, asb, anz, cybersource);
     }
 }

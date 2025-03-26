@@ -119,10 +119,10 @@ class SingleConsentsApiClientIntegrationTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
-        assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
+        assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
                 .isNotNull()
                 .isInstanceOf(SingleConsentRequest.class);
@@ -158,8 +158,8 @@ class SingleConsentsApiClientIntegrationTest {
         assertThat(actual).isNotNull();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
@@ -197,8 +197,8 @@ class SingleConsentsApiClientIntegrationTest {
             Consent actual = consentMono.block();
             assertThat(actual)
                     .isNotNull()
-                    .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                    .containsExactly(Consent.StatusEnum.REJECTED, null, Collections.emptySet());
+                    .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                    .containsExactly(Consent.StatusEnum.REJECTED, Collections.emptyList(), null);
             assertThat(actual.getCreationTimestamp()).isNotNull();
             assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
             assertThat(actual.getDetail())
@@ -269,8 +269,8 @@ class SingleConsentsApiClientIntegrationTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.AWAITINGAUTHORISATION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
@@ -310,8 +310,8 @@ class SingleConsentsApiClientIntegrationTest {
         assertThat(actual).isNotNull();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
@@ -380,8 +380,8 @@ class SingleConsentsApiClientIntegrationTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -427,8 +427,8 @@ class SingleConsentsApiClientIntegrationTest {
         assertThat(actual).isNotNull();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
@@ -505,8 +505,8 @@ class SingleConsentsApiClientIntegrationTest {
         Consent actual = consentMono.block();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.GATEWAYAWAITINGSUBMISSION, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNull();
         assertThat(actual.getDetail())
@@ -553,8 +553,8 @@ class SingleConsentsApiClientIntegrationTest {
         assertThat(actual).isNotNull();
         assertThat(actual)
                 .isNotNull()
-                .extracting(Consent::getStatus, Consent::getAccounts, Consent::getPayments)
-                .containsExactly(Consent.StatusEnum.REVOKED, null, Collections.emptySet());
+                .extracting(Consent::getStatus, Consent::getPayments, Consent::getCardNetwork)
+                .containsExactly(Consent.StatusEnum.REVOKED, Collections.emptyList(), null);
         assertThat(actual.getCreationTimestamp()).isNotNull();
         assertThat(actual.getStatusUpdatedTimestamp()).isNotNull();
         assertThat(actual.getDetail())
