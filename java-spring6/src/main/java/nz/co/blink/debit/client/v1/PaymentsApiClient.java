@@ -195,8 +195,8 @@ public class PaymentsApiClient {
         }
 
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
-        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), null);
-        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), null);
+        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
+        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
 
         return getWebClientBuilder(requestId)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -218,8 +218,8 @@ public class PaymentsApiClient {
     private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, Map<String, String> requestHeaders)
             throws BlinkServiceException {
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
-        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), null);
-        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), null);
+        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
+        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
         String idempotencyKey = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestId)

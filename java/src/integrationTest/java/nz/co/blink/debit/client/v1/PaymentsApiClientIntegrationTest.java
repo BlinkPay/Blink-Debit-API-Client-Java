@@ -181,6 +181,9 @@ class PaymentsApiClientIntegrationTest {
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
+                .maximumAmountPayment(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
