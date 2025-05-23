@@ -67,6 +67,9 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
     @JsonProperty("hashed_customer_identifier")
     private String hashedCustomerIdentifier = null;
 
+    @JsonProperty("maximum_amount_payment")
+    private Amount maximumAmountPayment = null;
+
     public EnduringConsentRequest flow(AuthFlow flow) {
         this.flow = flow;
         return this;
@@ -190,6 +193,27 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
         this.hashedCustomerIdentifier = hashedCustomerIdentifier;
     }
 
+    public EnduringConsentRequest maximumAmountPayment(Amount maximumAmountPayment) {
+        this.maximumAmountPayment = maximumAmountPayment;
+        return this;
+    }
+
+    /**
+     * Get maximumAmountPayment
+     *
+     * @return maximumAmountPayment
+     **/
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "")
+    @NotNull(message = "Maximum amount payment must not be null")
+    @Valid
+    public Amount getMaximumAmountPayment() {
+        return maximumAmountPayment;
+    }
+
+    public void setMaximumAmountPayment(Amount maximumAmountPayment) {
+        this.maximumAmountPayment = maximumAmountPayment;
+    }
+
     @Override
     public TypeEnum getType() {
         return TypeEnum.ENDURING;
@@ -205,18 +229,19 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
         }
         EnduringConsentRequest enduringConsentRequest = (EnduringConsentRequest) o;
         return Objects.equals(this.flow, enduringConsentRequest.flow)
-                && Objects.equals(this.expiryTimestamp, enduringConsentRequest.expiryTimestamp)
-                && Objects.equals(this.fromTimestamp, enduringConsentRequest.fromTimestamp)
-                && Objects.equals(this.maximumAmountPeriod, enduringConsentRequest.maximumAmountPeriod)
-                && Objects.equals(this.period, enduringConsentRequest.period)
-                && Objects.equals(this.hashedCustomerIdentifier, enduringConsentRequest.hashedCustomerIdentifier)
-                && super.equals(o);
+               && Objects.equals(this.expiryTimestamp, enduringConsentRequest.expiryTimestamp)
+               && Objects.equals(this.fromTimestamp, enduringConsentRequest.fromTimestamp)
+               && Objects.equals(this.maximumAmountPeriod, enduringConsentRequest.maximumAmountPeriod)
+               && Objects.equals(this.period, enduringConsentRequest.period)
+               && Objects.equals(this.hashedCustomerIdentifier, enduringConsentRequest.hashedCustomerIdentifier)
+               && Objects.equals(this.maximumAmountPayment, enduringConsentRequest.maximumAmountPayment)
+               && super.equals(o);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(flow, expiryTimestamp, fromTimestamp, maximumAmountPeriod, period, hashedCustomerIdentifier,
-                super.hashCode());
+                maximumAmountPayment, super.hashCode());
     }
 
     @Override
@@ -230,6 +255,7 @@ public class EnduringConsentRequest extends ConsentDetail implements OneOfconsen
         sb.append("    maximumAmountPeriod: ").append(toIndentedString(maximumAmountPeriod)).append("\n");
         sb.append("    period: ").append(toIndentedString(period)).append("\n");
         sb.append("    hashedCustomerIdentifier: ").append(toIndentedString(hashedCustomerIdentifier)).append("\n");
+        sb.append("    maximumAmountPayment: ").append(toIndentedString(maximumAmountPayment)).append("\n");
         sb.append("}");
         return sb.toString();
     }

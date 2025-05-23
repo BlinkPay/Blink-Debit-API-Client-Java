@@ -325,6 +325,9 @@ class BlinkDebitClientIntegrationTest {
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
+                .maximumAmountPayment(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
@@ -374,6 +377,9 @@ class BlinkDebitClientIntegrationTest {
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
+                .maximumAmountPayment(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
@@ -407,6 +413,10 @@ class BlinkDebitClientIntegrationTest {
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        assertThat(detail.getMaximumAmountPayment())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
         assertThat(detail.getFlow()).isNotNull();
         DecoupledFlow flowDetail = (DecoupledFlow) detail.getFlow().getDetail();
         assertThat(flowDetail)
@@ -428,6 +438,9 @@ class BlinkDebitClientIntegrationTest {
                                 .redirectUri(REDIRECT_URI)
                                 .redirectToApp(true)))
                 .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .maximumAmountPayment(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.MONTHLY)
@@ -479,6 +492,9 @@ class BlinkDebitClientIntegrationTest {
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
+                .maximumAmountPayment(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
                 .period(Period.MONTHLY)
                 .fromTimestamp(OffsetDateTime.now(ZoneId.of("Pacific/Auckland")))
                 .hashedCustomerIdentifier("88df3798e32512ac340164f7ed133343d6dcb4888e4a91b03512dedd9800d12e");
@@ -509,6 +525,10 @@ class BlinkDebitClientIntegrationTest {
         assertThat(detail.getPeriod()).isEqualTo(Period.MONTHLY);
         assertThat(detail.getFromTimestamp()).isNotNull();
         assertThat(detail.getMaximumAmountPeriod())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        assertThat(detail.getMaximumAmountPayment())
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "50.00");

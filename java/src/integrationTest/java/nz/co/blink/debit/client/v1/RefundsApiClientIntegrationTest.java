@@ -205,6 +205,9 @@ class RefundsApiClientIntegrationTest {
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
+                .maximumAmountPayment(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID));
 

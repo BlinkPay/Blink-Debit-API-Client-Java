@@ -124,6 +124,9 @@ class EnduringConsentsApiClientComponentTest {
                 .maximumAmountPeriod(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
+                .maximumAmountPayment(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
                 .period(Period.FORTNIGHTLY)
                 .fromTimestamp(OffsetDateTime.now(ZONE_ID))
                 .expiryTimestamp(OffsetDateTime.now(ZONE_ID).plusMonths(11))
@@ -174,6 +177,10 @@ class EnduringConsentsApiClientComponentTest {
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        assertThat(detail.getMaximumAmountPayment())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
     }
 
     @Test
@@ -196,6 +203,9 @@ class EnduringConsentsApiClientComponentTest {
                                 .identifierValue("+64-259531933")
                                 .callbackUrl("callbackUrl")))
                 .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .maximumAmountPayment(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
@@ -250,6 +260,10 @@ class EnduringConsentsApiClientComponentTest {
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        assertThat(detail.getMaximumAmountPayment())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
     }
 
     @Test
@@ -263,6 +277,9 @@ class EnduringConsentsApiClientComponentTest {
                                 .flowHint(new RedirectFlowHint()
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .maximumAmountPayment(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
@@ -294,6 +311,9 @@ class EnduringConsentsApiClientComponentTest {
                                         .identifierValue("+64-259531933")
                                         .bank(Bank.PNZ))))
                 .maximumAmountPeriod(new Amount()
+                        .currency(Amount.CurrencyEnum.NZD)
+                        .total("50.00"))
+                .maximumAmountPayment(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("50.00"))
                 .period(Period.FORTNIGHTLY)
@@ -344,6 +364,10 @@ class EnduringConsentsApiClientComponentTest {
         assertThat(detail.getFromTimestamp()).isNotNull();
         assertThat(detail.getExpiryTimestamp()).isNotNull();
         assertThat(detail.getMaximumAmountPeriod())
+                .isNotNull()
+                .extracting(Amount::getCurrency, Amount::getTotal)
+                .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
+        assertThat(detail.getMaximumAmountPayment())
                 .isNotNull()
                 .extracting(Amount::getCurrency, Amount::getTotal)
                 .containsExactly(Amount.CurrencyEnum.NZD, "50.00");

@@ -220,12 +220,21 @@ public class EnduringConsentsApiClient {
             throw new BlinkInvalidValueException("Start date must not be null");
         }
 
-        Amount amount = request.getMaximumAmountPeriod();
-        if (amount == null) {
+        Amount maximumAmountPeriod = request.getMaximumAmountPeriod();
+        if (maximumAmountPeriod == null) {
             throw new BlinkInvalidValueException("Maximum amount period must not be null");
         }
 
-        if (amount.getCurrency() == null) {
+        if (maximumAmountPeriod.getCurrency() == null) {
+            throw new BlinkInvalidValueException("Currency must not be null");
+        }
+
+        Amount maximumAmountPayment = request.getMaximumAmountPayment();
+        if (maximumAmountPayment == null) {
+            throw new BlinkInvalidValueException("Maximum amount payment must not be null");
+        }
+
+        if (maximumAmountPayment.getCurrency() == null) {
             throw new BlinkInvalidValueException("Currency must not be null");
         }
 
@@ -275,8 +284,8 @@ public class EnduringConsentsApiClient {
         }
 
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
-        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), null);
-        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), null);
+        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
+        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
 
         return getWebClientBuilder(requestId)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -333,8 +342,8 @@ public class EnduringConsentsApiClient {
         }
 
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
-        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), null);
-        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), null);
+        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
+        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
 
         return getWebClientBuilder(requestId)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
@@ -358,8 +367,8 @@ public class EnduringConsentsApiClient {
                                                                   Map<String, String> requestHeaders)
             throws BlinkServiceException {
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
-        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), null);
-        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), null);
+        String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
+        String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
         String idempotencyKey = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestId)
