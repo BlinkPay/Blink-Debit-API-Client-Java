@@ -112,7 +112,7 @@ class EnduringConsentsApiClientIntegrationTest {
         assertThat(consentId).isNotNull();
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
     }
 
     @Test
@@ -236,7 +236,7 @@ class EnduringConsentsApiClientIntegrationTest {
             assertThat(detail.getMaximumAmountPayment())
                     .isNotNull()
                     .extracting(Amount::getCurrency, Amount::getTotal)
-                    .containsExactly(Amount.CurrencyEnum.NZD, null);
+                    .containsExactly(Amount.CurrencyEnum.NZD, "50.00");
         } catch (RuntimeException e) {
             assertThat(e.getCause())
                     .isInstanceOf(BlinkResourceNotFoundException.class)

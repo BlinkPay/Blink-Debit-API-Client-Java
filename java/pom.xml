@@ -21,19 +21,19 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <core.version>1.5.0</core.version>
+        <core.version>1.5.1</core.version>
         <spring.boot.version>2.7.18</spring.boot.version>
         <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.8</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>1.7.1</resilience4j.version>
-        <snakeyaml.version>2.4</snakeyaml.version>
-        <swagger.version>2.2.32</swagger.version>
+        <snakeyaml.version>2.5</snakeyaml.version>
+        <swagger.version>2.2.39</swagger.version>
         <java.jwt.version>4.5.0</java.jwt.version>
         <validation.api.version>2.0.1.Final</validation.api.version>
         <hibernate.validator.version>6.2.5.Final</hibernate.validator.version> <!-- latest 8.0.1.Final is not compatible -->
         <javax.el.version>3.0.0</javax.el.version>
 
         <spring.cloud.contract.wiremock.version>3.1.10</spring.cloud.contract.wiremock.version>
-        <reactor.test.version>3.7.4</reactor.test.version>
+        <reactor.test.version>3.7.11</reactor.test.version>
     </properties>
 
     <dependencies>

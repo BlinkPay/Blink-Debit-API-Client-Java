@@ -109,7 +109,7 @@ class QuickPaymentsApiClientIntegrationTest {
         assertThat(quickPaymentId).isNotNull();
         assertThat(actual.getRedirectUri())
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
     }
 
     @Test
