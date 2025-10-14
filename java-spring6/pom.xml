@@ -30,6 +30,7 @@
         <java.jwt.version>4.5.0</java.jwt.version>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.19</logback.version>
+        <commons.lang.version>3.19.0</commons.lang.version>
 
         <spring.cloud.contract.wiremock.version>4.2.1</spring.cloud.contract.wiremock.version>
         <reactor.test.version>3.7.11</reactor.test.version>
@@ -129,6 +130,13 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
+        </dependency>
+
+        <!-- Apache Commons dependencies -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
