@@ -5,12 +5,12 @@
     <parent>
         <groupId>nz.co.blinkpay</groupId>
         <artifactId>blink-debit-api-client-java-parent</artifactId>
-        <version>1.5.0</version>
+        <version>1.5.1</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>blink-debit-api-client-java-spring6</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 
     <name>blink-debit-api-client-java-spring6</name>
     <description>Blink Debit API Client for Java 21 and Spring Framework 6 / Spring Boot 3</description>
@@ -193,7 +193,7 @@
         <profile>
             <id>versioning</id>
             <properties>
-                <revision>1.5.0</revision>
+                <revision>1.5.1</revision>
             </properties>
         </profile>
     </profiles>
