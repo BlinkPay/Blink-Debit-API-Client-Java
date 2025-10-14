@@ -21,18 +21,19 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <core.version>1.5.0</core.version>
-        <spring.boot.version>3.5.0</spring.boot.version>
-        <spring.security.version>6.5.0</spring.security.version>
-        <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>3.2.1</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
+        <core.version>1.5.1</core.version>
+        <spring.boot.version>3.5.6</spring.boot.version>
+        <spring.security.version>6.5.5</spring.security.version>
+        <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>3.3.0</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <resilience4j.version>2.3.0</resilience4j.version>
-        <swagger.version>2.2.32</swagger.version>
+        <swagger.version>2.2.39</swagger.version>
         <java.jwt.version>4.5.0</java.jwt.version>
         <slf4j.version>2.0.17</slf4j.version>
-        <logback.version>1.5.18</logback.version>
+        <logback.version>1.5.19</logback.version>
+        <commons.lang.version>3.19.0</commons.lang.version>
 
         <spring.cloud.contract.wiremock.version>4.2.1</spring.cloud.contract.wiremock.version>
-        <reactor.test.version>3.7.6</reactor.test.version>
+        <reactor.test.version>3.7.11</reactor.test.version>
     </properties>
 
     <dependencies>
@@ -131,6 +132,13 @@
             <version>${logback.version}</version>
         </dependency>
 
+        <!-- Apache Commons dependencies -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang.version}</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -185,7 +193,7 @@
         <profile>
             <id>versioning</id>
             <properties>
-                <revision>1.4.0</revision>
+                <revision>1.5.0</revision>
             </properties>
         </profile>
     </profiles>

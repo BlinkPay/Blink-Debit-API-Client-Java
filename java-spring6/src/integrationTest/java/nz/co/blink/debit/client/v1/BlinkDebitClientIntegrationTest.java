@@ -114,7 +114,7 @@ class BlinkDebitClientIntegrationTest {
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
@@ -225,7 +225,7 @@ class BlinkDebitClientIntegrationTest {
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
@@ -337,7 +337,7 @@ class BlinkDebitClientIntegrationTest {
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
@@ -452,7 +452,7 @@ class BlinkDebitClientIntegrationTest {
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
         UUID consentId = response.getConsentId();
         assertThat(consentId).isNotNull();
 
@@ -566,7 +566,7 @@ class BlinkDebitClientIntegrationTest {
         String redirectUri = response.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
         UUID quickPaymentId = response.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
@@ -694,7 +694,7 @@ class BlinkDebitClientIntegrationTest {
         String redirectUri = actual.getRedirectUri();
         assertThat(redirectUri)
                 .isNotBlank()
-                .startsWith("https://obabank.glueware.dev/auth/login?oba_request=");
+                .startsWith("https://api-nomatls.apicentre.middleware.co.nz/oauth/v2.0/authorize?scope=openid%20payments&response_type=code%20id_token&request=");
         UUID quickPaymentId = actual.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 

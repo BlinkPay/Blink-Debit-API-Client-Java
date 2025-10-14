@@ -118,7 +118,21 @@ class MetaApiClientIntegrationTest {
                 .paymentLimit(new Amount()
                         .currency(Amount.CurrencyEnum.NZD)
                         .total("10000"))
-                .features(new BankmetadataFeatures())
+                .features(new BankmetadataFeatures()
+                        .enduringConsent(new BankmetadataFeaturesEnduringConsent()
+                                .enabled(true)
+                                .consentIndefinite(false))
+                        .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                                .enabled(true)
+                                .availableIdentifiers(Stream.of(
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.BANKING_USERNAME)
+                                                        .name("Access Number"),
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.CONSENT_ID)
+                                                        .name("Consent ID"))
+                                        .collect(Collectors.toList()))
+                                .requestTimeout("PT10M")))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
                         .requestTimeout("PT10M"));
@@ -131,7 +145,18 @@ class MetaApiClientIntegrationTest {
                 .features(new BankmetadataFeatures()
                         .enduringConsent(new BankmetadataFeaturesEnduringConsent()
                                 .enabled(true)
-                                .consentIndefinite(false)))
+                                .consentIndefinite(false))
+                        .decoupledFlow(new BankmetadataFeaturesDecoupledFlow()
+                                .enabled(true)
+                                .availableIdentifiers(Stream.of(
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.MOBILE_NUMBER)
+                                                        .name("Mobile Number"),
+                                                new BankmetadataFeaturesDecoupledFlowAvailableIdentifiers()
+                                                        .type(IdentifierType.CONSENT_ID)
+                                                        .name("Consent ID"))
+                                        .collect(Collectors.toList()))
+                                .requestTimeout("PT5M")))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
                         .requestTimeout("PT10M"));
@@ -149,7 +174,7 @@ class MetaApiClientIntegrationTest {
                                                         .type(IdentifierType.MOBILE_NUMBER)
                                                         .name("Mobile Number"))
                                         .collect(Collectors.toList()))
-                                .requestTimeout("PT7M")))
+                                .requestTimeout("PT405S")))
                 .redirectFlow(new BankmetadataRedirectFlow()
                         .enabled(true)
                         .requestTimeout("PT10M"));
