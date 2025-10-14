@@ -31,6 +31,8 @@
         <validation.api.version>2.0.1.Final</validation.api.version>
         <hibernate.validator.version>6.2.5.Final</hibernate.validator.version> <!-- latest 8.0.1.Final is not compatible -->
         <javax.el.version>3.0.0</javax.el.version>
+        <netty.version>4.2.6.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
+        <commons.lang.version>3.19.0</commons.lang.version>
 
         <spring.cloud.contract.wiremock.version>3.1.10</spring.cloud.contract.wiremock.version>
         <reactor.test.version>3.7.11</reactor.test.version>
@@ -53,6 +55,14 @@
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http2</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -140,6 +150,25 @@
             <groupId>org.glassfish</groupId>
             <artifactId>javax.el</artifactId>
             <version>${javax.el.version}</version>
+        </dependency>
+
+        <!-- Netty dependencies -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http2</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+
+        <!-- Apache Commons dependencies -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons.lang.version}</version>
         </dependency>
 
         <!-- Test dependencies -->
