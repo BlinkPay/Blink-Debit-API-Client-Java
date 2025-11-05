@@ -128,14 +128,15 @@ public class MetaApiClient {
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
-        if (webClientBuilder != null) {
-            return webClientBuilder;
+        if (webClientBuilder == null) {
+            webClientBuilder = WebClient.builder()
+                    .clientConnector(connector)
+                    .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
+                    .baseUrl(debitUrl);
         }
 
-        return WebClient.builder()
-                .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
-                .baseUrl(debitUrl)
+        // Clone builder and add per-request filter
+        return webClientBuilder.clone()
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }
