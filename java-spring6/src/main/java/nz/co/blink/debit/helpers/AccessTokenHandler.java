@@ -51,6 +51,8 @@ public class AccessTokenHandler {
 
     private final AtomicReference<String> accessTokenAtomicReference = new AtomicReference<>();
 
+    private final AtomicReference<Mono<AccessTokenResponse>> tokenFetchInProgress = new AtomicReference<>();
+
     /**
      * Default constructor.
      *
@@ -76,7 +78,7 @@ public class AccessTokenHandler {
 
     /**
      * Sets the Authorization request header by reusing the access token or by replacing it with a new one
-     * if it has expired.
+     * if it has expired. Thread-safe to prevent duplicate token fetches.
      *
      * @param requestId the correlation ID
      * @return the {@link ExchangeFilterFunction}
@@ -101,7 +103,16 @@ public class AccessTokenHandler {
             }
         }
 
-        Mono<AccessTokenResponse> accessTokenResponseMono = client.generateAccessToken(requestId);
+        // Get or create cached token fetch Mono to prevent duplicate requests
+        Mono<AccessTokenResponse> accessTokenResponseMono = tokenFetchInProgress.updateAndGet(existing -> {
+            if (existing != null) {
+                return existing;
+            }
+            // Create new token fetch Mono with caching
+            return client.generateAccessToken(requestId)
+                    .cache() // Cache the result for concurrent subscribers
+                    .doFinally(signal -> tokenFetchInProgress.compareAndSet(existing, null)); // Clear cache after completion
+        });
 
         return ExchangeFilterFunction.ofRequestProcessor(clientRequest ->
                 accessTokenResponseMono.flatMap(accessTokenResponse -> {
