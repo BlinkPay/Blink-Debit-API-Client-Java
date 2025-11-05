@@ -56,6 +56,7 @@ import java.util.UUID;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.CUSTOMER_IP;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.CUSTOMER_USER_AGENT;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.IDEMPOTENCY_KEY;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REFUNDS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -227,9 +228,10 @@ public class RefundsApiClient {
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
         String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
         String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
+        String idempotencyKey = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestId)
-                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(null, clientRequest,
+                .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
                         exchangeFunction))
                 .build()
                 .post()
@@ -238,6 +240,7 @@ public class RefundsApiClient {
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
                     httpHeaders.add(REQUEST_ID.getValue(), requestId);
+                    httpHeaders.add(IDEMPOTENCY_KEY.getValue(), idempotencyKey);
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
