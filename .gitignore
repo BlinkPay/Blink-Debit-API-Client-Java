@@ -21,6 +21,7 @@ dist/
 
 # Maven
 target/
+effective-pom.xml
 
 # JetBrains IDE
 .idea/
@@ -64,3 +65,6 @@ Thumbs.db
 mvnw
 mvnw.cmd
 .mvn/
+
+# Claude Code settings
+.claude/

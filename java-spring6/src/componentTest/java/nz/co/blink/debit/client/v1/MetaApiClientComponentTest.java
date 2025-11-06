@@ -93,7 +93,7 @@ class MetaApiClientComponentTest {
         blinkPayProperties.getClient().setSecret(System.getenv("BLINKPAY_CLIENT_SECRET"));
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties, retry);
 
-        client = new MetaApiClient(connector, properties, new AccessTokenHandler(oauthApiClient));
+        client = new MetaApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), retry);
     }
 
     @Test

@@ -43,11 +43,17 @@ This project is licensed under the MIT License.
 - Lombok 1.18 (for development only)
 
 ## Adding the dependency
-For: 
-- Java 8 or higher using plain java 
-- or with Spring versions less than 6 (i.e. including Spring Boot 2)
-use `blink-debit-api-client-java`
-### Maven
+
+This SDK is available in two versions to support different Java and Spring Framework configurations:
+
+### For Plain Java & Spring Boot 2.x (Recommended)
+Use `blink-debit-api-client-java` for:
+- **Plain Java 8+** applications (non-Spring)
+- **Spring Framework versions < 6** (including Spring Boot 2.x)
+
+This is the primary version that works with most Java applications.
+
+#### Maven
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
@@ -55,7 +61,17 @@ use `blink-debit-api-client-java`
     <version>${version}</version>
 </dependency>
 ```
-For Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-spring6`
+
+#### Gradle
+```groovy
+implementation "nz.co.blinkpay:blink-debit-api-client-java:$version"
+```
+
+### For Spring Boot 3.x / Spring 6
+Use `blink-debit-api-client-java-spring6` **only if** you are using:
+- **Spring Framework 6+** (including Spring Boot 3.x)
+
+#### Maven
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
@@ -63,10 +79,8 @@ For Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-sp
     <version>${version}</version>
 </dependency>
 ```
-### Gradle
-```groovy
-implementation "nz.co.blinkpay:blink-debit-api-client-java:$version"
-```
+
+#### Gradle
 ```groovy
 implementation "nz.co.blinkpay:blink-debit-api-client-java-spring6:$version"
 ```

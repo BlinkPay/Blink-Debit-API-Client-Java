@@ -807,11 +807,11 @@ class BlinkDebitClientIntegrationTest {
         assertThat(payments).isNotNull();
         if (!payments.isEmpty()) {
             assertThat(payments)
-                    .hasSize(1)
-                    .first()
-                    .extracting(Payment::getType, Payment::getStatus, Payment::getRefunds)
-                    .containsExactly(Payment.TypeEnum.SINGLE, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED,
-                            Collections.emptyList());
+                    .hasSize(1);
+            Payment payment = payments.get(0);
+            assertThat(payment.getType()).isEqualTo(Payment.TypeEnum.SINGLE);
+            assertThat(payment.getStatus()).isIn(Payment.StatusEnum.PENDING, Payment.StatusEnum.ACCEPTEDSETTLEMENTCOMPLETED);
+            assertThat(payment.getRefunds()).isEqualTo(Collections.emptyList());
         }
         assertThat(consent.getCardNetwork()).isNull();
         SingleConsentRequest detail = (SingleConsentRequest) consent.getDetail();

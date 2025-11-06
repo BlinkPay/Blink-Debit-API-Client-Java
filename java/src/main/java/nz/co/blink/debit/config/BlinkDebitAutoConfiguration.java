@@ -127,7 +127,7 @@ public class BlinkDebitAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     MetaApiClient metaApiClient() {
-        return new MetaApiClient(connector, properties, accessTokenHandler());
+        return new MetaApiClient(connector, properties, accessTokenHandler(), retry);
     }
 
     @Bean

@@ -82,9 +82,8 @@ public class AccessTokenHandler {
      *
      * @param requestId the correlation ID
      * @return the {@link ExchangeFilterFunction}
-     * @throws BlinkInvalidValueException thrown when an exception occurs
      */
-    public ExchangeFilterFunction setAccessToken(final String requestId) throws BlinkServiceException {
+    public ExchangeFilterFunction setAccessToken(final String requestId) {
         String currentAccessToken = accessTokenAtomicReference.get();
         if (StringUtils.isNotBlank(currentAccessToken)) {
             try {
