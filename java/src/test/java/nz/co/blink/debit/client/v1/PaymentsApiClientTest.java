@@ -286,6 +286,7 @@ class PaymentsApiClientTest {
                 .detail(new PaymentRequest()
                         .consentId(consentId));
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -323,6 +324,7 @@ class PaymentsApiClientTest {
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -357,6 +359,7 @@ class PaymentsApiClientTest {
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);

@@ -839,6 +839,7 @@ class SingleConsentsApiClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1023,6 +1024,7 @@ class SingleConsentsApiClientTest {
                 .payments(Collections.emptyList())
                 .cardNetwork(CardNetwork.VISA);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -1082,6 +1084,7 @@ class SingleConsentsApiClientTest {
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
         UUID consentId = UUID.randomUUID();
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.delete()).thenReturn(requestHeadersUriSpec);
@@ -1105,6 +1108,7 @@ class SingleConsentsApiClientTest {
                 .consentId(consentId)
                 .redirectUri(REDIRECT_URI);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1151,6 +1155,7 @@ class SingleConsentsApiClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1198,6 +1203,7 @@ class SingleConsentsApiClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1244,6 +1250,7 @@ class SingleConsentsApiClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);

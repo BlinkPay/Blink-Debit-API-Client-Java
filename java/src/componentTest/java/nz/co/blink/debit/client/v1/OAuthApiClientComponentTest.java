@@ -69,7 +69,7 @@ class OAuthApiClientComponentTest {
     @DisplayName("Verify that access token is generated")
     void generateAccessToken() throws JsonProcessingException, BlinkServiceException {
         AccessTokenResponse response = new AccessTokenResponse();
-        response.setAccessToken(System.getenv("ACCESS_TOKEN"));
+        response.setAccessToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token");
         response.setTokenType("Bearer");
         response.setExpiresIn(3600);
         response.setScope("create:payment view:payment create:single_consent view:single_consent view:metadata create:enduring_consent view:enduring_consent revoke:enduring_consent view:transaction create:quick_payment view:quick_payment create:refund view:refund revoke:single_consent");

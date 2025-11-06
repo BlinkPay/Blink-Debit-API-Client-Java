@@ -34,6 +34,7 @@ import nz.co.blink.debit.dto.v1.BankmetadataRedirectFlow;
 import nz.co.blink.debit.dto.v1.CardNetwork;
 import nz.co.blink.debit.dto.v1.CardPaymentType;
 import nz.co.blink.debit.dto.v1.IdentifierType;
+import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.exception.BlinkServiceException;
 import nz.co.blink.debit.helpers.AccessTokenHandler;
 import org.junit.jupiter.api.DisplayName;
@@ -93,6 +94,9 @@ class MetaApiClientTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
+
+    @Spy
+    private Retry retry = Retry.ofDefaults("retry");
 
     @InjectMocks
     private MetaApiClient client;
@@ -199,6 +203,7 @@ class MetaApiClientTest {
                                                 CardNetwork.DISCOVER, CardNetwork.DINERSCLUB, CardNetwork.JCB)
                                         .collect(Collectors.toList()))));
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);

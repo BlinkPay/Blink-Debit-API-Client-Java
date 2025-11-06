@@ -37,6 +37,48 @@ We welcome contributions from the community. Your pull request will be reviewed 
 
 This project is licensed under the MIT License.
 
+### Running Tests
+
+The project includes unit, component, and integration tests. To run tests, you need to set the required environment variables:
+
+```bash
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+```
+
+Then run the tests:
+
+```bash
+# Run unit tests only
+mvn -B -ntp -Dgroups=unit test
+
+# Run component tests only
+mvn -B -ntp -Dgroups=component test
+
+# Run integration tests only
+mvn -B -ntp -Dgroups=integration test
+
+# Run all tests
+mvn -B -ntp test
+```
+
+Or combine the environment variables in a single command:
+
+```bash
+# Unit tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+
+# All tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
+```
+
+For the Spring 6 module, navigate to the `java-spring6` directory first:
+
+```bash
+cd java-spring6
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+```
+
 ## Minimum Requirements
 - Maven 3 or Gradle 7
 - Java 8 or higher

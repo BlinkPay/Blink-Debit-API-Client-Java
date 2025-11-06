@@ -351,6 +351,7 @@ class RefundsApiClientTest {
                         .paymentId(paymentId)
                         .type(RefundDetail.TypeEnum.ACCOUNT_NUMBER));
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -387,6 +388,7 @@ class RefundsApiClientTest {
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -421,6 +423,7 @@ class RefundsApiClientTest {
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -460,6 +463,7 @@ class RefundsApiClientTest {
         RefundResponse response = new RefundResponse()
                 .refundId(refundId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);

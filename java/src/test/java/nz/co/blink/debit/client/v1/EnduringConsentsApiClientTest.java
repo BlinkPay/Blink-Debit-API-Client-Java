@@ -802,6 +802,7 @@ class EnduringConsentsApiClientTest {
                 .consentId(consentId)
                 .redirectUri("http://localhost:8080");
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -997,6 +998,7 @@ class EnduringConsentsApiClientTest {
                         .type(ConsentDetail.TypeEnum.ENDURING))
                 .payments(Collections.emptyList());
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -1058,6 +1060,7 @@ class EnduringConsentsApiClientTest {
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
         UUID consentId = UUID.randomUUID();
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.delete()).thenReturn(requestHeadersUriSpec);
@@ -1081,6 +1084,7 @@ class EnduringConsentsApiClientTest {
                 .consentId(consentId)
                 .redirectUri("http://localhost:8080");
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1129,6 +1133,7 @@ class EnduringConsentsApiClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1179,6 +1184,7 @@ class EnduringConsentsApiClientTest {
                 .consentId(consentId)
                 .redirectUri("http://localhost:8080");
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1227,6 +1233,7 @@ class EnduringConsentsApiClientTest {
         CreateConsentResponse response = new CreateConsentResponse()
                 .consentId(consentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
