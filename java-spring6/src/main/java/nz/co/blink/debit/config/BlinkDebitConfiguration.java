@@ -53,6 +53,11 @@ import java.util.regex.Pattern;
 @EnableConfigurationProperties(BlinkPayProperties.class)
 public class BlinkDebitConfiguration {
 
+    private static final int MAX_RETRY_ATTEMPTS = 3;
+    private static final long RETRY_INITIAL_INTERVAL_SECONDS = 2L;
+    private static final double RETRY_MULTIPLIER = 2.0;
+    private static final long RETRY_RANDOMIZATION_FACTOR_SECONDS = 3L;
+
     @Value("${spring.profiles.active:test}")
     private String activeProfile;
 
@@ -129,10 +134,13 @@ public class BlinkDebitConfiguration {
 
         RetryConfig retryConfig = RetryConfig.custom()
                 // allow up to 2 retries after the original request (3 attempts in total)
-                .maxAttempts(3)
+                .maxAttempts(MAX_RETRY_ATTEMPTS)
                 // wait 2 seconds and then 5 seconds (or thereabouts)
                 .intervalFunction(IntervalFunction
-                        .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
+                        .ofExponentialRandomBackoff(
+                                Duration.ofSeconds(RETRY_INITIAL_INTERVAL_SECONDS),
+                                RETRY_MULTIPLIER,
+                                Duration.ofSeconds(RETRY_RANDOMIZATION_FACTOR_SECONDS)))
                 // retries are triggered for 408 (request timeout) and 5xx exceptions
                 // and for network errors thrown by WebFlux if the request didn't get to the server at all
                 .retryExceptions(BlinkRetryableException.class,

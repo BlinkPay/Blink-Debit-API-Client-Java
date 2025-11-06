@@ -220,7 +220,8 @@ public class RefundsApiClient {
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
-                .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private Mono<RefundResponse> createRefundMono(RefundDetail request, Map<String, String> requestHeaders)

@@ -300,7 +300,8 @@ public class SingleConsentsApiClient {
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
-                .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     /**

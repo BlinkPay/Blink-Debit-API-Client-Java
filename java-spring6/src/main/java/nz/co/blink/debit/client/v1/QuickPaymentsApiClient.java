@@ -301,7 +301,8 @@ public class QuickPaymentsApiClient {
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
-                .exchangeToMono(ResponseHandler.handleResponseMono(QuickPaymentResponse.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(QuickPaymentResponse.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     /**

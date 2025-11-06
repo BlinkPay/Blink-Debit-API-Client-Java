@@ -212,7 +212,8 @@ public class PaymentsApiClient {
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
-                .exchangeToMono(ResponseHandler.handleResponseMono(Payment.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Payment.class))
+                .transformDeferred(RetryOperator.of(retry));
     }
 
     private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, Map<String, String> requestHeaders)
