@@ -5,12 +5,12 @@
     <parent>
         <groupId>nz.co.blinkpay</groupId>
         <artifactId>blink-debit-api-client-java-parent</artifactId>
-        <version>1.5.2</version>
+        <version>${revision}</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>blink-debit-api-client-java</artifactId>
-    <version>1.5.2</version>
+    <version>${revision}</version>
 
     <name>blink-debit-api-client-java</name>
     <description>Blink Debit API Client for Java 8 with or without Spring Boot 2</description>
@@ -21,7 +21,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
-        <core.version>1.5.2</core.version>
+        <core.version>${revision}</core.version>
         <spring.boot.version>2.7.18</spring.boot.version>
         <spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>2.1.8</spring.cloud.starter.circuitbreaker.reactor.resilience4j.version>
         <snakeyaml.version>2.5</snakeyaml.version>
