@@ -21,7 +21,6 @@
  */
 package nz.co.blink.debit.config;
 
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.client.v1.BlinkDebitClient;
 import nz.co.blink.debit.client.v1.EnduringConsentsApiClient;
 import nz.co.blink.debit.client.v1.MetaApiClient;
@@ -61,7 +60,6 @@ public class BlinkDebitAutoConfiguration {
 
     private final ValidationService validationService;
 
-    private final Retry retry;
 
     private final BlinkPayProperties properties;
 
@@ -70,22 +68,20 @@ public class BlinkDebitAutoConfiguration {
      *
      * @param connector         the {@link ReactorClientHttpConnector}
      * @param validationService the {@link ValidationService}
-     * @param retry             the {@link Retry}
      * @param properties        the {@link BlinkPayProperties}
      */
     @Autowired
     public BlinkDebitAutoConfiguration(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
-                                       ValidationService validationService, Retry retry, BlinkPayProperties properties) {
+                                       ValidationService validationService, BlinkPayProperties properties) {
         this.connector = connector;
         this.validationService = validationService;
-        this.retry = retry;
         this.properties = properties;
     }
 
     @Bean
     @ConditionalOnMissingBean
     OAuthApiClient oauthApiClient() {
-        return new OAuthApiClient(connector, properties, retry);
+        return new OAuthApiClient(connector, properties);
     }
 
     @Bean
@@ -97,31 +93,31 @@ public class BlinkDebitAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     SingleConsentsApiClient singleConsentsApiClient() {
-        return new SingleConsentsApiClient(connector, properties, accessTokenHandler(), validationService, retry);
+        return new SingleConsentsApiClient(connector, properties, accessTokenHandler(), validationService);
     }
 
     @Bean
     @ConditionalOnMissingBean
     EnduringConsentsApiClient enduringConsentsApiClient() {
-        return new EnduringConsentsApiClient(connector, properties, accessTokenHandler(), validationService, retry);
+        return new EnduringConsentsApiClient(connector, properties, accessTokenHandler(), validationService);
     }
 
     @Bean
     @ConditionalOnMissingBean
     QuickPaymentsApiClient quickPaymentsApiClient() {
-        return new QuickPaymentsApiClient(connector, properties, accessTokenHandler(), validationService, retry);
+        return new QuickPaymentsApiClient(connector, properties, accessTokenHandler(), validationService);
     }
 
     @Bean
     @ConditionalOnMissingBean
     PaymentsApiClient paymentsApiClient() {
-        return new PaymentsApiClient(connector, properties, accessTokenHandler(), validationService, retry);
+        return new PaymentsApiClient(connector, properties, accessTokenHandler(), validationService);
     }
 
     @Bean
     @ConditionalOnMissingBean
     RefundsApiClient refundsApiClient() {
-        return new RefundsApiClient(connector, properties, accessTokenHandler(), validationService, retry);
+        return new RefundsApiClient(connector, properties, accessTokenHandler(), validationService);
     }
 
     @Bean
@@ -134,6 +130,6 @@ public class BlinkDebitAutoConfiguration {
     @ConditionalOnMissingBean
     public BlinkDebitClient blinkDebitClient() {
         return new BlinkDebitClient(singleConsentsApiClient(), enduringConsentsApiClient(), quickPaymentsApiClient(),
-                paymentsApiClient(), refundsApiClient(), metaApiClient(), validationService, retry);
+                paymentsApiClient(), refundsApiClient(), metaApiClient(), validationService);
     }
 }

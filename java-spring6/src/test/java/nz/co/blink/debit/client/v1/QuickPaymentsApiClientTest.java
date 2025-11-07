@@ -21,7 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.retry.Retry;
 import jakarta.validation.Validation;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
@@ -124,7 +123,6 @@ class QuickPaymentsApiClientTest {
     private ValidationService validationService = new JakartaValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
     @Spy
-    private Retry retry = Retry.ofDefaults("retry");
 
     @InjectMocks
     private QuickPaymentsApiClient client;
@@ -832,6 +830,7 @@ class QuickPaymentsApiClientTest {
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1079,6 +1078,7 @@ class QuickPaymentsApiClientTest {
                         .payments(Collections.emptyList())
                         .cardNetwork(CardNetwork.VISA));
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -1144,6 +1144,7 @@ class QuickPaymentsApiClientTest {
         ReflectionTestUtils.setField(client, "debitUrl", "http://localhost:8080");
 
         UUID quickPaymentId = UUID.randomUUID();
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.delete()).thenReturn(requestHeadersUriSpec);
@@ -1167,6 +1168,7 @@ class QuickPaymentsApiClientTest {
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1213,6 +1215,7 @@ class QuickPaymentsApiClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1262,6 +1265,7 @@ class QuickPaymentsApiClientTest {
                 .quickPaymentId(quickPaymentId)
                 .redirectUri(REDIRECT_URI);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -1309,6 +1313,7 @@ class QuickPaymentsApiClientTest {
         CreateQuickPaymentResponse response = new CreateQuickPaymentResponse()
                 .quickPaymentId(quickPaymentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);

@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.reactor.retry.RetryOperator;
-import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.FullRefundRequest;
@@ -56,6 +54,7 @@ import java.util.UUID;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.CUSTOMER_IP;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.CUSTOMER_USER_AGENT;
+import static nz.co.blink.debit.enums.BlinkDebitConstant.IDEMPOTENCY_KEY;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REFUNDS_PATH;
 import static nz.co.blink.debit.enums.BlinkDebitConstant.REQUEST_ID;
 
@@ -74,7 +73,6 @@ public class RefundsApiClient {
 
     private final ValidationService validationService;
 
-    private final Retry retry;
 
     private WebClient.Builder webClientBuilder;
 
@@ -85,17 +83,15 @@ public class RefundsApiClient {
      * @param properties         the {@link BlinkPayProperties}
      * @param accessTokenHandler the {@link AccessTokenHandler}
      * @param validationService  the {@link ValidationService}
-     * @param retry              the {@link Retry} instance
      */
     @Autowired
     public RefundsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                             BlinkPayProperties properties, AccessTokenHandler accessTokenHandler,
-                            ValidationService validationService, Retry retry) {
+                            ValidationService validationService) {
         this.connector = connector;
         debitUrl = properties.getDebit().getUrl();
         this.accessTokenHandler = accessTokenHandler;
         this.validationService = validationService;
-        this.retry = retry;
     }
 
     /**
@@ -223,7 +219,8 @@ public class RefundsApiClient {
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
-                .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Refund.class))
+                ;
     }
 
     private Mono<RefundResponse> createRefundMono(RefundDetail request, Map<String, String> requestHeaders)
@@ -231,6 +228,7 @@ public class RefundsApiClient {
         String requestId = MapUtils.getString(requestHeaders, REQUEST_ID.getValue(), UUID.randomUUID().toString());
         String customerIp = MapUtils.getString(requestHeaders, CUSTOMER_IP.getValue(), (String) null);
         String customerUserAgent = MapUtils.getString(requestHeaders, CUSTOMER_USER_AGENT.getValue(), (String) null);
+        String idempotencyKey = UUID.randomUUID().toString();
 
         return getWebClientBuilder(requestId)
                 .filter((clientRequest, exchangeFunction) -> RequestHandler.logRequest(request, clientRequest,
@@ -242,23 +240,25 @@ public class RefundsApiClient {
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(httpHeaders -> {
                     httpHeaders.add(REQUEST_ID.getValue(), requestId);
+                    httpHeaders.add(IDEMPOTENCY_KEY.getValue(), idempotencyKey);
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(RefundResponse.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
-        if (webClientBuilder != null) {
-            return webClientBuilder;
+        if (webClientBuilder == null) {
+            webClientBuilder = WebClient.builder()
+                    .clientConnector(connector)
+                    .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
+                    .baseUrl(debitUrl);
         }
 
-        return WebClient.builder()
-                .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
-                .baseUrl(debitUrl)
+        // Clone builder and add per-request filter
+        return webClientBuilder.clone()
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }
 

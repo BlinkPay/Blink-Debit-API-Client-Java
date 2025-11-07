@@ -37,17 +37,62 @@ We welcome contributions from the community. Your pull request will be reviewed 
 
 This project is licensed under the MIT License.
 
+### Running Tests
+
+The project includes unit and integration tests. To run tests, you need to set the required environment variables:
+
+```bash
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+```
+
+Then run the tests:
+
+```bash
+# Run unit tests only
+mvn -B -ntp -Dgroups=unit test
+
+# Run integration tests only
+mvn -B -ntp -Dgroups=integration test
+
+# Run all tests
+mvn -B -ntp test
+```
+
+Or combine the environment variables in a single command:
+
+```bash
+# Unit tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+
+# All tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
+```
+
+For the Spring 6 module, navigate to the `java-spring6` directory first:
+
+```bash
+cd java-spring6
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+```
+
 ## Minimum Requirements
 - Maven 3 or Gradle 7
 - Java 8 or higher
 - Lombok 1.18 (for development only)
 
 ## Adding the dependency
-For: 
-- Java 8 or higher using plain java 
-- or with Spring versions less than 6 (i.e. including Spring Boot 2)
-use `blink-debit-api-client-java`
-### Maven
+
+This SDK is available in two versions to support different Java and Spring Framework configurations:
+
+### For Plain Java & Spring Boot 2.x (Recommended)
+Use `blink-debit-api-client-java` for:
+- **Plain Java 8+** applications (non-Spring)
+- **Spring Framework versions < 6** (including Spring Boot 2.x)
+
+This is the primary version that works with most Java applications.
+
+#### Maven
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
@@ -55,7 +100,17 @@ use `blink-debit-api-client-java`
     <version>${version}</version>
 </dependency>
 ```
-For Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-spring6`
+
+#### Gradle
+```groovy
+implementation "nz.co.blinkpay:blink-debit-api-client-java:$version"
+```
+
+### For Spring Boot 3.x / Spring 6
+Use `blink-debit-api-client-java-spring6` **only if** you are using:
+- **Spring Framework 6+** (including Spring Boot 3.x)
+
+#### Maven
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
@@ -63,10 +118,8 @@ For Spring 6 (i.e. including Spring Boot 3), use `blink-debit-api-client-java-sp
     <version>${version}</version>
 </dependency>
 ```
-### Gradle
-```groovy
-implementation "nz.co.blinkpay:blink-debit-api-client-java:$version"
-```
+
+#### Gradle
 ```groovy
 implementation "nz.co.blinkpay:blink-debit-api-client-java-spring6:$version"
 ```

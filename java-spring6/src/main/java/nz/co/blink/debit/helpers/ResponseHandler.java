@@ -80,11 +80,11 @@ public final class ResponseHandler {
             } else if (HttpStatus.UNPROCESSABLE_ENTITY == clientResponse.statusCode()) {
                 return clientResponse
                         .bodyToMono(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new BlinkUnauthorisedException()))
+                        .switchIfEmpty(Mono.error(new BlinkClientException()))
                         .flatMap(body -> {
-                            log.warn(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
+                            log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
-                            return Mono.error(new BlinkUnauthorisedException(body.getMessage()));
+                            return Mono.error(new BlinkClientException(body.getMessage()));
                         });
             } else if (HttpStatus.FORBIDDEN == clientResponse.statusCode()) {
                 return clientResponse
@@ -189,11 +189,11 @@ public final class ResponseHandler {
             } else if (HttpStatus.UNPROCESSABLE_ENTITY == clientResponse.statusCode()) {
                 return clientResponse
                         .bodyToFlux(DetailErrorResponseModel.class)
-                        .switchIfEmpty(Mono.error(new BlinkUnauthorisedException()))
+                        .switchIfEmpty(Mono.error(new BlinkClientException()))
                         .flatMap(body -> {
                             log.error(RESPONSE_FORMAT, clientResponse.statusCode(), clientResponse.headers(),
                                     body.getMessage());
-                            return Mono.error(new BlinkUnauthorisedException(body.getMessage()));
+                            return Mono.error(new BlinkClientException(body.getMessage()));
                         });
             } else if (HttpStatus.FORBIDDEN == clientResponse.statusCode()) {
                 return clientResponse

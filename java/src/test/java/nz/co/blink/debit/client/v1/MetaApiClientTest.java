@@ -94,6 +94,8 @@ class MetaApiClientTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private AccessTokenHandler accessTokenHandler;
 
+    @Spy
+
     @InjectMocks
     private MetaApiClient client;
 
@@ -199,6 +201,7 @@ class MetaApiClientTest {
                                                 CardNetwork.DISCOVER, CardNetwork.DINERSCLUB, CardNetwork.JCB)
                                         .collect(Collectors.toList()))));
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);

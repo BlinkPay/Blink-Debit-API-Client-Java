@@ -21,7 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
@@ -50,6 +49,7 @@ import java.util.function.Function;
 
 import static nz.co.blink.debit.enums.BlinkDebitConstant.TOKEN_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -83,7 +83,6 @@ class OAuthApiClientTest {
     private BlinkPayProperties properties = new BlinkPayProperties();
 
     @Spy
-    private Retry retry = Retry.ofDefaults("retry");
 
     @InjectMocks
     private OAuthApiClient client;
@@ -99,7 +98,7 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
 
         AccessTokenResponse response = new AccessTokenResponse();
-        response.setAccessToken(System.getenv("ACCESS_TOKEN"));
+        response.setAccessToken("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token");
         response.setTokenType("Bearer");
         response.setExpiresIn(3600);
         response.setScope("create:payment view:payment create:single_consent view:single_consent view:metadata create:enduring_consent view:enduring_consent revoke:enduring_consent view:transaction create:quick_payment view:quick_payment create:refund view:refund revoke:single_consent");
@@ -141,11 +140,13 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", clientId);
         ReflectionTestUtils.setField(client, "clientSecret", "BLINKPAY_CLIENT_SECRET");
 
-        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+        Throwable thrown = catchThrowable(
                 () -> client.generateAccessToken(UUID.randomUUID().toString()).block());
 
-        assertThat(exception)
+        assertThat(thrown)
                 .isNotNull()
+                .hasCauseInstanceOf(BlinkInvalidValueException.class);
+        assertThat(thrown.getCause())
                 .hasMessage("Client ID and client secret must not be blank");
     }
 
@@ -156,11 +157,13 @@ class OAuthApiClientTest {
         ReflectionTestUtils.setField(client, "clientId", "BLINKPAY_CLIENT_ID");
         ReflectionTestUtils.setField(client, "clientSecret", clientSecret);
 
-        BlinkInvalidValueException exception = catchThrowableOfType(BlinkInvalidValueException.class,
+        Throwable thrown = catchThrowable(
                 () -> client.generateAccessToken(UUID.randomUUID().toString()).block());
 
-        assertThat(exception)
+        assertThat(thrown)
                 .isNotNull()
+                .hasCauseInstanceOf(BlinkInvalidValueException.class);
+        assertThat(thrown.getCause())
                 .hasMessage("Client ID and client secret must not be blank");
     }
 }

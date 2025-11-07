@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.reactor.retry.RetryOperator;
-import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
@@ -79,7 +77,6 @@ public class EnduringConsentsApiClient {
 
     private final ValidationService validationService;
 
-    private final Retry retry;
 
     private WebClient.Builder webClientBuilder;
 
@@ -90,17 +87,15 @@ public class EnduringConsentsApiClient {
      * @param properties         the {@link BlinkPayProperties}
      * @param accessTokenHandler the {@link AccessTokenHandler}
      * @param validationService  the {@link ValidationService}
-     * @param retry              the {@link Retry} instance
      */
     @Autowired
     public EnduringConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                                      BlinkPayProperties properties, AccessTokenHandler accessTokenHandler,
-                                     ValidationService validationService, Retry retry) {
+                                     ValidationService validationService) {
         this.connector = connector;
         debitUrl = properties.getDebit().getUrl();
         this.accessTokenHandler = accessTokenHandler;
         this.validationService = validationService;
-        this.retry = retry;
     }
 
     /**
@@ -301,7 +296,8 @@ public class EnduringConsentsApiClient {
                     httpHeaders.add(CUSTOMER_IP.getValue(), customerIp);
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
-                .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class));
+                .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class))
+                ;
     }
 
     /**
@@ -360,7 +356,7 @@ public class EnduringConsentsApiClient {
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
                 .exchangeToMono(ResponseHandler.handleResponseMono(Void.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private Mono<CreateConsentResponse> createEnduringConsentMono(EnduringConsentRequest request,
@@ -387,18 +383,19 @@ public class EnduringConsentsApiClient {
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(CreateConsentResponse.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
-        if (webClientBuilder != null) {
-            return webClientBuilder;
+        if (webClientBuilder == null) {
+            webClientBuilder = WebClient.builder()
+                    .clientConnector(connector)
+                    .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
+                    .baseUrl(debitUrl);
         }
 
-        return WebClient.builder()
-                .clientConnector(connector)
-                .defaultHeader(HttpHeaders.USER_AGENT, BlinkDebitConstant.USER_AGENT_VALUE.getValue())
-                .baseUrl(debitUrl)
+        // Clone builder and add per-request filter
+        return webClientBuilder.clone()
                 .filter(accessTokenHandler.setAccessToken(requestId));
     }
 }

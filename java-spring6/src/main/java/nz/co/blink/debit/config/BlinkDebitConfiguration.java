@@ -21,9 +21,6 @@
  */
 package nz.co.blink.debit.config;
 
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -114,35 +111,5 @@ public class BlinkDebitConfiguration {
     @Bean
     public ValidationService validationService() {
         return new JakartaValidationServiceImpl(validator());
-    }
-
-    /**
-     * Returns the {@link Retry} instance.
-     *
-     * @return the {@link Retry} instance
-     */
-    @Bean
-    public Retry retry() {
-        if (Boolean.FALSE.equals(properties.getRetry().getEnabled())) {
-            return null;
-        }
-
-        RetryConfig retryConfig = RetryConfig.custom()
-                // allow up to 2 retries after the original request (3 attempts in total)
-                .maxAttempts(3)
-                // wait 2 seconds and then 5 seconds (or thereabouts)
-                .intervalFunction(IntervalFunction
-                        .ofExponentialRandomBackoff(Duration.ofSeconds(2), 2, Duration.ofSeconds(3)))
-                // retries are triggered for 408 (request timeout) and 5xx exceptions
-                // and for network errors thrown by WebFlux if the request didn't get to the server at all
-                .retryExceptions(BlinkRetryableException.class,
-                        ConnectException.class,
-                        WebClientRequestException.class)
-                // ignore 4xx and 501 (not implemented) exceptions
-                .ignoreExceptions(BlinkServiceException.class)
-                .failAfterMaxAttempts(true)
-                .build();
-
-        return Retry.of("retry", retryConfig);
     }
 }

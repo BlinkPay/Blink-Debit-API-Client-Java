@@ -21,7 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
 import nz.co.blink.debit.dto.v1.Payment;
@@ -104,7 +103,6 @@ class PaymentsApiClientTest {
     private ValidationService validationService = new JavaxValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
     @Spy
-    private Retry retry = Retry.ofDefaults("retry");
 
     @InjectMocks
     private PaymentsApiClient client;
@@ -286,6 +284,7 @@ class PaymentsApiClientTest {
                 .detail(new PaymentRequest()
                         .consentId(consentId));
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.get()).thenReturn(requestHeadersUriSpec);
@@ -323,6 +322,7 @@ class PaymentsApiClientTest {
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
@@ -357,6 +357,7 @@ class PaymentsApiClientTest {
         PaymentResponse response = new PaymentResponse()
                 .paymentId(paymentId);
 
+        when(webClientBuilder.clone()).thenReturn(webClientBuilder);
         when(webClientBuilder.filter(any(ExchangeFilterFunction.class))).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
         when(webClient.post()).thenReturn(requestBodyUriSpec);
