@@ -13,11 +13,11 @@
     <version>${revision}</version>
 
     <name>blink-debit-api-client-java</name>
-    <description>Blink Debit API Client for Java 8 with or without Spring Boot 2</description>
+    <description>Blink Debit API Client for Java 11 with or without Spring Boot 2</description>
     <url>https://www.blinkpay.co.nz</url>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
