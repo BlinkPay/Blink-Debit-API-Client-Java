@@ -59,11 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OAuthApiClientComponentTest {
 
     @Autowired
-    private OAuthApiClient client;
-
-    @Autowired
-
-    @Test
+    private OAuthApiClient client;    @Test
     @DisplayName("Verify that access token is generated")
     void generateAccessToken() throws JsonProcessingException, BlinkServiceException {
         AccessTokenResponse response = new AccessTokenResponse();

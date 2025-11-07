@@ -84,8 +84,8 @@ class RefundsApiClientComponentTest {
         // use real host to generate valid access token
         BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
         blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
-        blinkPayProperties.getClient().setId(System.getenv("BLINKPAY_CLIENT_ID"));
-        blinkPayProperties.getClient().setSecret(System.getenv("BLINKPAY_CLIENT_SECRET"));
+        blinkPayProperties.getClient().setId("mock-client-id");
+        blinkPayProperties.getClient().setSecret("mock-client-secret");
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
 
         client = new RefundsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), validationService,

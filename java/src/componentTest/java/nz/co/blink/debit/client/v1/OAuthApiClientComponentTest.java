@@ -61,8 +61,6 @@ class OAuthApiClientComponentTest {
     @Autowired
     private OAuthApiClient client;
 
-    @Autowired
-
     @Test
     @DisplayName("Verify that access token is generated")
     void generateAccessToken() throws JsonProcessingException, BlinkServiceException {
