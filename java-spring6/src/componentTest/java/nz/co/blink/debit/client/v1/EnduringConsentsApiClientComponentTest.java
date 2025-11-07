@@ -96,24 +96,11 @@ class EnduringConsentsApiClientComponentTest {
 
     @BeforeEach
     void setUp() {
-        // Skip test if credentials are not available
-        String clientId = System.getenv("BLINKPAY_CLIENT_ID");
-        String clientSecret = System.getenv("BLINKPAY_CLIENT_SECRET");
+        // Component tests use WireMock, no real credentials needed
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, properties);
 
-        org.junit.jupiter.api.Assumptions.assumeTrue(
-            clientId != null && !clientId.isEmpty() &&
-            clientSecret != null && !clientSecret.isEmpty(),
-            "Skipping component test - BLINKPAY_CLIENT_ID and BLINKPAY_CLIENT_SECRET environment variables not set"
-        );
-
-        // Use real host to generate valid access token
-        BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
-        blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
-        blinkPayProperties.getClient().setId(clientId);
-        blinkPayProperties.getClient().setSecret(clientSecret);
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
-
-        client = new EnduringConsentsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), validationService);
+        client = new EnduringConsentsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient),
+                validationService);
     }
 
 
