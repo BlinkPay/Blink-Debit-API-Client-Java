@@ -18,14 +18,16 @@
 # Table of Contents
 1. [Introduction](#introduction)
 2. [Contributing](#contributing)
-3. [Minimum Requirements](#minimum-requirements)
-4. [Dependency](#adding-the-dependency)
-5. [Quick Start](#quick-start)
-6. [Configuration](#configuration)
-7. [Client Creation](#client-creation)
-8. [Correlation ID](#correlation-id)
-9. [Full Examples](#full-examples)
-10. [Individual API Call Examples](#individual-api-call-examples)
+3. [Running Tests](#running-tests)
+4. [Minimum Requirements](#minimum-requirements)
+5. [Dependency](#adding-the-dependency)
+6. [Quick Start](#quick-start)
+7. [Configuration](#configuration)
+8. [Client Creation](#client-creation)
+9. [Correlation ID](#correlation-id)
+10. [Full Examples](#full-examples)
+11. [Individual API Call Examples](#individual-api-call-examples)
+12. [Publishing](#publishing)
 
 ## Introduction
 This SDK allows merchants with Java-based e-commerce site to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
@@ -38,6 +40,45 @@ We welcome contributions from the community. Your pull request will be reviewed 
 This project is licensed under the MIT License.
 
 ### Running Tests
+
+The project includes unit and integration tests. To run tests, you need to set the required environment variables:
+
+```bash
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+```
+
+Then run the tests:
+
+```bash
+# Run unit tests only
+mvn -B -ntp -Dgroups=unit test
+
+# Run integration tests only
+mvn -B -ntp -Dgroups=integration test
+
+# Run all tests
+mvn -B -ntp test
+```
+
+Or combine the environment variables in a single command:
+
+```bash
+# Unit tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+
+# All tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
+```
+
+For the Spring 6 module, navigate to the `java-spring6` directory first:
+
+```bash
+cd java-spring6
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+```
+
+## Running Tests
 
 The project includes unit and integration tests. To run tests, you need to set the required environment variables:
 
@@ -709,3 +750,11 @@ RefundResponse refundResponse = client.createRefund(request);
 ```java
 Refund refund = client.getRefund(refundId);
 ```
+
+## Publishing
+
+1. Increment applicable version numbers across the four (4) POM files.
+2. Push changes and raise a pull request.
+3. Once tests pass and changes approved, merge the PR.
+4. Create a branch and a tag based on the version number in step 1.
+5. Verify artifacts in Maven Central.
