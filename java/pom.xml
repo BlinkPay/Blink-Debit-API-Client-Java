@@ -30,7 +30,7 @@
         <validation.api.version>2.0.1.Final</validation.api.version>
         <hibernate.validator.version>6.2.5.Final</hibernate.validator.version> <!-- latest 8.0.1.Final is not compatible -->
         <javax.el.version>3.0.0</javax.el.version>
-        <netty.version>4.2.6.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
+        <netty.version>4.2.7.Final</netty.version> <!-- Netty 5.x was cancelled, using latest 4.2.x -->
         <commons.lang.version>3.19.0</commons.lang.version>
 
         <reactor.test.version>3.7.11</reactor.test.version>
