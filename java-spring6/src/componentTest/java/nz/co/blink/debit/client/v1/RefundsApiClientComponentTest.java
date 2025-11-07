@@ -81,16 +81,26 @@ class RefundsApiClientComponentTest {
 
     @BeforeEach
     void setUp() {
-        // use real host to generate valid access token
+        // Skip test if credentials are not available
+        String clientId = System.getenv("BLINKPAY_CLIENT_ID");
+        String clientSecret = System.getenv("BLINKPAY_CLIENT_SECRET");
+
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+            clientId != null && !clientId.isEmpty() &&
+            clientSecret != null && !clientSecret.isEmpty(),
+            "Skipping component test - BLINKPAY_CLIENT_ID and BLINKPAY_CLIENT_SECRET environment variables not set"
+        );
+
+        // Use real host to generate valid access token
         BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
         blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
-        blinkPayProperties.getClient().setId("mock-client-id");
-        blinkPayProperties.getClient().setSecret("mock-client-secret");
+        blinkPayProperties.getClient().setId(clientId);
+        blinkPayProperties.getClient().setSecret(clientSecret);
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
 
-        client = new RefundsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), validationService,
-                retry);
+        client = new RefundsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), validationService);
     }
+
 
     @Test
     @DisplayName("Verify that account number refund is created")
@@ -177,7 +187,7 @@ class RefundsApiClientComponentTest {
                 .extracting(FullRefundRequest::getPaymentId,
                         FullRefundRequest::getType, FullRefundRequest::getConsentRedirect)
                 .containsExactly(UUID.fromString("5de1b67f-0214-462e-aab5-1d8397b2fe67"),
-                        RefundDetail.TypeEnum.FULL_REFUND, "http://localhost:8888/callback");
+                        RefundDetail.TypeEnum.FULL_REFUND, "https://sandbox.debit.blinkpay.co.nz/callback");
         assertThat(refundDetail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)
@@ -231,7 +241,7 @@ class RefundsApiClientComponentTest {
                 .extracting(PartialRefundRequest::getPaymentId,
                         PartialRefundRequest::getType, PartialRefundRequest::getConsentRedirect)
                 .containsExactly(UUID.fromString("573ac992-f154-48fd-9234-349d833cc6ec"),
-                        RefundDetail.TypeEnum.PARTIAL_REFUND, "http://localhost:8888/callback");
+                        RefundDetail.TypeEnum.PARTIAL_REFUND, "https://sandbox.debit.blinkpay.co.nz/callback");
         assertThat(refundDetail.getPcr())
                 .isNotNull()
                 .extracting(Pcr::getParticulars, Pcr::getCode, Pcr::getReference)

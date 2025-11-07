@@ -92,12 +92,8 @@ class SingleConsentsApiClientComponentTest {
 
     @BeforeEach
     void setUp() {
-        // use real host to generate valid access token
-        BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
-        blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
-        blinkPayProperties.getClient().setId("mock-client-id");
-        blinkPayProperties.getClient().setSecret("mock-client-secret");
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
+        // Use the autowired properties which are configured for component tests
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, properties);
 
         client = new SingleConsentsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient),
                 validationService);

@@ -82,15 +82,26 @@ class MetaApiClientComponentTest {
 
     @BeforeEach
     void setUp() {
-        // use real host to generate valid access token
+        // Skip test if credentials are not available
+        String clientId = System.getenv("BLINKPAY_CLIENT_ID");
+        String clientSecret = System.getenv("BLINKPAY_CLIENT_SECRET");
+
+        org.junit.jupiter.api.Assumptions.assumeTrue(
+            clientId != null && !clientId.isEmpty() &&
+            clientSecret != null && !clientSecret.isEmpty(),
+            "Skipping component test - BLINKPAY_CLIENT_ID and BLINKPAY_CLIENT_SECRET environment variables not set"
+        );
+
+        // Use real host to generate valid access token
         BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
         blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
-        blinkPayProperties.getClient().setId("mock-client-id");
-        blinkPayProperties.getClient().setSecret("mock-client-secret");
+        blinkPayProperties.getClient().setId(clientId);
+        blinkPayProperties.getClient().setSecret(clientSecret);
         OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
 
         client = new MetaApiClient(connector, properties, new AccessTokenHandler(oauthApiClient));
     }
+
 
     @Test
     @DisplayName("Verify that bank metadata is retrieved")
