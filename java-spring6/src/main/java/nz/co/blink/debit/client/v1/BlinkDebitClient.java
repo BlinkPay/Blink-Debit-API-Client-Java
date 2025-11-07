@@ -174,19 +174,19 @@ public class BlinkDebitClient {
         validationService = new JakartaValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
 
-        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties, retry);
+        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
         singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
+                accessTokenHandler, validationService);
         enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
+                accessTokenHandler, validationService);
         quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
+                accessTokenHandler, validationService);
         paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
-                validationService, retry);
+                validationService);
         refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
-                validationService, retry);
-        metaApiClient = new MetaApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler, retry);
+                validationService);
+        metaApiClient = new MetaApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler);
     }
 
     /**
@@ -209,9 +209,10 @@ public class BlinkDebitClient {
      * @param clientId      the client ID
      * @param clientSecret  the client secret
      * @param activeProfile the active profile
+     * @param retryEnabled  whether retry is enabled
      */
     public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
-                            final String activeProfile) {
+                            final String activeProfile, final boolean retryEnabled) {
         int maxConnections = DEFAULT_MAX_CONNECTIONS;
         Duration maxIdleTime = Duration.parse(DEFAULT_MAX_IDLE_TIME);
         Duration maxLifeTime = Duration.parse(DEFAULT_MAX_LIFE_TIME);
@@ -242,19 +243,19 @@ public class BlinkDebitClient {
         validationService = new JakartaValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
 
-        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties, retry);
+        OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
         singleConsentsApiClient = new SingleConsentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
+                accessTokenHandler, validationService);
         enduringConsentsApiClient = new EnduringConsentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
+                accessTokenHandler, validationService);
         quickPaymentsApiClient = new QuickPaymentsApiClient(reactorClientHttpConnector, blinkPayProperties,
-                accessTokenHandler, validationService, retry);
+                accessTokenHandler, validationService);
         paymentsApiClient = new PaymentsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
-                validationService, retry);
+                validationService);
         refundsApiClient = new RefundsApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler,
-                validationService, retry);
-        metaApiClient = new MetaApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler, retry);
+                validationService);
+        metaApiClient = new MetaApiClient(reactorClientHttpConnector, blinkPayProperties, accessTokenHandler);
     }
 
     private static ReactorClientHttpConnector configureReactorClientHttpConnector(String activeProfile,

@@ -39,7 +39,7 @@ This project is licensed under the MIT License.
 
 ### Running Tests
 
-The project includes unit, component, and integration tests. To run tests, you need to set the required environment variables:
+The project includes unit and integration tests. To run tests, you need to set the required environment variables:
 
 ```bash
 export BLINKPAY_CLIENT_ID="your-client-id"
@@ -51,9 +51,6 @@ Then run the tests:
 ```bash
 # Run unit tests only
 mvn -B -ntp -Dgroups=unit test
-
-# Run component tests only
-mvn -B -ntp -Dgroups=component test
 
 # Run integration tests only
 mvn -B -ntp -Dgroups=integration test
