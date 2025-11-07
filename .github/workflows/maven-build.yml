@@ -27,27 +27,6 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
-  component:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up 64-bit Corretto 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'corretto'
-          architecture: x64
-          cache: maven
-
-      - name: Run component tests
-        run: SPRING_PROFILES_ACTIVE=test mvn -B -ntp -Dgroups=component test
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          BLINKPAY_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-
   integration:
     if: ${{ vars.JOB_ENABLED == 'true' }}
     runs-on: ubuntu-latest

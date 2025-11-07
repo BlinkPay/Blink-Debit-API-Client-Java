@@ -50,11 +50,6 @@ import java.util.regex.Pattern;
 @EnableConfigurationProperties(BlinkPayProperties.class)
 public class BlinkDebitConfiguration {
 
-    private static final int MAX_RETRY_ATTEMPTS = 3;
-    private static final long RETRY_INITIAL_INTERVAL_SECONDS = 2L;
-    private static final double RETRY_MULTIPLIER = 2.0;
-    private static final long RETRY_RANDOMIZATION_FACTOR_SECONDS = 3L;
-
     @Value("${spring.profiles.active:test}")
     private String activeProfile;
 

@@ -88,10 +88,6 @@ public class BlinkDebitClient {
     private static final String DEFAULT_MAX_LIFE_TIME = "PT60S";
     private static final String DEFAULT_PENDING_ACQUIRE_TIMEOUT = "PT10S";
     private static final String DEFAULT_EVICTION_INTERVAL = "PT60S";
-    private static final int MAX_RETRY_ATTEMPTS = 3;
-    private static final long RETRY_INITIAL_INTERVAL_SECONDS = 2L;
-    private static final double RETRY_MULTIPLIER = 2.0;
-    private static final long RETRY_RANDOMIZATION_FACTOR_SECONDS = 3L;
 
     private final SingleConsentsApiClient singleConsentsApiClient;
 

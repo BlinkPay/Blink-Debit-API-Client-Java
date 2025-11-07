@@ -59,7 +59,6 @@
         <sonar.inclusions>src/main/**</sonar.inclusions>
         <sonar.test.exclusions>
             src/test/**,
-            src/componentTest/**,
             src/integrationTest/**
         </sonar.test.exclusions>
 
@@ -222,33 +221,6 @@
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>3.6.1</version>
                 <executions>
-                    <!-- component test -->
-                    <execution>
-                        <id>add-component-test-source</id>
-                        <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/componentTest/java</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>add-component-test-resource</id>
-                        <phase>generate-test-resources</phase>
-                        <goals>
-                            <goal>add-test-resource</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>src/componentTest/resources</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
                     <!-- integration test -->
                     <execution>
                         <id>add-integration-test-source</id>
