@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.reactor.retry.RetryOperator;
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.AccessTokenRequest;
 import nz.co.blink.debit.dto.v1.AccessTokenResponse;
@@ -65,7 +63,6 @@ public class OAuthApiClient {
 
     private final String clientSecret;
 
-    private final Retry retry;
 
     private WebClient.Builder webClientBuilder;
 
@@ -74,13 +71,11 @@ public class OAuthApiClient {
      *
      * @param connector  the {@link ReactorClientHttpConnector}
      * @param properties the {@link BlinkPayProperties}
-     * @param retry      the {@link Retry} instance
      */
     @Autowired
     public OAuthApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
-                          BlinkPayProperties properties, Retry retry) {
+                          BlinkPayProperties properties) {
         this.connector = connector;
-        this.retry = retry;
         debitUrl = properties.getDebit().getUrl();
         clientId = properties.getClient().getId();
         clientSecret = properties.getClient().getSecret();
@@ -145,7 +140,7 @@ public class OAuthApiClient {
                     })
                     .bodyValue(request)
                     .exchangeToMono(ResponseHandler.handleResponseMono(AccessTokenResponse.class))
-                    .transformDeferred(RetryOperator.of(retry));
+                    ;
         });
     }
 

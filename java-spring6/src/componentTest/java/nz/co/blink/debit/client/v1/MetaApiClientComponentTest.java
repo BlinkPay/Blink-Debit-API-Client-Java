@@ -21,7 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
@@ -77,9 +76,6 @@ class MetaApiClientComponentTest {
     private ReactorClientHttpConnector connector;
 
     @Autowired
-    private Retry retry;
-
-    @Autowired
     private BlinkPayProperties properties;
 
     private MetaApiClient client;
@@ -91,9 +87,9 @@ class MetaApiClientComponentTest {
         blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
         blinkPayProperties.getClient().setId(System.getenv("BLINKPAY_CLIENT_ID"));
         blinkPayProperties.getClient().setSecret(System.getenv("BLINKPAY_CLIENT_SECRET"));
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties, retry);
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
 
-        client = new MetaApiClient(connector, properties, new AccessTokenHandler(oauthApiClient), retry);
+        client = new MetaApiClient(connector, properties, new AccessTokenHandler(oauthApiClient));
     }
 
     @Test

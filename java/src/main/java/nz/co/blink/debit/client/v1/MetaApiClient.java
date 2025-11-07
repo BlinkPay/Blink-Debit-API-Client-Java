@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.reactor.retry.RetryOperator;
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.BankMetadata;
 import nz.co.blink.debit.enums.BlinkDebitConstant;
@@ -62,7 +60,6 @@ public class MetaApiClient {
 
     private final AccessTokenHandler accessTokenHandler;
 
-    private final Retry retry;
 
     private WebClient.Builder webClientBuilder;
 
@@ -72,15 +69,13 @@ public class MetaApiClient {
      * @param connector          the {@link ReactorClientHttpConnector}
      * @param properties         the {@link BlinkPayProperties}
      * @param accessTokenHandler the {@link AccessTokenHandler}
-     * @param retry              the {@link Retry}
      */
     @Autowired
     public MetaApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
-                         BlinkPayProperties properties, AccessTokenHandler accessTokenHandler, Retry retry) {
+                         BlinkPayProperties properties, AccessTokenHandler accessTokenHandler) {
         this.connector = connector;
         debitUrl = properties.getDebit().getUrl();
         this.accessTokenHandler = accessTokenHandler;
-        this.retry = retry;
     }
 
     /**
@@ -129,7 +124,7 @@ public class MetaApiClient {
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
                 .exchangeToFlux(ResponseHandler.handleResponseFlux(BankMetadata.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) {

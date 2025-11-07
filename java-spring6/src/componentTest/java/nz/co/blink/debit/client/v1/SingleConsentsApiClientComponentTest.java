@@ -21,7 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.retry.Retry;
 import nz.co.blink.debit.config.BlinkDebitConfiguration;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
@@ -87,9 +86,6 @@ class SingleConsentsApiClientComponentTest {
     private ValidationService validationService;
 
     @Autowired
-    private Retry retry;
-
-    @Autowired
     private BlinkPayProperties properties;
 
     private SingleConsentsApiClient client;
@@ -101,10 +97,10 @@ class SingleConsentsApiClientComponentTest {
         blinkPayProperties.getDebit().setUrl("https://sandbox.debit.blinkpay.co.nz");
         blinkPayProperties.getClient().setId(System.getenv("BLINKPAY_CLIENT_ID"));
         blinkPayProperties.getClient().setSecret(System.getenv("BLINKPAY_CLIENT_SECRET"));
-        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties, retry);
+        OAuthApiClient oauthApiClient = new OAuthApiClient(connector, blinkPayProperties);
 
         client = new SingleConsentsApiClient(connector, properties, new AccessTokenHandler(oauthApiClient),
-                validationService, retry);
+                validationService);
     }
 
     @Test

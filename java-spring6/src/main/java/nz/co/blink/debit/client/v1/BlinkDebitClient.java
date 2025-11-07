@@ -21,9 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
 import io.netty.handler.logging.LogLevel;
 import jakarta.validation.Validation;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +57,6 @@ import nz.co.blink.debit.service.impl.JakartaValidationServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -68,7 +64,6 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.logging.AdvancedByteBufFormat;
 
-import java.net.ConnectException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +107,6 @@ public class BlinkDebitClient {
 
     private final ValidationService validationService;
 
-    private final Retry retry;
 
     /**
      * Default constructor for Spring-based consumer.
@@ -124,14 +118,13 @@ public class BlinkDebitClient {
      * @param refundsApiClient          the {@link RefundsApiClient}
      * @param metaApiClient             the {@link MetaApiClient}
      * @param validationService         the {@link ValidationService}
-     * @param retry                     the {@link Retry}
      */
     @Autowired
     public BlinkDebitClient(SingleConsentsApiClient singleConsentsApiClient,
                             EnduringConsentsApiClient enduringConsentsApiClient,
                             QuickPaymentsApiClient quickPaymentsApiClient, PaymentsApiClient paymentsApiClient,
                             RefundsApiClient refundsApiClient, MetaApiClient metaApiClient,
-                            ValidationService validationService, Retry retry) {
+                            ValidationService validationService) {
         this.singleConsentsApiClient = singleConsentsApiClient;
         this.enduringConsentsApiClient = enduringConsentsApiClient;
         this.quickPaymentsApiClient = quickPaymentsApiClient;
@@ -139,7 +132,6 @@ public class BlinkDebitClient {
         this.refundsApiClient = refundsApiClient;
         this.metaApiClient = metaApiClient;
         this.validationService = validationService;
-        this.retry = retry;
     }
 
     /**
@@ -157,7 +149,6 @@ public class BlinkDebitClient {
         String clientId = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_CLIENT_ID);
         String clientSecret = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_CLIENT_SECRET);
         String activeProfile = PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_ACTIVE_PROFILE);
-        boolean retryEnabled = Boolean.parseBoolean(PROPERTY_PROVIDER.getProperty(properties, BlinkPayProperty.BLINKPAY_RETRY_ENABLED));
 
         BlinkPayProperties blinkPayProperties = new BlinkPayProperties();
         blinkPayProperties.getDebit().setUrl(debitUrl);
@@ -168,7 +159,6 @@ public class BlinkDebitClient {
         blinkPayProperties.getMax().getLife().setTime(maxLifeTime);
         blinkPayProperties.getPending().getAcquire().setTimeout(pendingAcquireTimeout);
         blinkPayProperties.getEviction().setInterval(evictionInterval);
-        blinkPayProperties.getRetry().setEnabled(retryEnabled);
 
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
                 .maxConnections(maxConnections)
@@ -183,7 +173,6 @@ public class BlinkDebitClient {
 
         validationService = new JakartaValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
-        retry = configureRetry(retryEnabled);
 
         OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties, retry);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
@@ -220,10 +209,9 @@ public class BlinkDebitClient {
      * @param clientId      the client ID
      * @param clientSecret  the client secret
      * @param activeProfile the active profile
-     * @param retryEnabled  {@code true} if retry is enabled; {@code false otherwise}
      */
     public BlinkDebitClient(final String debitUrl, final String clientId, final String clientSecret,
-                            final String activeProfile, final boolean retryEnabled) {
+                            final String activeProfile) {
         int maxConnections = DEFAULT_MAX_CONNECTIONS;
         Duration maxIdleTime = Duration.parse(DEFAULT_MAX_IDLE_TIME);
         Duration maxLifeTime = Duration.parse(DEFAULT_MAX_LIFE_TIME);
@@ -239,7 +227,6 @@ public class BlinkDebitClient {
         blinkPayProperties.getMax().getLife().setTime(maxLifeTime);
         blinkPayProperties.getPending().getAcquire().setTimeout(pendingAcquireTimeout);
         blinkPayProperties.getEviction().setInterval(evictionInterval);
-        blinkPayProperties.getRetry().setEnabled(retryEnabled);
 
         ConnectionProvider provider = ConnectionProvider.builder("blinkpay-conn-provider")
                 .maxConnections(maxConnections)
@@ -254,7 +241,6 @@ public class BlinkDebitClient {
 
         validationService = new JakartaValidationServiceImpl(Validation.buildDefaultValidatorFactory().getValidator());
 
-        retry = configureRetry(retryEnabled);
 
         OAuthApiClient oauthApiClient = new OAuthApiClient(reactorClientHttpConnector, blinkPayProperties, retry);
         AccessTokenHandler accessTokenHandler = new AccessTokenHandler(oauthApiClient);
@@ -286,33 +272,6 @@ public class BlinkDebitClient {
         return new ReactorClientHttpConnector(client);
     }
 
-    private static Retry configureRetry(boolean retryEnabled) {
-        Retry retry;
-        if (Boolean.FALSE.equals(retryEnabled)) {
-            retry = null;
-        } else {
-            RetryConfig retryConfig = RetryConfig.custom()
-                    // allow up to 2 retries after the original request (3 attempts in total)
-                    .maxAttempts(MAX_RETRY_ATTEMPTS)
-                    // wait 2 seconds and then 5 seconds (or thereabouts)
-                    .intervalFunction(IntervalFunction
-                            .ofExponentialRandomBackoff(
-                                    Duration.ofSeconds(RETRY_INITIAL_INTERVAL_SECONDS),
-                                    RETRY_MULTIPLIER,
-                                    Duration.ofSeconds(RETRY_RANDOMIZATION_FACTOR_SECONDS)))
-                    // retries are triggered for 408 (request timeout) and 5xx exceptions
-                    // and for network errors thrown by WebFlux if the request didn't get to the server at all
-                    .retryExceptions(BlinkRetryableException.class,
-                            ConnectException.class,
-                            WebClientRequestException.class)
-                    // ignore 4xx and 501 (not implemented) exceptions
-                    .ignoreExceptions(BlinkServiceException.class)
-                    .failAfterMaxAttempts(true)
-                    .build();
-            retry = Retry.of("retry", retryConfig);
-        }
-        return retry;
-    }
 
     /**
      * Returns the {@link List} of {@link BankMetadata}.

@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.reactor.retry.RetryOperator;
-import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Amount;
@@ -80,7 +78,6 @@ public class SingleConsentsApiClient {
 
     private final ValidationService validationService;
 
-    private final Retry retry;
 
     private WebClient.Builder webClientBuilder;
 
@@ -91,17 +88,15 @@ public class SingleConsentsApiClient {
      * @param properties         the {@link BlinkPayProperties}
      * @param accessTokenHandler the {@link AccessTokenHandler}
      * @param validationService  the {@link ValidationService}
-     * @param retry              the {@link Retry} instance
      */
     @Autowired
     public SingleConsentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                                    BlinkPayProperties properties, AccessTokenHandler accessTokenHandler,
-                                   ValidationService validationService, Retry retry) {
+                                   ValidationService validationService) {
         this.connector = connector;
         debitUrl = properties.getDebit().getUrl();
         this.accessTokenHandler = accessTokenHandler;
         this.validationService = validationService;
-        this.retry = retry;
     }
 
     /**
@@ -301,7 +296,7 @@ public class SingleConsentsApiClient {
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
                 .exchangeToMono(ResponseHandler.handleResponseMono(Consent.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     /**
@@ -360,7 +355,7 @@ public class SingleConsentsApiClient {
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
                 .exchangeToMono(ResponseHandler.handleResponseMono(Void.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private Mono<CreateConsentResponse> createSingleConsentMono(SingleConsentRequest request,
@@ -387,7 +382,7 @@ public class SingleConsentsApiClient {
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(CreateConsentResponse.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {

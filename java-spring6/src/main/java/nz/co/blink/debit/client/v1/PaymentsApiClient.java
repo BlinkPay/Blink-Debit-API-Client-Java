@@ -21,8 +21,6 @@
  */
 package nz.co.blink.debit.client.v1;
 
-import io.github.resilience4j.reactor.retry.RetryOperator;
-import io.github.resilience4j.retry.Retry;
 import lombok.extern.slf4j.Slf4j;
 import nz.co.blink.debit.config.BlinkPayProperties;
 import nz.co.blink.debit.dto.v1.Payment;
@@ -71,7 +69,6 @@ public class PaymentsApiClient {
 
     private final ValidationService validationService;
 
-    private final Retry retry;
 
     private WebClient.Builder webClientBuilder;
 
@@ -82,17 +79,15 @@ public class PaymentsApiClient {
      * @param properties         the {@link BlinkPayProperties}
      * @param accessTokenHandler the {@link AccessTokenHandler}
      * @param validationService  the {@link ValidationService}
-     * @param retry              the {@link Retry} instance
      */
     @Autowired
     public PaymentsApiClient(@Qualifier("blinkDebitClientHttpConnector") ReactorClientHttpConnector connector,
                              BlinkPayProperties properties, AccessTokenHandler accessTokenHandler,
-                             ValidationService validationService, Retry retry) {
+                             ValidationService validationService) {
         this.connector = connector;
         debitUrl = properties.getDebit().getUrl();
         this.accessTokenHandler = accessTokenHandler;
         this.validationService = validationService;
-        this.retry = retry;
     }
 
     /**
@@ -213,7 +208,7 @@ public class PaymentsApiClient {
                     httpHeaders.add(CUSTOMER_USER_AGENT.getValue(), customerUserAgent);
                 })
                 .exchangeToMono(ResponseHandler.handleResponseMono(Payment.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private Mono<PaymentResponse> createPaymentMono(PaymentRequest request, Map<String, String> requestHeaders)
@@ -239,7 +234,7 @@ public class PaymentsApiClient {
                 })
                 .bodyValue(request)
                 .exchangeToMono(ResponseHandler.handleResponseMono(PaymentResponse.class))
-                .transformDeferred(RetryOperator.of(retry));
+                ;
     }
 
     private WebClient.Builder getWebClientBuilder(String requestId) throws BlinkServiceException {
