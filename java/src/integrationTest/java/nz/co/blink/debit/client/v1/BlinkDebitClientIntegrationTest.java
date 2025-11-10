@@ -119,7 +119,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(consentId).isNotNull();
 
         BlinkServiceException exception = catchThrowableOfType(BlinkServiceException.class,
-                () -> client.awaitAuthorisedSingleConsent(consentId, 5));
+                () -> client.awaitAuthorisedSingleConsent(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -133,7 +133,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitAuthorisedSingleConsent(consentId, 5));
+                () -> client.awaitAuthorisedSingleConsent(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -230,7 +230,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(consentId).isNotNull();
 
         BlinkConsentTimeoutException exception = catchThrowableOfType(BlinkConsentTimeoutException.class,
-                () -> client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5));
+                () -> client.awaitAuthorisedSingleConsentOrThrowException(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -244,7 +244,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitAuthorisedSingleConsentOrThrowException(consentId, 5));
+                () -> client.awaitAuthorisedSingleConsentOrThrowException(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -342,7 +342,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(consentId).isNotNull();
 
         BlinkServiceException exception = catchThrowableOfType(BlinkServiceException.class,
-                () -> client.awaitAuthorisedEnduringConsent(consentId, 5));
+                () -> client.awaitAuthorisedEnduringConsent(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -356,7 +356,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitAuthorisedEnduringConsent(consentId, 5));
+                () -> client.awaitAuthorisedEnduringConsent(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -457,7 +457,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(consentId).isNotNull();
 
         BlinkConsentTimeoutException exception = catchThrowableOfType(BlinkConsentTimeoutException.class,
-                () -> client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5));
+                () -> client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -471,7 +471,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 5));
+                () -> client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -571,7 +571,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(quickPaymentId).isNotNull();
 
         BlinkServiceException exception = catchThrowableOfType(BlinkServiceException.class,
-                () -> client.awaitSuccessfulQuickPayment(quickPaymentId, 5));
+                () -> client.awaitSuccessfulQuickPayment(quickPaymentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -585,7 +585,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitSuccessfulQuickPayment(consentId, 5));
+                () -> client.awaitSuccessfulQuickPayment(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -621,7 +621,7 @@ class BlinkDebitClientIntegrationTest {
         UUID quickPaymentId = response.getQuickPaymentId();
         assertThat(quickPaymentId).isNotNull();
 
-        QuickPaymentResponse actual = client.awaitSuccessfulQuickPayment(quickPaymentId, 60);
+        QuickPaymentResponse actual = client.awaitSuccessfulQuickPayment(quickPaymentId, 2);
         assertThat(actual)
                 .isNotNull()
                 .extracting(QuickPaymentResponse::getQuickPaymentId)
@@ -699,7 +699,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(quickPaymentId).isNotNull();
 
         BlinkConsentTimeoutException exception = catchThrowableOfType(BlinkConsentTimeoutException.class,
-                () -> client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 5));
+                () -> client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -714,7 +714,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitSuccessfulQuickPaymentOrThrowException(consentId, 5));
+                () -> client.awaitSuccessfulQuickPaymentOrThrowException(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -753,7 +753,7 @@ class BlinkDebitClientIntegrationTest {
         client.revokeQuickPayment(quickPaymentId);
 
         BlinkConsentRejectedException exception = catchThrowableOfType(BlinkConsentRejectedException.class,
-                () -> client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 30));
+                () -> client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 2));
         assertThat(exception)
                 .isNotNull()
                 .hasMessage("Quick payment [" + quickPaymentId + "] has been rejected or revoked");
@@ -844,7 +844,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitSuccessfulPayment(consentId, 5));
+                () -> client.awaitSuccessfulPayment(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -919,7 +919,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(paymentResponse).isNotNull();
         UUID paymentId = paymentResponse.getPaymentId();
 
-        Payment payment = client.awaitSuccessfulPayment(paymentId, 10);
+        Payment payment = client.awaitSuccessfulPayment(paymentId, 30);
 
         assertThat(payment)
                 .isNotNull()
@@ -942,7 +942,7 @@ class BlinkDebitClientIntegrationTest {
         UUID consentId = UUID.randomUUID();
 
         BlinkResourceNotFoundException exception = catchThrowableOfType(BlinkResourceNotFoundException.class,
-                () -> client.awaitSuccessfulPaymentOrThrowException(consentId, 5));
+                () -> client.awaitSuccessfulPaymentOrThrowException(consentId, 2));
 
         assertThat(exception)
                 .isNotNull()
@@ -1017,7 +1017,7 @@ class BlinkDebitClientIntegrationTest {
         assertThat(paymentResponse).isNotNull();
         UUID paymentId = paymentResponse.getPaymentId();
 
-        Payment payment = client.awaitSuccessfulPaymentOrThrowException(paymentId, 10);
+        Payment payment = client.awaitSuccessfulPaymentOrThrowException(paymentId, 30);
 
         assertThat(payment)
                 .isNotNull()
