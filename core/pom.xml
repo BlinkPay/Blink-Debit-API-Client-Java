@@ -5,19 +5,19 @@
     <parent>
         <groupId>nz.co.blinkpay</groupId>
         <artifactId>blink-debit-api-client-java-parent</artifactId>
-        <version>1.5.2</version>
+        <version>${revision}</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>blink-debit-api-client-java-core</artifactId>
-    <version>1.5.2</version>
+    <version>${revision}</version>
 
     <name>blink-debit-api-client-java-core</name>
     <description>Blink Debit API Client shared library</description>
     <url>https://www.blinkpay.co.nz</url>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 

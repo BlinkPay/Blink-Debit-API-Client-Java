@@ -91,6 +91,7 @@ public class BlinkDebitClient {
     private static final String DEFAULT_MAX_LIFE_TIME = "PT60S";
     private static final String DEFAULT_PENDING_ACQUIRE_TIMEOUT = "PT10S";
     private static final String DEFAULT_EVICTION_INTERVAL = "PT60S";
+    private static final Duration POLLING_INTERVAL = Duration.ofSeconds(1);
 
     private SingleConsentsApiClient singleConsentsApiClient;
 
@@ -601,7 +602,7 @@ public class BlinkDebitClient {
 
                         return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
-                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                             .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
@@ -683,7 +684,7 @@ public class BlinkDebitClient {
                     return consentMono;
                 })
                 .retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                         .filter(BlinkRetryableException.class::isInstance)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
@@ -996,7 +997,7 @@ public class BlinkDebitClient {
 
                         return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
-                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                             .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
@@ -1088,7 +1089,7 @@ public class BlinkDebitClient {
                         return consentMono;
                     })
                     .retryWhen(reactor.util.retry.Retry
-                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                             .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkConsentTimeoutException awaitException = new BlinkConsentTimeoutException();
@@ -1421,7 +1422,7 @@ public class BlinkDebitClient {
 
                         return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
-                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                             .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 // Gateway timed out. Revoke so it can't be used anymore
@@ -1512,7 +1513,7 @@ public class BlinkDebitClient {
                     return quickPaymentResponseMono;
                 })
                 .retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                         .filter(BlinkRetryableException.class::isInstance)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             // Gateway timed out. Revoke so it can't be used anymore
@@ -1827,7 +1828,7 @@ public class BlinkDebitClient {
 
                         return Mono.error(new BlinkRetryableException());
                     }).retryWhen(reactor.util.retry.Retry
-                            .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                            .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                             .filter(BlinkRetryableException.class::isInstance)
                             .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                                 BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();
@@ -1901,7 +1902,7 @@ public class BlinkDebitClient {
                     return paymentMono;
                 })
                 .retryWhen(reactor.util.retry.Retry
-                        .fixedDelay(maxWaitSeconds, Duration.ofSeconds(1))
+                        .fixedDelay(maxWaitSeconds, POLLING_INTERVAL)
                         .filter(BlinkRetryableException.class::isInstance)
                         .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
                             BlinkPaymentTimeoutException awaitException = new BlinkPaymentTimeoutException();

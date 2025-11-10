@@ -78,7 +78,8 @@ BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" 
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7
-- Java 8 or higher
+- Java 11 or higher (for `blink-debit-api-client-java`)
+- Java 21 or higher (for `blink-debit-api-client-java-spring6`)
 - Lombok 1.18 (for development only)
 
 ## Adding the dependency
@@ -87,7 +88,7 @@ This SDK is available in two versions to support different Java and Spring Frame
 
 ### For Plain Java & Spring Boot 2.x (Recommended)
 Use `blink-debit-api-client-java` for:
-- **Plain Java 8+** applications (non-Spring)
+- **Plain Java 11+** applications (non-Spring)
 - **Spring Framework versions < 6** (including Spring Boot 2.x)
 
 This is the primary version that works with most Java applications.

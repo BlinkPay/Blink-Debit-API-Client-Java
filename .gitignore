@@ -22,6 +22,9 @@ dist/
 # Maven
 target/
 effective-pom.xml
+.flattened-pom.xml
+dependency-tree.txt
+*/dependency-tree.txt
 
 # JetBrains IDE
 .idea/

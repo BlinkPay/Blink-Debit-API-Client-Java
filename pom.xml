@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>nz.co.blinkpay</groupId>
     <artifactId>blink-debit-api-client-java-parent</artifactId>
-    <version>1.5.2</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <name>blink-debit-api-client-java-parent</name>
@@ -52,8 +52,9 @@
     </modules>
 
     <properties>
+        <revision>1.6.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>8</java.version>
+        <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <sonar.inclusions>src/main/**</sonar.inclusions>
@@ -65,12 +66,12 @@
         <lombok.version>1.18.42</lombok.version>
         <commons.lang.version>3.19.0</commons.lang.version>
         <commons.collections.version>4.5.0</commons.collections.version>
-        <netty.version>4.2.6.Final</netty.version> <!-- TODO upgrade to 5.x once available -->
+        <netty.version>4.2.7.Final</netty.version> <!-- Netty 5.x was cancelled, using latest 4.2.x -->
         <slf4j.version>1.7.36</slf4j.version> <!-- latest 2.0.17 is not compatible -->
         <logback.version>1.2.13</logback.version> <!-- latest 1.5.19 is not compatible -->
-        <jackson.version>2.20.0</jackson.version>
+        <jackson.version>2.20.1</jackson.version>
 
-        <junit.version>6.0.0</junit.version>
+        <junit.version>6.0.1</junit.version>
         <assertj.version>3.27.6</assertj.version>
     </properties>
 
@@ -331,8 +332,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.14.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -341,6 +341,31 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
 
