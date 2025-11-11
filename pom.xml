@@ -47,7 +47,7 @@
 
     <modules>
         <module>core</module>
-        <module>java</module>
+        <module>java-v2</module>
         <module>java-spring6</module>
     </modules>
 
