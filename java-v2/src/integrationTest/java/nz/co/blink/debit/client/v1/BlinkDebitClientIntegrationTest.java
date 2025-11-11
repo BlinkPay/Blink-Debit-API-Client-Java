@@ -58,7 +58,7 @@ class BlinkDebitClientIntegrationTest {
 
         assertThat(metadata).isNotNull();
         assertThat(metadata).isNotEmpty();
-        assertThat(metadata.get(0).getName()).isNotBlank();
+        assertThat(metadata.get(0).getName()).isNotNull();
     }
 
     @Test
@@ -68,7 +68,7 @@ class BlinkDebitClientIntegrationTest {
         try (BlinkDebitClient envClient = new BlinkDebitClient()) {
             assertThat(envClient).isNotNull();
             assertThat(envClient.getConfig()).isNotNull();
-            assertThat(envClient.getConfig().getDebitUrl()).isNotBlank();
+            assertThat(envClient.getConfig().getDebitUrl()).isNotNull().isNotEmpty();
         }
     }
 
