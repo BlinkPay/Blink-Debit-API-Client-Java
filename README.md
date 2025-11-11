@@ -30,7 +30,13 @@
 ## Introduction
 This SDK allows merchants with Java-based e-commerce site to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
 
-This SDK internally uses WebClient, a reactive Web client introduced in Spring Framework 5, for making API calls.
+### SDK Versions
+This repository provides two SDK implementations:
+
+- **v1 SDK** (`java/` and `java-spring6/` modules): Reactive SDK using Spring WebClient with Mono/Flux async programming. Suitable for Spring-based applications.
+- **v2 SDK** (`java-v2/` module - **Recommended**): Lightweight synchronous SDK using Java 11+ HttpClient. **87% smaller** dependency footprint (~206KB vs ~1.6MB runtime dependencies), ideal for plain Java applications, serverless functions, and memory-constrained environments.
+
+The v1 SDK internally uses WebClient, a reactive Web client introduced in Spring Framework 5, for making API calls. The v2 SDK uses the standard Java 11+ HttpClient for synchronous blocking calls with minimal dependencies.
 
 ## Contributing
 We welcome contributions from the community. Your pull request will be reviewed by our team.
@@ -78,20 +84,42 @@ BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" 
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7
-- Java 11 or higher (for `blink-debit-api-client-java`)
+- Java 11 or higher (for `blink-debit-api-client-java` and `blink-debit-api-client-java-v2`)
 - Java 21 or higher (for `blink-debit-api-client-java-spring6`)
-- Lombok 1.18 (for development only)
+- Lombok 1.18 (for v1 SDK development only - not required for v2 SDK)
 
 ## Adding the dependency
 
-This SDK is available in two versions to support different Java and Spring Framework configurations:
+This SDK is available in three versions to support different Java and Spring Framework configurations:
 
-### For Plain Java & Spring Boot 2.x (Recommended)
-Use `blink-debit-api-client-java` for:
+### For Plain Java 11+ Applications (Recommended - v2 SDK)
+Use `blink-debit-api-client-java-v2` for:
 - **Plain Java 11+** applications (non-Spring)
-- **Spring Framework versions < 6** (including Spring Boot 2.x)
+- **Serverless functions** (Lambda, Cloud Functions, etc.)
+- **Memory-constrained environments**
+- Applications that prefer **synchronous blocking API** calls
 
-This is the primary version that works with most Java applications.
+This lightweight version has **87% fewer runtime dependencies** compared to v1 SDK.
+
+#### Maven
+```xml
+<dependency>
+    <groupId>nz.co.blinkpay</groupId>
+    <artifactId>blink-debit-api-client-java-v2</artifactId>
+    <version>${version}</version>
+</dependency>
+```
+
+#### Gradle
+```groovy
+implementation "nz.co.blinkpay:blink-debit-api-client-java-v2:$version"
+```
+
+### For Spring Boot 2.x Applications (v1 SDK)
+Use `blink-debit-api-client-java` for:
+- **Spring Boot 2.x** applications
+- **Spring Framework versions < 6**
+- Applications that prefer **reactive programming** with Mono/Flux
 
 #### Maven
 ```xml
@@ -126,6 +154,41 @@ implementation "nz.co.blinkpay:blink-debit-api-client-java-spring6:$version"
 ```
 
 ## Quick Start
+
+### v2 SDK (Recommended for Plain Java)
+```java
+import nz.co.blink.debit.client.v1.BlinkDebitClient;
+import nz.co.blink.debit.config.BlinkDebitConfig;
+
+// Option 1: Using environment variables
+BlinkDebitClient client = new BlinkDebitClient();
+
+// Option 2: Using configuration builder
+BlinkDebitConfig config = BlinkDebitConfig.builder()
+        .debitUrl("https://sandbox.debit.blinkpay.co.nz")
+        .clientId("your-client-id")
+        .clientSecret("your-client-secret")
+        .build();
+BlinkDebitClient client = new BlinkDebitClient(config);
+
+// Create a quick payment (synchronous blocking call)
+QuickPaymentRequest request = new QuickPaymentRequest()
+        .flow(new AuthFlow()
+                .detail(new GatewayFlow()
+                        .redirectUri("https://www.example.com/return")))
+        .amount(new Amount()
+                .currency(Amount.CurrencyEnum.NZD)
+                .total("10.00"))
+        .pcr(new Pcr()
+                .particulars("particulars")
+                .code("code")
+                .reference("reference"));
+
+CreateQuickPaymentResponse response = client.getQuickPaymentsApi().createQuickPayment(request);
+// Redirect the consumer to response.getRedirectUri()
+```
+
+### v1 SDK (Reactive WebClient)
 ```java
 String blinkpayUrl = "https://sandbox.debit.blinkpay.co.nz";
 String clientId = "...";
