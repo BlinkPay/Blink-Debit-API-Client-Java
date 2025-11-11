@@ -13,6 +13,7 @@
 
 package nz.co.blink.debit.dto.v1;
 
+import nz.co.blink.debit.dto.AbstractOpenApiSchema;
 import java.util.Map;
 import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;

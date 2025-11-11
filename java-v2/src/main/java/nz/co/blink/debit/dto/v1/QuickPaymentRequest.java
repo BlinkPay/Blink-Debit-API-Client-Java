@@ -12,6 +12,7 @@
 
 
 package nz.co.blink.debit.dto.v1;
+import nz.co.blink.debit.dto.ApiClient;
 
 import java.util.Map;
 import java.util.HashMap;

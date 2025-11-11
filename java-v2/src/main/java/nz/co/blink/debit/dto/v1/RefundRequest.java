@@ -13,6 +13,7 @@
 
 package nz.co.blink.debit.dto.v1;
 
+import nz.co.blink.debit.dto.AbstractOpenApiSchema;
 import java.util.Map;
 import java.util.HashMap;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -92,7 +93,7 @@ public class RefundRequest extends AbstractOpenApiSchema {
     public RefundRequest type(TypeEnum type) { this.type = type; return this; }
     public TypeEnum getType() { return type; }
     public void setType(TypeEnum type) { this.type = type; }
-    private static final Logger log
+
     public static class RefundRequestSerializer extends StdSerializer<RefundRequest> {
         public RefundRequestSerializer(Class<RefundRequest> t) {
             super(t);
