@@ -10,21 +10,28 @@ This repository contains Java SDK implementations for the Blink Debit API, enabl
 
 ### SDK Versions
 
-#### v1 SDK (Reactive)
-- **Location**: `java/` (Spring Boot 2.x) and `java-spring6/` (Spring Boot 3.x)
-- **Technology**: Spring WebClient with Reactor (Mono/Flux)
-- **Dependencies**: Spring Framework, Netty, Reactor, Resilience4j, Commons libraries
-- **Dependency Size**: ~1.6 MB runtime dependencies
-- **API Style**: Reactive/async with Mono and Flux
-- **Target Users**: Spring-based applications requiring reactive programming
+This repository contains three modules:
 
-#### v2 SDK (Lightweight - **RECOMMENDED**)
+#### core (Shared Module)
+- **Location**: `core/`
+- Shared exceptions, enums, and helper classes used by SDK implementations
+
+#### java-v2 (Lightweight SDK - **RECOMMENDED**)
 - **Location**: `java-v2/`
 - **Technology**: Java 11+ HttpClient (synchronous blocking)
 - **Dependencies**: Jackson (JSON), Auth0-JWT, SLF4J API
-- **Dependency Size**: ~206 KB (87% reduction vs v1)
+- **Dependency Size**: ~206 KB runtime dependencies
 - **API Style**: Synchronous blocking calls
 - **Target Users**: Plain Java applications, serverless functions, memory-constrained environments
+- **Documentation**: See `java-v2/README.md` and `java-v2/CLAUDE.md` for details
+
+#### java-spring6 (Spring 6 SDK)
+- **Location**: `java-spring6/`
+- **Technology**: Spring WebClient with Reactor (Mono/Flux)
+- **Dependencies**: Spring Framework 6, Netty, Reactor
+- **Dependency Size**: ~1.6 MB runtime dependencies
+- **API Style**: Reactive/async with Mono and Flux
+- **Target Users**: Spring Boot 3.x / Spring Framework 6+ applications
 
 ## v2 SDK Architecture
 
