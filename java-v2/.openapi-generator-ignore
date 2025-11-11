@@ -1,0 +1,8 @@
+# Ignore everything except models (DTOs)
+**
+!src/main/java/nz/co/blink/debit/dto/**
+pom.xml
+README.md
+.gitignore
+.travis.yml
+git_push.sh
