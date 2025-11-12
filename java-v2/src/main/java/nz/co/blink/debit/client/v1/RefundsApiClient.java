@@ -17,7 +17,7 @@ import java.util.UUID;
 public class RefundsApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(RefundsApiClient.class);
-    private static final String REFUNDS_PATH = "/refunds";
+    private static final String REFUNDS_PATH = "/payments/v1/refunds";
 
     private final HttpClientHelper httpHelper;
 

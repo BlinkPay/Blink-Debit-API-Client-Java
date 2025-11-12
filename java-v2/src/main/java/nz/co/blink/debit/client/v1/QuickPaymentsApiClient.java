@@ -17,7 +17,7 @@ import java.util.UUID;
 public class QuickPaymentsApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(QuickPaymentsApiClient.class);
-    private static final String QUICK_PAYMENTS_PATH = "/consents/quick-payments";
+    private static final String QUICK_PAYMENTS_PATH = "/payments/v1/quick-payments";
 
     private final HttpClientHelper httpHelper;
 

@@ -56,6 +56,32 @@ public class OAuthApiClient {
      * @throws BlinkServiceException if the request fails
      */
     public String getAccessToken(String requestId) throws BlinkServiceException {
+        AccessTokenResponse response = generateAccessToken(requestId);
+        return response.getAccessToken();
+    }
+
+    /**
+     * Generate an access token using client credentials flow.
+     * Returns the full token response for testing and debugging.
+     * Synchronous blocking call.
+     *
+     * @return the full access token response
+     * @throws BlinkServiceException if the request fails
+     */
+    public AccessTokenResponse generateAccessToken() throws BlinkServiceException {
+        return generateAccessToken(UUID.randomUUID().toString());
+    }
+
+    /**
+     * Generate an access token using client credentials flow.
+     * Returns the full token response for testing and debugging.
+     * Synchronous blocking call.
+     *
+     * @param requestId the request ID for tracing
+     * @return the full access token response
+     * @throws BlinkServiceException if the request fails
+     */
+    public AccessTokenResponse generateAccessToken(String requestId) throws BlinkServiceException {
         try {
             AccessTokenRequest tokenRequest = AccessTokenRequest.builder()
                     .clientId(config.getClientId())
@@ -81,7 +107,7 @@ public class OAuthApiClient {
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 AccessTokenResponse tokenResponse = objectMapper.readValue(response.body(), AccessTokenResponse.class);
                 log.debug("Successfully obtained access token");
-                return tokenResponse.getAccessToken();
+                return tokenResponse;
             } else {
                 String errorMessage = String.format("Failed to get access token: HTTP %d - %s",
                         response.statusCode(), response.body());

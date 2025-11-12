@@ -15,7 +15,7 @@ import java.util.UUID;
 public class MetaApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(MetaApiClient.class);
-    private static final String META_PATH = "/meta";
+    private static final String META_PATH = "/payments/v1/meta";
 
     private final HttpClientHelper httpHelper;
 

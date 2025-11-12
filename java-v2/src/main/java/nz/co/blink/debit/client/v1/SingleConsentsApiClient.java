@@ -17,8 +17,8 @@ import java.util.UUID;
 public class SingleConsentsApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(SingleConsentsApiClient.class);
-    private static final String SINGLE_CONSENTS_PATH = "/consents/single";
-    private static final String CONSENTS_PATH = "/consents/";
+    private static final String SINGLE_CONSENTS_PATH = "/payments/v1/single-consents";
+    private static final String SINGLE_CONSENTS_ID_PATH = "/payments/v1/single-consents/";
 
     private final HttpClientHelper httpHelper;
 
@@ -79,7 +79,7 @@ public class SingleConsentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        String path = CONSENTS_PATH + consentId.toString();
+        String path = SINGLE_CONSENTS_ID_PATH + consentId.toString();
         log.debug("Getting consent {} with request-id: {}", consentId, requestId);
         return httpHelper.get(path, Consent.class, requestId);
     }
@@ -106,7 +106,7 @@ public class SingleConsentsApiClient {
             throw new BlinkInvalidValueException("Consent ID must not be null");
         }
 
-        String path = CONSENTS_PATH + consentId.toString();
+        String path = SINGLE_CONSENTS_ID_PATH + consentId.toString();
         log.debug("Revoking consent {} with request-id: {}", consentId, requestId);
         httpHelper.delete(path, requestId);
     }

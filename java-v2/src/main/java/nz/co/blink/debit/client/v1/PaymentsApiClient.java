@@ -17,7 +17,7 @@ import java.util.UUID;
 public class PaymentsApiClient {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentsApiClient.class);
-    private static final String PAYMENTS_PATH = "/payments";
+    private static final String PAYMENTS_PATH = "/payments/v1/payments";
 
     private final HttpClientHelper httpHelper;
 
