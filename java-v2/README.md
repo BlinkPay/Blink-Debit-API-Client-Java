@@ -290,19 +290,18 @@ try {
 
 ## Testing
 
-### Running Tests
-
 ```bash
-# Set environment variables
-export BLINKPAY_CLIENT_ID="your-client-id"
-export BLINKPAY_CLIENT_SECRET="your-client-secret"
-export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
-
-# Run unit tests only (default)
+# Run unit tests only
 mvn test
 
-# Run integration tests
-mvn test -DexcludedGroups=""
+# Run integration tests (requires environment variables)
+export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+mvn verify
+
+# Skip tests
+mvn package -DskipTests
 ```
 
 ## Dependencies

@@ -304,31 +304,229 @@ Thrown for invalid input parameters:
 
 ## Testing
 
+### Test Structure
+
+**Unit Tests**: `src/test/java` (not yet implemented)
+- Fast, isolated tests with no external dependencies
+- Focus on validation logic, configuration, error handling
+- Run with: `mvn test`
+
+**Integration Tests**: `src/integrationTest/java`
+- Test against real Blink API (sandbox environment)
+- Require environment variables for credentials
+- Run with: `mvn verify`
+
 ### Integration Tests
 
-**Location**: `src/integrationTest/java/nz/co/blink/debit/client/v1/BlinkDebitClientIntegrationTest.java`
+**Coverage Summary**: **44 integration tests** across **8 test classes** (55% coverage compared to java-spring6 with 80 tests) *updated 2025-11-12*
+
+**Phase 1 Improvements** ✅:
+- Added OAuthApiClientIntegrationTest (1 test)
+- Added gateway flow tests (3 tests)
+- Added 404 Not Found error tests (5 tests)
+- Added input validation tests (8 tests)
+- **Total**: +17 tests (27 → 44)
+
+**Location**: `src/integrationTest/java/nz/co/blink/debit/client/v1/`
+
+**Shared Constants**: `IntegrationTestConstants.java`
+- `REDIRECT_URI` - Test merchant return page URL
+- `CALLBACK_URL` - Callback URL for decoupled flows
+- `CUSTOMER_HASH` - Test customer identifier hash
+- `DEFAULT_BANK` - Bank.PNZ (test bank)
+- `PHONE_NUMBER` - Test phone number for decoupled flow
+
+**Test Classes**:
+
+1. **BlinkDebitClientIntegrationTest** (3 tests)
+   - Client initialization from environment variables
+   - API client getter validation
+   - Meta API access
+
+2. **MetaApiClientIntegrationTest** (2 tests)
+   - Get bank metadata
+   - Get metadata with custom request ID
+   - **Status**: ✅ Enhanced coverage (exceeds java-spring6)
+
+3. **SingleConsentsApiClientIntegrationTest** (**9 tests** - *improved*)
+   - Create single consent with redirect flow
+   - Get consent by ID
+   - Revoke consent
+   - Create with gateway flow *(Phase 1)*
+   - Get non-existent consent 404 error *(Phase 1)*
+   - Create with null request validation *(Phase 1)*
+   - Get with null ID validation *(Phase 1)*
+   - Revoke with null ID validation *(Phase 1)*
+   - Full lifecycle testing
+   - **Status**: ✅ 64.3% coverage (redirect + gateway flow, error handling complete)
+
+4. **EnduringConsentsApiClientIntegrationTest** (**6 tests** - *improved*)
+   - Create enduring consent with redirect flow
+   - Get consent by ID
+   - Revoke consent
+   - Create with gateway flow *(Phase 1)*
+   - Get non-existent consent 404 error *(Phase 1)*
+   - Full lifecycle testing
+   - **Status**: ⚠️ 42.9% coverage (redirect + gateway flow, missing validation tests)
+
+5. **QuickPaymentsApiClientIntegrationTest** (**9 tests** - *improved*)
+   - Create quick payment with redirect flow
+   - Get quick payment by ID
+   - Revoke quick payment
+   - Create with gateway flow *(Phase 1)*
+   - Get non-existent quick payment 404 error *(Phase 1)*
+   - Create with null request validation *(Phase 1)*
+   - Get with null ID validation *(Phase 1)*
+   - Revoke with null ID validation *(Phase 1)*
+   - Full lifecycle testing
+   - **Status**: ✅ 64.3% coverage (redirect + gateway flow, error handling complete)
+
+6. **PaymentsApiClientIntegrationTest** (**8 tests** - *improved, exceeds java-spring6*)
+   - Create payment for single consent (decoupled flow)
+   - Get payment for single consent
+   - Create payment for enduring consent (decoupled flow)
+   - Get payment for enduring consent
+   - Get non-existent payment 404 error *(Phase 1)*
+   - Create with null request validation *(Phase 1)*
+   - Get with null ID validation *(Phase 1)*
+   - Retry logic for sandbox authorization (up to 10 attempts)
+   - **Status**: ✅ 160% coverage (exceeds java-spring6)
+
+7. **RefundsApiClientIntegrationTest** (**6 tests** - *improved*)
+   - Create account number refund for single consent
+   - Get refund for single consent
+   - Create account number refund for enduring consent
+   - Get refund for enduring consent
+   - Get non-existent refund 404 error *(Phase 1)*
+   - Retry logic for payment authorization
+   - **Status**: ✅ 85.7% coverage (excellent coverage)
+
+8. **OAuthApiClientIntegrationTest** (**1 test** - *Phase 1 new*)
+   - Generate access token with full validation
+   - Validate token type (Bearer)
+   - Validate JWT format (starts with "ey")
+   - Validate expiry (3600 seconds)
+   - Validate scopes
+   - **Status**: ✅ 100% coverage (complete parity with java-spring6)
+
+**Test Patterns**:
+
+**Sequential Execution**:
+```java
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class XxxApiClientIntegrationTest {
+    @Test
+    @Order(1)
+    void createResource() { /* ... */ }
+
+    @Test
+    @Order(2)
+    void getResource() { /* ... */ }
+
+    @Test
+    @Order(3)
+    void revokeResource() { /* ... */ }
+}
+```
+
+**Credential Validation**:
+```java
+@BeforeAll
+static void setUp() throws BlinkInvalidValueException {
+    String debitUrl = System.getenv("BLINKPAY_DEBIT_URL");
+    String clientId = System.getenv("BLINKPAY_CLIENT_ID");
+    String clientSecret = System.getenv("BLINKPAY_CLIENT_SECRET");
+
+    credentialsAvailable = debitUrl != null && clientId != null && clientSecret != null;
+
+    if (credentialsAvailable) {
+        client = new BlinkDebitClient(BlinkDebitConfig.builder()
+                .debitUrl(debitUrl)
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .build());
+    }
+}
+
+@Test
+void test() {
+    assumeTrue(credentialsAvailable, "Integration test credentials not available");
+    // Test executes only if credentials are available
+}
+```
+
+**Retry Logic for Decoupled Flow** (Payments/Refunds):
+```java
+for (int i = 1; i <= 10; i++) {
+    try {
+        PaymentResponse response = client.getPaymentsApi().createPayment(request);
+        paymentId = response.getPaymentId();
+        break;  // Success
+    } catch (RuntimeException e) {
+        Thread.sleep(2000L * i);  // Exponential backoff: 2s, 4s, 6s, ..., 20s
+    }
+}
+```
+
+**Resource Cleanup**:
+```java
+@AfterAll
+static void tearDown() {
+    if (client != null) {
+        client.close();  // Clean up HttpClient resources
+    }
+}
+```
+
+**Flow Type Usage**:
+- **Redirect Flow**: Single/Enduring consents, Quick payments (most common for web)
+- **Decoupled Flow**: Payments and Refunds (requires phone number authorization in sandbox)
+- **Gateway Flow**: Single/Enduring consents, Quick payments *(Phase 1 complete)*
+
+**Gap Analysis**: See `GAP_ANALYSIS.md` for:
+- Detailed comparison with java-spring6 test coverage
+- ✅ **Phase 1 Complete**: OAuth, Gateway flow, Error scenarios (13 tests)
+- Missing test categories: Decoupled flow for consents, validation for enduring consents
+- Prioritized recommendations for Phase 2
+- Unit test needs (50-60 tests recommended)
 
 **Configuration**:
-- Uses JUnit 5 with `@Tag("integration")`
-- Requires environment variables: `BLINKPAY_CLIENT_ID`, `BLINKPAY_CLIENT_SECRET`, `BLINKPAY_DEBIT_URL`
-- Uses `assumeTrue()` to skip if credentials unavailable
+- Uses JUnit Jupiter 6.0.1 with `@Tag("integration")`
+- Requires environment variables: `BLINKPAY_DEBIT_URL`, `BLINKPAY_CLIENT_ID`, `BLINKPAY_CLIENT_SECRET`
+- Uses `assumeTrue()` to skip gracefully if credentials unavailable
+- Logging provided by logback-classic (test scope only)
 
-**Maven Configuration**:
-- `maven-surefire-plugin` excludes integration tests by default (`<excludedGroups>integration</excludedGroups>`)
-- Run with: `mvn test -DexcludedGroups=""`
+**Maven Plugin Configuration**:
+- `maven-surefire-plugin` - Runs unit tests, excludes `@Tag("integration")`
+- `maven-failsafe-plugin` - Runs integration tests (`*IntegrationTest.java`)
+- `build-helper-maven-plugin` - Adds `src/integrationTest/java` to test sources
 
-**Test Cases**:
-1. `testGetMetadata()`: Verifies Meta API returns bank data
-2. `testClientFromEnvironment()`: Tests environment variable initialization
-3. `testGetApiClients()`: Validates all API client getters return non-null
+**Execution**:
+```bash
+# Unit tests only (default)
+mvn test
 
-### Unit Tests
+# Integration tests (requires credentials)
+mvn verify
 
-Currently no unit tests. Future additions should:
-- Mock HttpClient responses
-- Test error handling paths
-- Validate request construction
-- Test token refresh logic
+# With explicit credentials
+BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz" \
+BLINKPAY_CLIENT_ID="your-client-id" \
+BLINKPAY_CLIENT_SECRET="your-client-secret" \
+mvn verify
+
+# Skip all tests
+mvn package -DskipTests
+```
+
+### Test Dependencies
+
+**Test Scope Only** (not in runtime):
+- JUnit Jupiter 6.0.1 - Test framework
+- AssertJ 3.27.6 - Fluent assertions
+- Logback Classic 1.4.14 - Logging implementation for tests
+
+**Note**: No Spring, Mockito, or other heavyweight test frameworks used, aligning with lightweight SDK design
 
 ## Build and Package
 
