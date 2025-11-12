@@ -33,7 +33,7 @@ This SDK allows merchants with Java-based e-commerce site to integrate with **Bl
 ### SDK Versions
 This repository provides two SDK implementations:
 
-- **v1 SDK** (`java/` and `java-spring6/` modules): Reactive SDK using Spring WebClient with Mono/Flux async programming. Suitable for Spring-based applications.
+- **v1 SDK** (`java-spring6/` module): Reactive SDK using Spring WebClient with Mono/Flux async programming. Suitable for Spring Boot 3.x / Spring Framework 6+ applications.
 - **v2 SDK** (`java-v2/` module - **Recommended**): Lightweight synchronous SDK using Java 11+ HttpClient. **87% smaller** dependency footprint (~206KB vs ~1.6MB runtime dependencies), ideal for plain Java applications, serverless functions, and memory-constrained environments.
 
 The v1 SDK internally uses WebClient, a reactive Web client introduced in Spring Framework 5, for making API calls. The v2 SDK uses the standard Java 11+ HttpClient for synchronous blocking calls with minimal dependencies.
@@ -45,7 +45,25 @@ This project is licensed under the MIT License.
 
 ### Running Tests
 
-The project includes unit and integration tests. To run tests, you need to set the required environment variables:
+The project includes unit and integration tests for both SDK versions.
+
+#### Test Suite Overview
+
+**v1 SDK (java-spring6)**:
+- 80 integration tests across 8 test classes
+- Tests reactive WebClient-based API calls
+- Covers all flow types (Gateway, Redirect, Decoupled)
+- Comprehensive error handling scenarios
+
+**v2 SDK (java-v2)**:
+- 27 integration tests across 7 test classes
+- Tests synchronous HttpClient-based API calls
+- Focus on critical path scenarios (Redirect and Decoupled flows)
+- See [java-v2/GAP_ANALYSIS.md](java-v2/GAP_ANALYSIS.md) for detailed coverage analysis
+
+#### Running v1 SDK (java-spring6) Tests
+
+To run tests, you need to set the required environment variables:
 
 ```bash
 export BLINKPAY_CLIENT_ID="your-client-id"
@@ -75,12 +93,54 @@ BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" 
 BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
 ```
 
-For the Spring 6 module, navigate to the `java-spring6` directory first:
+For the Spring 6 module specifically, navigate to the `java-spring6` directory first:
 
 ```bash
 cd java-spring6
 BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
 ```
+
+#### Running v2 SDK (java-v2) Tests
+
+The v2 SDK integration tests require three environment variables:
+
+```bash
+export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+```
+
+Run the tests:
+
+```bash
+# From project root - run v2 integration tests
+cd java-v2
+mvn verify
+
+# Or combine with environment variables
+BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz" \
+BLINKPAY_CLIENT_ID="your-client-id" \
+BLINKPAY_CLIENT_SECRET="your-client-secret" \
+mvn verify
+```
+
+**v2 Integration Test Classes**:
+- `BlinkDebitClientIntegrationTest` - Client initialization and facade methods
+- `OAuthApiClientIntegrationTest` - OAuth2 token generation (planned)
+- `MetaApiClientIntegrationTest` - Bank metadata retrieval
+- `SingleConsentsApiClientIntegrationTest` - Single consent lifecycle (redirect flow)
+- `EnduringConsentsApiClientIntegrationTest` - Enduring consent lifecycle (redirect flow)
+- `QuickPaymentsApiClientIntegrationTest` - Quick payment lifecycle (redirect flow)
+- `PaymentsApiClientIntegrationTest` - Payment creation and retrieval (decoupled flow)
+- `RefundsApiClientIntegrationTest` - Refund operations (decoupled flow)
+
+**Test Patterns**:
+- Tests use `@Order` annotations for sequential execution (create → get → revoke)
+- Decoupled flow tests include retry logic (up to 10 attempts) for sandbox authorization
+- Tests gracefully skip if credentials are unavailable using JUnit `assumeTrue()`
+- All tests compile and run against the Blink Sandbox environment
+
+For detailed gap analysis and future test recommendations, see [java-v2/GAP_ANALYSIS.md](java-v2/GAP_ANALYSIS.md).
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7
