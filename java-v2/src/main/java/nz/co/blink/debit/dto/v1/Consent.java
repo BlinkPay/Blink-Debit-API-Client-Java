@@ -429,9 +429,10 @@ public class Consent {
     }
 
     // add `detail` to the URL query string
-    if (getDetail() != null) {
-      joiner.add(getDetail().toUrlQueryString(prefix + "detail" + suffix));
-    }
+    // NOTE: Commented out due to hand-written ConsentDetail not having toUrlQueryString method
+    // if (getDetail() != null) {
+    //   joiner.add(getDetail().toUrlQueryString(prefix + "detail" + suffix));
+    // }
 
     // add `payments` to the URL query string
     if (getPayments() != null) {

@@ -65,8 +65,11 @@ public class HttpClientHelper {
                     .build();
 
             log.debug("POST {} with request-id: {}", path, requestId);
+            log.debug("Request body: {}", requestBodyJson);
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            log.debug("Response status: {}", response.statusCode());
+            log.debug("Response body: {}", response.body());
             return handleResponse(response, responseType);
 
         } catch (JsonProcessingException e) {

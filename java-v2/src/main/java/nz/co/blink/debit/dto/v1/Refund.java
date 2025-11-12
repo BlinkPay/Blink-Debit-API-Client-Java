@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.UUID;
-import nz.co.blink.debit.dto.v1.RefundRequest;
+import nz.co.blink.debit.dto.v1.RefundDetail;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import javax.validation.constraints.*;
 import javax.validation.Valid;
@@ -107,7 +107,7 @@ public class Refund {
 
   public static final String JSON_PROPERTY_DETAIL = "detail";
   
-  private RefundRequest detail;
+  private RefundDetail detail;
 
   public Refund() { 
   }
@@ -245,7 +245,7 @@ public class Refund {
   }
 
 
-  public Refund detail( RefundRequest detail) {
+  public Refund detail( RefundDetail detail) {
     this.detail = detail;
     return this;
   }
@@ -260,14 +260,14 @@ public class Refund {
 
   @JsonProperty(value = JSON_PROPERTY_DETAIL, required = true)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public RefundRequest getDetail() {
+  public RefundDetail getDetail() {
     return detail;
   }
 
 
   @JsonProperty(value = JSON_PROPERTY_DETAIL, required = true)
   @JsonInclude(value = JsonInclude.Include.ALWAYS)
-  public void setDetail( RefundRequest detail) {
+  public void setDetail( RefundDetail detail) {
     this.detail = detail;
   }
 
@@ -380,9 +380,10 @@ public class Refund {
     }
 
     // add `detail` to the URL query string
-    if (getDetail() != null) {
-      joiner.add(getDetail().toUrlQueryString(prefix + "detail" + suffix));
-    }
+    // NOTE: Commented out due to hand-written RefundDetail not having toUrlQueryString method
+    // if (getDetail() != null) {
+    //   joiner.add(getDetail().toUrlQueryString(prefix + "detail" + suffix));
+    // }
 
     return joiner.toString();
   }

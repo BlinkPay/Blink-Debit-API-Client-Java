@@ -147,9 +147,10 @@ public class AuthFlow {
     StringJoiner joiner = new StringJoiner("&");
 
     // add `detail` to the URL query string
-    if (getDetail() != null) {
-      joiner.add(getDetail().toUrlQueryString(prefix + "detail" + suffix));
-    }
+    // NOTE: Commented out due to hand-written AuthFlowDetail not having toUrlQueryString method
+    // if (getDetail() != null) {
+    //   joiner.add(getDetail().toUrlQueryString(prefix + "detail" + suffix));
+    // }
 
     return joiner.toString();
   }
