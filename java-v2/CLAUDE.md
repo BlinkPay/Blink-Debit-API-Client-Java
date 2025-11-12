@@ -510,7 +510,7 @@ mvn test
 mvn verify
 
 # With explicit credentials
-BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz" \
+BLINKPAY_DEBIT_URL="https://staging.debit.blinkpay.co.nz" \
 BLINKPAY_CLIENT_ID="your-client-id" \
 BLINKPAY_CLIENT_SECRET="your-client-secret" \
 mvn verify

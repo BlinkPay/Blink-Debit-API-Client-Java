@@ -69,7 +69,7 @@ try (BlinkDebitClient client = new BlinkDebitClient()) {
 ### Environment Variables (Recommended)
 
 ```bash
-export BLINKPAY_DEBIT_URL=https://sandbox.debit.blinkpay.co.nz
+export BLINKPAY_DEBIT_URL=https://staging.debit.blinkpay.co.nz
 export BLINKPAY_CLIENT_ID=your-client-id
 export BLINKPAY_CLIENT_SECRET=your-client-secret
 ```
@@ -78,7 +78,7 @@ export BLINKPAY_CLIENT_SECRET=your-client-secret
 
 ```java
 BlinkDebitConfig config = BlinkDebitConfig.builder()
-        .debitUrl("https://sandbox.debit.blinkpay.co.nz")
+        .debitUrl("https://staging.debit.blinkpay.co.nz")
         .clientId("your-client-id")
         .clientSecret("your-client-secret")
         .timeout(Duration.ofSeconds(30))  // Optional, default: 10s
@@ -295,7 +295,7 @@ try {
 mvn test
 
 # Run integration tests (requires environment variables)
-export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
+export BLINKPAY_DEBIT_URL="https://staging.debit.blinkpay.co.nz"
 export BLINKPAY_CLIENT_ID="your-client-id"
 export BLINKPAY_CLIENT_SECRET="your-client-secret"
 mvn verify
