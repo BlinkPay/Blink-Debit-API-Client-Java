@@ -20,7 +20,7 @@ import java.time.Duration;
  * Example usage:
  * <pre>
  * BlinkDebitConfig config = BlinkDebitConfig.builder()
- *     .debitUrl("https://sandbox.debit.blinkpay.co.nz")
+ *     .debitUrl("https://staging.debit.blinkpay.co.nz")
  *     .clientId("your-client-id")
  *     .clientSecret("your-client-secret")
  *     .build();
@@ -40,6 +40,7 @@ public class BlinkDebitClient implements AutoCloseable {
     private final HttpClientHelper httpHelper;
 
     // API clients
+    private final OAuthApiClient oauthApi;
     private final SingleConsentsApiClient singleConsentsApi;
     private final EnduringConsentsApiClient enduringConsentsApi;
     private final QuickPaymentsApiClient quickPaymentsApi;
@@ -77,7 +78,7 @@ public class BlinkDebitClient implements AutoCloseable {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         // Create OAuth client and token manager
-        OAuthApiClient oauthApi = new OAuthApiClient(httpClient, config, objectMapper);
+        this.oauthApi = new OAuthApiClient(httpClient, config, objectMapper);
         this.tokenManager = new AccessTokenManager(oauthApi);
 
         // Create HTTP helper
@@ -92,6 +93,13 @@ public class BlinkDebitClient implements AutoCloseable {
         this.metaApi = new MetaApiClient(httpHelper);
 
         log.info("BlinkDebitClient initialized for {}", config.getDebitUrl());
+    }
+
+    /**
+     * Get the OAuth API client.
+     */
+    public OAuthApiClient getOAuthApi() {
+        return oauthApi;
     }
 
     /**
