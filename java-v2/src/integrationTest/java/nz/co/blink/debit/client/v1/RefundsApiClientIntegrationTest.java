@@ -292,6 +292,6 @@ class RefundsApiClientIntegrationTest {
 
         assertThatThrownBy(() -> client.getRefundsApi().getRefund(nonExistentId))
                 .isInstanceOf(BlinkServiceException.class)
-                .hasMessageMatching(".*HTTP (403|404).*");
+                .hasMessageContaining("HTTP 404");
     }
 }

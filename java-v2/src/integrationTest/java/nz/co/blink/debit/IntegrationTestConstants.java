@@ -38,7 +38,7 @@ public final class IntegrationTestConstants {
     // Bank
     public static final Bank DEFAULT_BANK = Bank.PNZ;
 
-    // Decoupled flow
+    // Decoupled flow - auto-authorize phone for PNZ bank in staging
     public static final String PHONE_NUMBER = "+64-259531933";
 
     // PCR
