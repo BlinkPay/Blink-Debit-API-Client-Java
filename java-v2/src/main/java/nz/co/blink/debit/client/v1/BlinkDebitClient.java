@@ -59,6 +59,24 @@ public class BlinkDebitClient implements AutoCloseable {
     }
 
     /**
+     * Create a client with direct parameters.
+     * Compatible with v1 SDK API for easy migration.
+     *
+     * @param debitUrl the Blink Debit API base URL
+     * @param clientId the OAuth2 client ID
+     * @param clientSecret the OAuth2 client secret
+     * @throws BlinkInvalidValueException if required config is missing
+     */
+    public BlinkDebitClient(String debitUrl, String clientId, String clientSecret)
+            throws BlinkInvalidValueException {
+        this(BlinkDebitConfig.builder()
+                .debitUrl(debitUrl)
+                .clientId(clientId)
+                .clientSecret(clientSecret)
+                .build());
+    }
+
+    /**
      * Create a client with the specified configuration.
      *
      * @param config the configuration
@@ -149,6 +167,132 @@ public class BlinkDebitClient implements AutoCloseable {
      */
     public BlinkDebitConfig getConfig() {
         return config;
+    }
+
+    // ========================================================================
+    // Convenience Methods - Direct API access without requiring getXxxApi()
+    // ========================================================================
+
+    /**
+     * Get bank metadata.
+     * Convenience method equivalent to getMetaApi().getMeta().
+     *
+     * @return list of bank metadata
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public java.util.List<nz.co.blink.debit.dto.v1.BankMetadata> getMeta()
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return metaApi.getMeta();
+    }
+
+    /**
+     * Create a single consent.
+     * Convenience method equivalent to getSingleConsentsApi().createSingleConsent().
+     *
+     * @param request the single consent request
+     * @return the consent creation response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.CreateConsentResponse createSingleConsent(
+            nz.co.blink.debit.dto.v1.SingleConsentRequest request)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return singleConsentsApi.createSingleConsent(request);
+    }
+
+    /**
+     * Get a single consent by ID.
+     * Convenience method equivalent to getSingleConsentsApi().getConsent().
+     *
+     * @param consentId the consent ID
+     * @return the consent
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.Consent getSingleConsent(java.util.UUID consentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return singleConsentsApi.getConsent(consentId);
+    }
+
+    /**
+     * Create a quick payment.
+     * Convenience method equivalent to getQuickPaymentsApi().createQuickPayment().
+     *
+     * @param request the quick payment request
+     * @return the quick payment creation response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.CreateQuickPaymentResponse createQuickPayment(
+            nz.co.blink.debit.dto.v1.QuickPaymentRequest request)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return quickPaymentsApi.createQuickPayment(request);
+    }
+
+    /**
+     * Get a quick payment by ID.
+     * Convenience method equivalent to getQuickPaymentsApi().getQuickPayment().
+     *
+     * @param quickPaymentId the quick payment ID
+     * @return the quick payment response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.QuickPaymentResponse getQuickPayment(java.util.UUID quickPaymentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return quickPaymentsApi.getQuickPayment(quickPaymentId);
+    }
+
+    /**
+     * Poll for a successful quick payment within the specified time.
+     * Compatible with v1 SDK API.
+     * <p>
+     * Polls every second until the quick payment consent is AUTHORISED or CONSUMED,
+     * or until the timeout is reached. Attempts to revoke the quick payment on timeout.
+     *
+     * @param quickPaymentId the quick payment ID
+     * @param maxWaitSeconds the maximum number of seconds to wait
+     * @return the successful quick payment response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     * @throws RuntimeException wrapping timeout or rejection exceptions
+     */
+    public nz.co.blink.debit.dto.v1.QuickPaymentResponse awaitSuccessfulQuickPaymentOrThrowException(
+            java.util.UUID quickPaymentId, int maxWaitSeconds)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        long endTime = System.currentTimeMillis() + (maxWaitSeconds * 1000L);
+
+        while (System.currentTimeMillis() < endTime) {
+            nz.co.blink.debit.dto.v1.QuickPaymentResponse response = getQuickPayment(quickPaymentId);
+            nz.co.blink.debit.dto.v1.Consent.StatusEnum status = response.getConsent().getStatus();
+
+            log.debug("Polling quick payment {}: consent status = {}", quickPaymentId, status);
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.AUTHORISED ||
+                status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.CONSUMED) {
+                return response;
+            }
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.REJECTED ||
+                status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.REVOKED) {
+                throw new RuntimeException("Quick payment " + quickPaymentId + " was rejected or revoked");
+            }
+
+            try {
+                Thread.sleep(1000); // Poll every second
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new nz.co.blink.debit.exception.BlinkServiceException("Polling interrupted", e);
+            }
+        }
+
+        // Timeout - attempt to revoke
+        log.warn("Quick payment {} timed out after {} seconds, attempting to revoke",
+                quickPaymentId, maxWaitSeconds);
+        try {
+            quickPaymentsApi.revokeQuickPayment(quickPaymentId);
+            log.info("Revoked quick payment {} after timeout", quickPaymentId);
+        } catch (Exception e) {
+            log.error("Failed to revoke quick payment {} after timeout", quickPaymentId, e);
+        }
+
+        throw new RuntimeException("Timed out waiting for quick payment " + quickPaymentId +
+                " to complete after " + maxWaitSeconds + " seconds");
     }
 
     /**

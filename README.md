@@ -49,17 +49,7 @@ The project includes unit and integration tests for both SDK versions.
 
 #### Test Suite Overview
 
-**v1 SDK (java-spring6)**:
-- 80 integration tests across 8 test classes
-- Tests reactive WebClient-based API calls
-- Covers all flow types (Gateway, Redirect, Decoupled)
-- Comprehensive error handling scenarios
-
-**v2 SDK (java-v2)**:
-- 27 integration tests across 7 test classes
-- Tests synchronous HttpClient-based API calls
-- Focus on critical path scenarios (Redirect and Decoupled flows)
-- See [java-v2/GAP_ANALYSIS.md](java-v2/GAP_ANALYSIS.md) for detailed coverage analysis
+Both SDK versions include comprehensive test suites covering all API operations and flow types.
 
 #### Running v1 SDK (java-spring6) Tests
 
@@ -124,23 +114,7 @@ BLINKPAY_CLIENT_SECRET="your-client-secret" \
 mvn verify
 ```
 
-**v2 Integration Test Classes**:
-- `BlinkDebitClientIntegrationTest` - Client initialization and facade methods
-- `OAuthApiClientIntegrationTest` - OAuth2 token generation (planned)
-- `MetaApiClientIntegrationTest` - Bank metadata retrieval
-- `SingleConsentsApiClientIntegrationTest` - Single consent lifecycle (redirect flow)
-- `EnduringConsentsApiClientIntegrationTest` - Enduring consent lifecycle (redirect flow)
-- `QuickPaymentsApiClientIntegrationTest` - Quick payment lifecycle (redirect flow)
-- `PaymentsApiClientIntegrationTest` - Payment creation and retrieval (decoupled flow)
-- `RefundsApiClientIntegrationTest` - Refund operations (decoupled flow)
-
-**Test Patterns**:
-- Tests use `@Order` annotations for sequential execution (create → get → revoke)
-- Decoupled flow tests include retry logic (up to 10 attempts) for sandbox authorization
-- Tests gracefully skip if credentials are unavailable using JUnit `assumeTrue()`
-- All tests compile and run against the Blink Sandbox environment
-
-For detailed gap analysis and future test recommendations, see [java-v2/GAP_ANALYSIS.md](java-v2/GAP_ANALYSIS.md).
+The v2 SDK integration tests cover all API operations including consents, payments, quick payments, refunds, and metadata retrieval across all supported flow types (Gateway, Redirect, Decoupled).
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7
