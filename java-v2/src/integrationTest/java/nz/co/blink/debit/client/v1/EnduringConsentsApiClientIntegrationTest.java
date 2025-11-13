@@ -208,7 +208,7 @@ class EnduringConsentsApiClientIntegrationTest {
 
         assertThatThrownBy(() -> client.getEnduringConsentsApi().getConsent(nonExistentId))
                 .isInstanceOf(BlinkServiceException.class)
-                .hasMessageMatching(".*HTTP (403|404).*");
+                .hasMessageContaining("HTTP 404");
     }
 
     @Test

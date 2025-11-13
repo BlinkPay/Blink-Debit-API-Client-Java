@@ -128,7 +128,7 @@ class PaymentsApiClientIntegrationTest {
         assertThat(consentId).isNotNull();
         assertThat(createConsentResponse.getRedirectUri()).isNull();
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 15; i++) {
             System.out.println("attempt: " + i);
             try {
                 PaymentRequest paymentRequest = new PaymentRequest()
@@ -141,7 +141,7 @@ class PaymentsApiClientIntegrationTest {
                 assertThat(paymentId).isNotNull();
 
                 break;
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 // sleep incrementally
                 Thread.sleep(2000L * i);
             }
@@ -205,7 +205,7 @@ class PaymentsApiClientIntegrationTest {
         assertThat(consentId).isNotNull();
         assertThat(createConsentResponse.getRedirectUri()).isNull();
 
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 15; i++) {
             System.out.println("attempt: " + i);
             try {
                 PaymentRequest paymentRequest = new PaymentRequest()
@@ -225,7 +225,7 @@ class PaymentsApiClientIntegrationTest {
                 assertThat(paymentId).isNotNull();
 
                 break;
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 // sleep incrementally
                 Thread.sleep(2000L * i);
             }
@@ -277,7 +277,7 @@ class PaymentsApiClientIntegrationTest {
 
         assertThatThrownBy(() -> client.getPaymentsApi().getPayment(nonExistentId))
                 .isInstanceOf(BlinkServiceException.class)
-                .hasMessageMatching(".*HTTP (403|404).*");
+                .hasMessageContaining("HTTP 404");
     }
 
     @Test

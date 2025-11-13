@@ -197,7 +197,7 @@ class QuickPaymentsApiClientIntegrationTest {
 
         assertThatThrownBy(() -> client.getQuickPaymentsApi().getQuickPayment(nonExistentId))
                 .isInstanceOf(BlinkServiceException.class)
-                .hasMessageMatching(".*HTTP (403|404).*");
+                .hasMessageContaining("HTTP 404");
     }
 
     @Test
