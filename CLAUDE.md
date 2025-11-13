@@ -16,24 +16,22 @@ This repository contains three modules:
 - **Location**: `core/`
 - Shared exceptions, enums, and helper classes used by SDK implementations
 
-#### java-v2 (Lightweight SDK - **RECOMMENDED**)
+#### java-v2 (Plain Java SDK - **RECOMMENDED**)
 - **Location**: `java-v2/`
 - **Technology**: Java 11+ HttpClient (synchronous blocking)
-- **Dependencies**: Jackson (JSON), Auth0-JWT, SLF4J API
-- **Dependency Size**: ~206 KB runtime dependencies
+- **Dependencies**: Jackson (JSON), Auth0-JWT, SLF4J API (minimal dependencies)
 - **API Style**: Synchronous blocking calls
 - **Target Users**: Plain Java applications, serverless functions, memory-constrained environments
 - **Documentation**: See `java-v2/README.md` and `java-v2/CLAUDE.md` for details
 
-#### java-spring6 (Spring 6 SDK)
+#### java-spring6 (Spring SDK)
 - **Location**: `java-spring6/`
 - **Technology**: Spring WebClient with Reactor (Mono/Flux)
 - **Dependencies**: Spring Framework 6, Netty, Reactor
-- **Dependency Size**: ~1.6 MB runtime dependencies
 - **API Style**: Reactive/async with Mono and Flux
 - **Target Users**: Spring Boot 3.x / Spring Framework 6+ applications
 
-## v2 SDK Architecture
+## Plain Java SDK Architecture
 
 ### Design Principles
 1. **Minimal Dependencies**: Only essential runtime dependencies (Jackson, java-jwt, slf4j-api)
@@ -147,11 +145,10 @@ mvn test -DexcludedGroups=""
 - Spring Boot Test (2.7.18) - for test infrastructure only
 
 ### Dependency Comparison
-- **v1 SDK**: ~1.6 MB runtime dependencies (Spring, Netty, Reactor, Commons, Resilience4j, Hibernate Validator)
-- **v2 SDK**: ~206 KB runtime dependencies (Jackson, java-jwt, slf4j-api)
-- **Reduction**: 87% smaller
+- **Spring SDK**: Heavier runtime dependencies (Spring, Netty, Reactor, Commons, Resilience4j, Hibernate Validator)
+- **Plain Java SDK**: Minimal runtime dependencies (Jackson, java-jwt, slf4j-api)
 
-See `dependency-tree.txt` (v1) and `java-v2-dependency-tree.txt` (v2) for full dependency trees.
+See `dependency-tree.txt` (Spring) and `java-v2-dependency-tree.txt` (Plain Java) for full dependency trees.
 
 ## Build and Package
 
@@ -174,7 +171,7 @@ mvn package -DskipTests
 ```
 
 ### Output
-- JAR: `target/blink-debit-api-client-java-v2-2.0.0-SNAPSHOT.jar` (~206 KB)
+- JAR: `target/blink-debit-api-client-java-v2-2.0.0-SNAPSHOT.jar`
 - Sources JAR: `target/blink-debit-api-client-java-v2-2.0.0-SNAPSHOT-sources.jar`
 - Javadoc JAR: `target/blink-debit-api-client-java-v2-2.0.0-SNAPSHOT-javadoc.jar`
 

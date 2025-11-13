@@ -33,7 +33,7 @@ This SDK allows merchants with Java-based e-commerce sites to integrate with **B
 ### SDK Versions
 This repository provides two SDK implementations:
 
-- **Plain Java SDK** (`java-v2/` module - **Recommended**): Lightweight synchronous SDK using Java 11+ HttpClient. **87% smaller** dependency footprint (~206KB vs ~1.6MB runtime dependencies), ideal for plain Java applications, serverless functions, and memory-constrained environments.
+- **Plain Java SDK** (`java-v2/` module - **Recommended**): Lightweight synchronous SDK using Java 11+ HttpClient with minimal dependencies, ideal for plain Java applications, serverless functions, and memory-constrained environments.
 - **Spring SDK** (`java-spring6/` module): Reactive SDK using Spring WebClient with Mono/Flux async programming. Suitable for Spring Boot 3.x / Spring Framework 6+ applications.
 
 The Plain Java SDK uses the standard Java 11+ HttpClient for synchronous blocking calls with minimal dependencies. The Spring SDK internally uses WebClient for making reactive API calls.
@@ -133,7 +133,7 @@ Use `blink-debit-api-client-java-v2` for:
 - **Memory-constrained environments**
 - Applications that prefer **synchronous blocking API** calls
 
-This lightweight version has **87% fewer runtime dependencies** (~206KB vs ~1.6MB).
+This lightweight version has minimal runtime dependencies.
 
 #### Maven
 ```xml
