@@ -194,7 +194,7 @@ implementation "nz.co.blinkpay:blink-debit-api-client-java-spring6:$version"
 import nz.co.blink.debit.client.v1.BlinkDebitClient;
 import nz.co.blink.debit.config.BlinkDebitConfig;
 
-// Option 1: Using environment variables
+// Option 1: Using environment variables (BLINKPAY_DEBIT_URL, BLINKPAY_CLIENT_ID, BLINKPAY_CLIENT_SECRET)
 BlinkDebitClient client = new BlinkDebitClient();
 
 // Option 2: Using configuration builder
@@ -204,6 +204,12 @@ BlinkDebitConfig config = BlinkDebitConfig.builder()
         .clientSecret("your-client-secret")
         .build();
 BlinkDebitClient client = new BlinkDebitClient(config);
+
+// Option 3: Using simple constructor (v1 compatibility)
+BlinkDebitClient client = new BlinkDebitClient(
+        "https://sandbox.debit.blinkpay.co.nz",
+        "your-client-id",
+        "your-client-secret");
 
 // Create a quick payment (synchronous blocking call)
 QuickPaymentRequest request = new QuickPaymentRequest()
@@ -218,11 +224,20 @@ QuickPaymentRequest request = new QuickPaymentRequest()
                 .code("code")
                 .reference("reference"));
 
+// Option A: Using API client getters (verbose)
 CreateQuickPaymentResponse response = client.getQuickPaymentsApi().createQuickPayment(request);
+
+// Option B: Using convenience methods (recommended - v1 compatible)
+CreateQuickPaymentResponse response = client.createQuickPayment(request);
+
 // Redirect the consumer to response.getRedirectUri()
+
+// Wait for payment completion (optional)
+UUID quickPaymentId = response.getQuickPaymentId();
+QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 300);
 ```
 
-### v1 SDK (Reactive WebClient)
+### v1 SDK (Spring Boot 2.x - Reactive WebClient)
 ```java
 String blinkpayUrl = "https://sandbox.debit.blinkpay.co.nz";
 String clientId = "...";
@@ -249,14 +264,31 @@ QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowExcep
 ```
 
 ## Configuration
-- Customise/supply the required properties in your `blinkdebit.yaml` or `blinkdebit.properties`. This file should be available in your classpath, i.e. normally placed in `src/main/resources`.
+Configuration differs between SDK versions:
+
+### v2 SDK Configuration
+The v2 SDK uses **simple configuration** via:
+1. Environment variables (recommended): `BLINKPAY_DEBIT_URL`, `BLINKPAY_CLIENT_ID`, `BLINKPAY_CLIENT_SECRET`, `BLINKPAY_TIMEOUT` (optional, ISO-8601 duration like "PT30S")
+2. Configuration builder: `BlinkDebitConfig.builder()...build()`
+3. Simple constructor: `new BlinkDebitClient(url, clientId, clientSecret)`
+
+No properties files required. See [Quick Start](#quick-start) for examples.
+
+### v1 SDK Configuration (Spring Boot)
+The v1 SDK uses **Spring-based configuration** from:
+- `blinkdebit.yaml` or `blinkdebit.properties` files in classpath
+- Environment variables
+- System properties
+
+See detailed configuration examples below.
+
+### Common Configuration Values
 - The BlinkPay **Sandbox** debit URL is `https://sandbox.debit.blinkpay.co.nz` and the **production** debit URL is `https://debit.blinkpay.co.nz`.
-- The client credentials will be provided to you by BlinkPay as part of your on-boarding process. 
-- Properties can be supplied using environment variables.
+- The client credentials will be provided to you by BlinkPay as part of your on-boarding process.
 > **Warning** Take care not to check in your client ID and secret to your source control.
 
-### Property precedence
-Properties will be detected and loaded according to the heirarcy -
+### v1 SDK Property Precedence
+For v1 SDK, properties are loaded in this order:
 1. As provided directly to client constructor
 2. Environment variables e.g. `export BLINKPAY_CLIENT_SECRET=...`
 3. System properties e.g. `-Dblinkpay.client.secret=...`
@@ -264,7 +296,7 @@ Properties will be detected and loaded according to the heirarcy -
 5. `blinkdebit.yaml`
 6. Default values
 
-### Property set-up examples
+### v1 SDK Property Configuration Examples
 
 #### Environment variables
 ```shell
@@ -345,32 +377,86 @@ blinkpay:
     enabled: ${BLINKPAY_RETRY_ENABLED:true}
 ```
 
-## Client creation
-### Java
-Plain Java client code can use the no-arg constructor which will attempt to populate the properties according to the hierarchy above.
+## Client Creation
+
+### v2 SDK Client Creation
+The v2 SDK provides multiple initialization options:
 
 ```java
+// Option 1: Using environment variables (BLINKPAY_DEBIT_URL, BLINKPAY_CLIENT_ID, BLINKPAY_CLIENT_SECRET)
 BlinkDebitClient client = new BlinkDebitClient();
+
+// Option 2: Using configuration builder
+BlinkDebitConfig config = BlinkDebitConfig.builder()
+        .debitUrl("https://sandbox.debit.blinkpay.co.nz")
+        .clientId("your-client-id")
+        .clientSecret("your-client-secret")
+        .timeout(Duration.ofSeconds(30))  // Optional, defaults to 10 seconds
+        .build();
+BlinkDebitClient client = new BlinkDebitClient(config);
+
+// Option 3: Simple constructor (v1 compatibility)
+BlinkDebitClient client = new BlinkDebitClient(
+        "https://sandbox.debit.blinkpay.co.nz",
+        "your-client-id",
+        "your-client-secret");
+
+// Always close the client when done (or use try-with-resources)
+client.close();
 ```
 
-Another way is to supply the required properties on object creation:
+The v2 SDK client implements `AutoCloseable`, so you can use try-with-resources:
 ```java
+try (BlinkDebitClient client = new BlinkDebitClient()) {
+    // Use client...
+} // Automatically closed
+```
+
+### v1 SDK Client Creation
+Plain Java client code:
+```java
+// No-arg constructor uses property hierarchy
+BlinkDebitClient client = new BlinkDebitClient();
+
+// Or supply properties directly
 BlinkDebitClient client = new BlinkDebitClient(blinkpayUrl, clientId, clientSecret, "production");
 ```
 
-### Spring
-Spring-based client code can simply autowire/inject the API client when properties are supplied as above.
+Spring-based code:
 ```java
 @Autowired
 BlinkDebitClient client;
 ```
 
-## Correlation ID
-An optional correlation ID can be added as the last argument to API calls. This is also the idempotency key for Blink API calls. 
+## Correlation ID / Request ID
+An optional request ID can be added as the last argument to API calls. This serves as:
+- **Correlation ID** for tracing requests across systems
+- **Idempotency key** for Blink API calls
 
-It will be generated for you automatically if it is not provided.
+It will be generated automatically (UUID) if not provided.
+
+### v2 SDK Example
+```java
+// Auto-generated request ID
+CreateQuickPaymentResponse response = client.createQuickPayment(request);
+
+// Custom request ID
+String requestId = "my-custom-id-123";
+CreateQuickPaymentResponse response = client.createQuickPayment(request, requestId);
+```
+
+### v1 SDK Example
+```java
+CreateQuickPaymentResponse response = client.createQuickPayment(request, "my-custom-id-123");
+```
 
 ## Full Examples
+
+> **Note:** The examples below use convenience methods that work with **both v2 and v1 SDKs**.
+> - **v2 SDK**: Returns `T` directly (synchronous blocking)
+> - **v1 SDK**: Returns `Mono<T>` (reactive, requires `.block()` or subscription)
+>
+> For v2 SDK, you can also use API client getters: `client.getQuickPaymentsApi().createQuickPayment(request)`
 ### Quick payment (one-off payment), using Gateway flow
 A quick payment is a one-off payment that combines the API calls needed for both the consent and the payment.
 ```java
@@ -414,6 +500,12 @@ logger.info("Payment Status: {}", client.getPayment(paymentResponse.getPaymentId
 ```
 
 ## Individual API Call Examples
+
+> **Note:** All examples below are compatible with **both v2 and v1 SDKs** using convenience methods.
+> - **v2 SDK**: All methods return values directly (synchronous)
+> - **v1 SDK**: All methods return `Mono<T>` (reactive, call `.block()` to get value)
+> - **v2 SDK Alternative**: Use API client getters like `client.getMetaApi().getMeta()`
+
 ### Bank Metadata
 Supplies the supported banks and supported flows on your account.
 ```java
