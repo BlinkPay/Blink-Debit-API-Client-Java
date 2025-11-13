@@ -6,7 +6,7 @@ Lightweight Java SDK for integrating with **Blink PayNow** (one-off payments) an
 
 ## Features
 
-- ✅ **Lightweight**: Only 206KB with minimal runtime dependencies
+- ✅ **Lightweight**: Minimal runtime dependencies
 - ✅ **Synchronous API**: Simple blocking calls using Java 11+ HttpClient
 - ✅ **No Framework Dependencies**: Works with any Java 11+ application
 - ✅ **Thread-Safe**: Automatic OAuth2 token management
@@ -126,7 +126,10 @@ CreateConsentResponse consentResponse = client.getSingleConsentsApi()
 UUID consentId = consentResponse.getConsentId();
 Consent consent = client.getSingleConsentsApi().getConsent(consentId);
 
-// Revoke consent
+// Wait for authorization (does NOT auto-revoke on timeout)
+Consent authorisedConsent = client.awaitAuthorisedSingleConsentOrThrowException(consentId, 300);
+
+// Revoke consent (manual)
 client.getSingleConsentsApi().revokeConsent(consentId);
 ```
 
@@ -148,6 +151,10 @@ EnduringConsentRequest enduringRequest = new EnduringConsentRequest()
 
 CreateConsentResponse enduringResponse = client.getEnduringConsentsApi()
         .createEnduringConsent(enduringRequest);
+
+// Wait for authorization (automatically revokes on timeout for security)
+UUID consentId = enduringResponse.getConsentId();
+Consent authorisedConsent = client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 300);
 ```
 
 ### Payments
@@ -243,6 +250,23 @@ for (BankMetadata bank : banks) {
 }
 ```
 
+## Polling and Timeout Behavior
+
+The SDK provides helper methods to wait for consent authorization and payment completion:
+
+### Auto-Revoke on Timeout
+
+| Method | Auto-Revokes on Timeout? | Reason |
+|--------|-------------------------|--------|
+| `awaitSuccessfulQuickPaymentOrThrowException` | ✅ **YES** | Quick payments combine consent + payment - should complete immediately or be cancelled |
+| `awaitAuthorisedSingleConsentOrThrowException` | ❌ **NO** | Single consents require separate payment step - no funds processed if abandoned |
+| `awaitAuthorisedEnduringConsentOrThrowException` | ✅ **YES** | Enduring consents grant ongoing access - clean up if abandoned for security |
+| `awaitSuccessfulPaymentOrThrowException` | ❌ N/A | Payments cannot be revoked once initiated |
+
+**Best Practices**:
+- Manually revoke single or enduring consents if you determine the customer has permanently abandoned the authorization flow (before timeout expires)
+- Enduring consents will auto-revoke on timeout, but earlier manual revocation improves security
+
 ## Request IDs
 
 Every API method has an overload accepting a custom request ID for tracing:
@@ -288,6 +312,32 @@ try {
 }
 ```
 
+## Payment Settlement
+
+**Important**: Payment settlement is asynchronous. Payments transition through these states:
+
+- `AcceptedSettlementInProcess` - Payment accepted, settlement in progress
+- `AcceptedSettlementCompleted` - Funds successfully transferred to your account
+
+**Only `AcceptedSettlementCompleted` confirms successful fund transfer.** In rare cases, payments may remain in `AcceptedSettlementInProcess` for extended periods.
+
+### Polling for Settlement
+
+The SDK provides helper methods to wait for payment completion:
+
+```java
+// Wait up to 5 minutes for payment to complete
+try {
+    Payment payment = client.awaitSuccessfulPayment(paymentId, 300);
+    System.out.println("Payment completed: " + payment.getStatus());
+} catch (BlinkPaymentTimeoutException e) {
+    // Payment didn't complete within timeout
+    System.err.println("Payment still processing after 5 minutes");
+}
+```
+
+**Note**: The polling helpers will timeout if the wait period is shorter than the actual settlement time. Always set appropriate timeout values based on your requirements.
+
 ## Testing
 
 ```bash
@@ -306,7 +356,7 @@ mvn package -DskipTests
 
 ## Dependencies
 
-Runtime dependencies (total ~206KB):
+Runtime dependencies:
 - `jackson-databind` (2.20.1) - JSON serialization
 - `jackson-datatype-jsr310` (2.20.1) - Java 8 date/time support
 - `java-jwt` (4.5.0) - JWT token handling
@@ -315,6 +365,20 @@ Runtime dependencies (total ~206KB):
 Optional dependencies:
 - `validation-api` (2.0.1.Final) - Bean validation annotations
 - `javax.annotation-api` (1.3.2) - @Generated annotations
+
+## Contributing
+
+We welcome contributions from the community! Your pull requests will be reviewed by our team.
+
+To contribute:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass (`mvn verify`)
+6. Submit a pull request
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
 
 ## Support
 

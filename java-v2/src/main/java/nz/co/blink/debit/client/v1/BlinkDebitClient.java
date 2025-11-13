@@ -60,7 +60,7 @@ public class BlinkDebitClient implements AutoCloseable {
 
     /**
      * Create a client with direct parameters.
-     * Compatible with v1 SDK API for easy migration.
+     * Compatible with Spring SDK API for easy migration.
      *
      * @param debitUrl the Blink Debit API base URL
      * @param clientId the OAuth2 client ID
@@ -362,7 +362,7 @@ public class BlinkDebitClient implements AutoCloseable {
 
     /**
      * Poll for a successful quick payment within the specified time.
-     * Compatible with v1 SDK API.
+     * Compatible with Spring SDK API.
      * <p>
      * Polls every second until the quick payment consent is AUTHORISED or CONSUMED,
      * or until the timeout is reached. Attempts to revoke the quick payment on timeout.
@@ -418,7 +418,7 @@ public class BlinkDebitClient implements AutoCloseable {
 
     /**
      * Poll for an authorised single consent within the specified time.
-     * Compatible with v1 SDK API.
+     * Compatible with Spring SDK API.
      *
      * @param consentId the consent ID
      * @param maxWaitSeconds the maximum number of seconds to wait
@@ -470,7 +470,7 @@ public class BlinkDebitClient implements AutoCloseable {
 
     /**
      * Poll for an authorised enduring consent within the specified time.
-     * Attempts to revoke consent on timeout. Compatible with v1 SDK API.
+     * Attempts to revoke consent on timeout. Compatible with Spring SDK API.
      *
      * @param consentId the consent ID
      * @param maxWaitSeconds the maximum number of seconds to wait
@@ -533,7 +533,7 @@ public class BlinkDebitClient implements AutoCloseable {
 
     /**
      * Poll for a successful payment within the specified time.
-     * Compatible with v1 SDK API.
+     * Compatible with Spring SDK API.
      *
      * @param paymentId the payment ID
      * @param maxWaitSeconds the maximum number of seconds to wait

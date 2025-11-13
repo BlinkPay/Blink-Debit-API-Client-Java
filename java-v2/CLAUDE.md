@@ -1,10 +1,10 @@
-# Blink Debit API Client v2 - Technical Documentation
+# Blink Debit API Client - Plain Java SDK - Technical Documentation
 
-Technical guide for developers and AI assistants working with the v2 SDK codebase.
+Technical guide for developers and AI assistants working with the Plain Java SDK codebase.
 
 ## Architecture Overview
 
-The v2 SDK is a lightweight, synchronous Java client for the Blink Debit API. It uses Java 11+ HttpClient for HTTP operations and has minimal runtime dependencies (~206KB).
+The Plain Java SDK (java-v2 module) is a lightweight, synchronous Java client for the Blink Debit API. It uses Java 11+ HttpClient for HTTP operations and has minimal runtime dependencies (~206KB).
 
 ### Design Principles
 
@@ -206,15 +206,9 @@ public class XxxApiClient {
 
 ### Generation
 
-DTOs are generated from OpenAPI specification using openapi-generator.
+DTOs are based on the Blink Debit API OpenAPI specification but are **manually maintained** in this SDK.
 
-**Important**: Minimize manual edits to DTOs as they can be regenerated.
-
-**Generator Configuration**:
-- Tool: openapi-generator-maven-plugin
-- Generator: java
-- Library: native (no external HTTP client)
-- Package: nz.co.blink.debit.dto.v1
+**Important**: DTOs have auto-generated comments from the original OpenAPI spec, but they are not automatically regenerated. Changes to DTOs should be made carefully to maintain API compatibility.
 
 ### Manual Modifications
 
@@ -592,14 +586,16 @@ mvn dependency:tree
 ### Modifying DTOs
 
 **DO**:
-- Regenerate from OpenAPI spec when API changes
-- Add TypeEnum to polymorphic parents after regeneration
-- Add required imports
+- Review OpenAPI spec changes carefully before updating DTOs
+- Maintain TypeEnum in polymorphic parent classes
+- Add required imports as needed
+- Test thoroughly after DTO changes
 
 **DON'T**:
-- Modify generated DTO logic
-- Add custom fields to generated DTOs
-- Change serialization annotations
+- Modify core DTO logic (getters/setters/equals/hashCode)
+- Add custom fields to DTOs
+- Change Jackson serialization annotations
+- Break backward compatibility unnecessarily
 
 ### Error Handling Pattern
 

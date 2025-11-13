@@ -20,27 +20,6 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <id>rvbabilonia</id>
-            <name>Rey Vincent Babilonia</name>
-            <email>rey.babilonia@blinkpay.co.nz</email>
-            <roles>
-                <role>Owner</role>
-                <role>Developer</role>
-            </roles>
-        </developer>
-        <developer>
-            <id>bp-cr</id>
-            <name>Chris Riddell</name>
-            <email>chris.riddell@blinkpay.co.nz</email>
-            <roles>
-                <role>Owner</role>
-                <role>Developer</role>
-            </roles>
-        </developer>
-    </developers>
-
     <scm>
         <url>https://github.com/BlinkPay/Blink-Debit-API-Client-Java</url>
     </scm>
@@ -52,7 +31,7 @@
     </modules>
 
     <properties>
-        <revision>1.6.0</revision>
+        <revision>2.0.0</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>

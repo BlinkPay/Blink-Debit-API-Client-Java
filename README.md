@@ -22,12 +22,17 @@
 4. [Quick Start](#quick-start)
 5. [Configuration](#configuration)
 6. [Client Creation](#client-creation)
-7. [Correlation ID / Request ID](#correlation-id--request-id)
-8. [Full Examples](#full-examples)
-9. [Individual API Call Examples](#individual-api-call-examples)
-10. [Handling Payment Settlement](#handling-payment-settlement)
-11. [Contributing](#contributing)
-12. [Running Tests](#running-tests)
+7. [Error Handling](#error-handling)
+8. [Resource Management](#resource-management)
+9. [Polling and Timeout Behavior](#polling-and-timeout-behavior)
+10. [Correlation ID / Request ID](#correlation-id--request-id)
+11. [Full Examples](#full-examples)
+12. [Individual API Call Examples](#individual-api-call-examples)
+13. [Handling Payment Settlement](#handling-payment-settlement)
+14. [Dependencies](#dependencies)
+15. [Support](#support)
+16. [Contributing](#contributing)
+17. [Running Tests](#running-tests)
 
 ## Introduction
 This SDK allows merchants with Java-based e-commerce sites to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
@@ -368,6 +373,105 @@ Spring-based code (autowiring):
 @Autowired
 BlinkDebitClient client;
 ```
+
+## Error Handling
+
+### Plain Java SDK
+
+```java
+try {
+    Consent consent = client.getSingleConsentsApi().getConsent(consentId);
+    // Process consent
+} catch (BlinkServiceException e) {
+    // API error (HTTP 4xx/5xx)
+    System.err.println("API error: " + e.getMessage());
+} catch (BlinkInvalidValueException e) {
+    // Invalid input parameter
+    System.err.println("Invalid input: " + e.getMessage());
+}
+```
+
+### Spring SDK
+
+```java
+client.getConsent(consentId)
+    .doOnError(BlinkServiceException.class, e ->
+        System.err.println("API error: " + e.getMessage()))
+    .doOnError(BlinkInvalidValueException.class, e ->
+        System.err.println("Invalid input: " + e.getMessage()))
+    .subscribe();
+```
+
+## Resource Management
+
+### Plain Java SDK
+
+The Plain Java SDK client implements `AutoCloseable` for proper resource cleanup:
+
+```java
+// Automatic cleanup with try-with-resources (recommended)
+try (BlinkDebitClient client = new BlinkDebitClient()) {
+    // Use client
+}
+
+// Manual cleanup
+BlinkDebitClient client = new BlinkDebitClient();
+try {
+    // Use client
+} finally {
+    client.close();
+}
+```
+
+### Spring SDK
+
+The Spring SDK uses WebClient which manages its own resources. No explicit cleanup needed when using dependency injection or when the client is managed by Spring's application context.
+
+## Polling and Timeout Behavior
+
+Both SDKs provide helper methods to wait for consent authorization and payment completion. These methods poll the API until the resource reaches a terminal state or the timeout expires.
+
+### Auto-Revoke on Timeout
+
+**Important**: Different consent types have different timeout behaviors for security and usability reasons:
+
+| Method | Auto-Revokes on Timeout? | Reason |
+|--------|-------------------------|--------|
+| Quick Payment helpers | ✅ **YES** | Quick payments combine consent + payment in one step - should complete immediately or be cancelled to prevent abandoned authorizations |
+| Single Consent helpers | ❌ **NO** | Single consents require a separate payment API call - no funds are processed if abandoned, so the consent can remain for the customer to return later |
+| Enduring Consent helpers | ✅ **YES** | Enduring consents grant ongoing recurring access to customer accounts - automatically cleaned up if abandoned for security |
+| Payment helpers | ❌ N/A | Payments cannot be revoked once initiated |
+
+### Plain Java SDK Examples
+
+```java
+// Quick payment - auto-revokes on timeout
+QuickPaymentResponse qp = client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 300);
+
+// Single consent - does NOT auto-revoke (manually revoke if needed)
+Consent singleConsent = client.awaitAuthorisedSingleConsentOrThrowException(consentId, 300);
+
+// Enduring consent - auto-revokes on timeout
+Consent enduringConsent = client.awaitAuthorisedEnduringConsentOrThrowException(consentId, 300);
+
+// Payment - waits for settlement
+Payment payment = client.awaitSuccessfulPaymentOrThrowException(paymentId, 300);
+```
+
+### Spring SDK Examples
+
+```java
+// Similar methods returning Mono<T>
+Mono<QuickPaymentResponse> qp = client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 300);
+Mono<Consent> consent = client.awaitAuthorisedSingleConsentOrThrowException(consentId, 300);
+```
+
+### Best Practices
+
+- **Quick Payments**: Use polling helpers - they handle cleanup automatically
+- **Single Consents**: Manually revoke if you determine the customer has permanently abandoned the authorization flow (e.g., after 24 hours)
+- **Enduring Consents**: Polling helpers automatically revoke on timeout, but consider manual revocation earlier if customer abandons the flow for improved security
+- **Payments**: Set appropriate timeout values based on expected settlement times (usually a few minutes)
 
 ## Correlation ID / Request ID
 An optional request ID can be added as the last argument to API calls. This serves as:
@@ -864,6 +968,46 @@ if (payment.getStatus() == Payment.StatusEnum.ACCEPTED_SETTLEMENT_COMPLETED) {
     // Mark order as paid in your database
 }
 ```
+
+## Dependencies
+
+### Plain Java SDK Dependencies
+
+The Plain Java SDK has minimal runtime dependencies:
+
+**Runtime:**
+- `jackson-databind` (2.20.1) - JSON serialization
+- `jackson-datatype-jsr310` (2.20.1) - Java 8 date/time support
+- `java-jwt` (4.5.0) - JWT token handling
+- `slf4j-api` (2.0.17) - Logging facade
+
+**Optional:**
+- `validation-api` (2.0.1.Final) - Bean validation annotations
+- `javax.annotation-api` (1.3.2) - @Generated annotations
+
+### Spring SDK Dependencies
+
+The Spring SDK uses `provided` scope for Spring dependencies - you must provide compatible Spring Framework dependencies in your application.
+
+**Provided (required in your application):**
+- Spring Boot 3.x / Spring Framework 6.x
+- Spring WebFlux
+- Reactor
+- Netty
+
+**Runtime:**
+- `java-jwt` (4.5.0) - JWT token handling
+- `swagger-annotations` (2.2.40) - API documentation
+- `slf4j-api` (2.0.17) - Logging facade
+- `commons-lang3` (3.19.0) - Utility functions
+
+Use `mvn dependency:tree` in each module directory to view full dependency trees.
+
+## Support
+
+- **Documentation**: See [CLAUDE.md](./CLAUDE.md) for repository-level technical details, or module-specific CLAUDE.md files in `java-v2/` and `java-spring6/` directories
+- **Issues**: [GitHub Issues](https://github.com/BlinkPay/Blink-Debit-API-Client-Java/issues)
+- **Contact**: sysadmin@blinkpay.co.nz
 
 ## Contributing
 

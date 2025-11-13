@@ -164,7 +164,7 @@
         <profile>
             <id>versioning</id>
             <properties>
-                <revision>1.5.2</revision>
+                <revision>2.0.0</revision>
             </properties>
         </profile>
     </profiles>
