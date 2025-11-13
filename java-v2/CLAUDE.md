@@ -318,14 +318,16 @@ Thrown for invalid input parameters:
 
 ### Integration Tests
 
-**Coverage Summary**: **44 integration tests** across **8 test classes** (55% coverage compared to java-spring6 with 80 tests) *updated 2025-11-12*
+**Coverage Summary**: **50 integration tests** across **8 test classes** (62.5% coverage compared to java-spring6 with 80 tests) *updated 2025-11-13*
 
 **Phase 1 Improvements** ✅:
 - Added OAuthApiClientIntegrationTest (1 test)
 - Added gateway flow tests (3 tests)
 - Added 404 Not Found error tests (5 tests)
 - Added input validation tests (8 tests)
-- **Total**: +17 tests (27 → 44)
+- Fixed retry logic exception handling (4 test classes)
+- Fixed 404 error assertions for multiline messages (5 test classes)
+- **Total**: +23 tests (27 → 50)
 
 **Location**: `src/integrationTest/java/nz/co/blink/debit/client/v1/`
 
