@@ -22,19 +22,10 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The exception thrown when single/domestic or recurring/enduring consent is rejected by the customer.
+ * Exception thrown when a consent is rejected or revoked.
  */
-public class BlinkConsentRejectedException extends BlinkConsentFailureException {
-
-    public BlinkConsentRejectedException() {
-        this("Consent was rejected by the customer");
-    }
-
+public class BlinkConsentRejectedException extends BlinkServiceException {
     public BlinkConsentRejectedException(String message) {
         super(message);
-    }
-
-    public BlinkConsentRejectedException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

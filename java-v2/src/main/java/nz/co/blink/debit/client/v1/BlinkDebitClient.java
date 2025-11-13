@@ -240,6 +240,127 @@ public class BlinkDebitClient implements AutoCloseable {
     }
 
     /**
+     * Revoke a quick payment.
+     * Convenience method equivalent to getQuickPaymentsApi().revokeQuickPayment().
+     *
+     * @param quickPaymentId the quick payment ID
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public void revokeQuickPayment(java.util.UUID quickPaymentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        quickPaymentsApi.revokeQuickPayment(quickPaymentId);
+    }
+
+    /**
+     * Revoke a single consent.
+     * Convenience method equivalent to getSingleConsentsApi().revokeConsent().
+     *
+     * @param consentId the consent ID
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public void revokeSingleConsent(java.util.UUID consentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        singleConsentsApi.revokeConsent(consentId);
+    }
+
+    /**
+     * Create an enduring consent.
+     * Convenience method equivalent to getEnduringConsentsApi().createEnduringConsent().
+     *
+     * @param request the enduring consent request
+     * @return the consent creation response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.CreateConsentResponse createEnduringConsent(
+            nz.co.blink.debit.dto.v1.EnduringConsentRequest request)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return enduringConsentsApi.createEnduringConsent(request);
+    }
+
+    /**
+     * Get an enduring consent by ID.
+     * Convenience method equivalent to getEnduringConsentsApi().getConsent().
+     *
+     * @param consentId the consent ID
+     * @return the consent
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.Consent getEnduringConsent(java.util.UUID consentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return enduringConsentsApi.getConsent(consentId);
+    }
+
+    /**
+     * Revoke an enduring consent.
+     * Convenience method equivalent to getEnduringConsentsApi().revokeConsent().
+     *
+     * @param consentId the consent ID
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public void revokeEnduringConsent(java.util.UUID consentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        enduringConsentsApi.revokeConsent(consentId);
+    }
+
+    /**
+     * Create a payment.
+     * Convenience method equivalent to getPaymentsApi().createPayment().
+     *
+     * @param request the payment request
+     * @return the payment response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.PaymentResponse createPayment(
+            nz.co.blink.debit.dto.v1.PaymentRequest request)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return paymentsApi.createPayment(request);
+    }
+
+    /**
+     * Get a payment by ID.
+     * Convenience method equivalent to getPaymentsApi().getPayment().
+     *
+     * @param paymentId the payment ID
+     * @return the payment
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.Payment getPayment(java.util.UUID paymentId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return paymentsApi.getPayment(paymentId);
+    }
+
+    /**
+     * Create a refund.
+     * Convenience method equivalent to getRefundsApi().createRefund().
+     *
+     * @param request the refund request
+     * @return the refund response
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.RefundResponse createRefund(
+            nz.co.blink.debit.dto.v1.RefundDetail request)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return refundsApi.createRefund(request);
+    }
+
+    /**
+     * Get a refund by ID.
+     * Convenience method equivalent to getRefundsApi().getRefund().
+     *
+     * @param refundId the refund ID
+     * @return the refund
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     */
+    public nz.co.blink.debit.dto.v1.Refund getRefund(java.util.UUID refundId)
+            throws nz.co.blink.debit.exception.BlinkServiceException {
+        return refundsApi.getRefund(refundId);
+    }
+
+    // ========================================================================
+    // Await Helper Methods - Polling utilities for async operations
+    // ========================================================================
+
+    /**
      * Poll for a successful quick payment within the specified time.
      * Compatible with v1 SDK API.
      * <p>
@@ -293,6 +414,166 @@ public class BlinkDebitClient implements AutoCloseable {
 
         throw new RuntimeException("Timed out waiting for quick payment " + quickPaymentId +
                 " to complete after " + maxWaitSeconds + " seconds");
+    }
+
+    /**
+     * Poll for an authorised single consent within the specified time.
+     * Compatible with v1 SDK API.
+     *
+     * @param consentId the consent ID
+     * @param maxWaitSeconds the maximum number of seconds to wait
+     * @return the authorised consent
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     * @throws nz.co.blink.debit.exception.BlinkConsentTimeoutException if polling times out
+     * @throws nz.co.blink.debit.exception.BlinkConsentRejectedException if consent is rejected
+     */
+    public nz.co.blink.debit.dto.v1.Consent awaitAuthorisedSingleConsentOrThrowException(
+            java.util.UUID consentId, int maxWaitSeconds)
+            throws nz.co.blink.debit.exception.BlinkServiceException,
+                   nz.co.blink.debit.exception.BlinkConsentTimeoutException,
+                   nz.co.blink.debit.exception.BlinkConsentRejectedException {
+        long endTime = System.currentTimeMillis() + (maxWaitSeconds * 1000L);
+
+        while (System.currentTimeMillis() < endTime) {
+            nz.co.blink.debit.dto.v1.Consent consent = getSingleConsent(consentId);
+            nz.co.blink.debit.dto.v1.Consent.StatusEnum status = consent.getStatus();
+
+            log.debug("Polling single consent {}: status = {}", consentId, status);
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.AUTHORISED ||
+                status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.CONSUMED) {
+                return consent;
+            }
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.REJECTED ||
+                status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.REVOKED) {
+                throw new nz.co.blink.debit.exception.BlinkConsentRejectedException(
+                        "Single consent " + consentId + " was rejected or revoked");
+            }
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.GATEWAY_TIMEOUT) {
+                throw new nz.co.blink.debit.exception.BlinkConsentTimeoutException(
+                        "Gateway timed out for single consent " + consentId);
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new nz.co.blink.debit.exception.BlinkServiceException("Polling interrupted", e);
+            }
+        }
+
+        throw new nz.co.blink.debit.exception.BlinkConsentTimeoutException(
+                "Timed out waiting for single consent " + consentId + " after " + maxWaitSeconds + " seconds");
+    }
+
+    /**
+     * Poll for an authorised enduring consent within the specified time.
+     * Attempts to revoke consent on timeout. Compatible with v1 SDK API.
+     *
+     * @param consentId the consent ID
+     * @param maxWaitSeconds the maximum number of seconds to wait
+     * @return the authorised consent
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     * @throws nz.co.blink.debit.exception.BlinkConsentTimeoutException if polling times out
+     * @throws nz.co.blink.debit.exception.BlinkConsentRejectedException if consent is rejected
+     */
+    public nz.co.blink.debit.dto.v1.Consent awaitAuthorisedEnduringConsentOrThrowException(
+            java.util.UUID consentId, int maxWaitSeconds)
+            throws nz.co.blink.debit.exception.BlinkServiceException,
+                   nz.co.blink.debit.exception.BlinkConsentTimeoutException,
+                   nz.co.blink.debit.exception.BlinkConsentRejectedException {
+        long endTime = System.currentTimeMillis() + (maxWaitSeconds * 1000L);
+
+        while (System.currentTimeMillis() < endTime) {
+            nz.co.blink.debit.dto.v1.Consent consent = getEnduringConsent(consentId);
+            nz.co.blink.debit.dto.v1.Consent.StatusEnum status = consent.getStatus();
+
+            log.debug("Polling enduring consent {}: status = {}", consentId, status);
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.AUTHORISED ||
+                status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.CONSUMED) {
+                return consent;
+            }
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.REJECTED ||
+                status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.REVOKED) {
+                throw new nz.co.blink.debit.exception.BlinkConsentRejectedException(
+                        "Enduring consent " + consentId + " was rejected or revoked");
+            }
+
+            if (status == nz.co.blink.debit.dto.v1.Consent.StatusEnum.GATEWAY_TIMEOUT) {
+                throw new nz.co.blink.debit.exception.BlinkConsentTimeoutException(
+                        "Gateway timed out for enduring consent " + consentId);
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new nz.co.blink.debit.exception.BlinkServiceException("Polling interrupted", e);
+            }
+        }
+
+        // Timeout - attempt to revoke
+        nz.co.blink.debit.exception.BlinkConsentTimeoutException timeoutException =
+                new nz.co.blink.debit.exception.BlinkConsentTimeoutException(
+                        "Timed out waiting for enduring consent " + consentId + " after " + maxWaitSeconds + " seconds");
+
+        try {
+            revokeEnduringConsent(consentId);
+            log.info("Revoked enduring consent {} after timeout", consentId);
+        } catch (Exception e) {
+            log.error("Failed to revoke enduring consent {} after timeout", consentId, e);
+        }
+
+        throw timeoutException;
+    }
+
+    /**
+     * Poll for a successful payment within the specified time.
+     * Compatible with v1 SDK API.
+     *
+     * @param paymentId the payment ID
+     * @param maxWaitSeconds the maximum number of seconds to wait
+     * @return the successful payment
+     * @throws nz.co.blink.debit.exception.BlinkServiceException if API call fails
+     * @throws nz.co.blink.debit.exception.BlinkPaymentTimeoutException if polling times out
+     * @throws nz.co.blink.debit.exception.BlinkPaymentRejectedException if payment is rejected
+     */
+    public nz.co.blink.debit.dto.v1.Payment awaitSuccessfulPaymentOrThrowException(
+            java.util.UUID paymentId, int maxWaitSeconds)
+            throws nz.co.blink.debit.exception.BlinkServiceException,
+                   nz.co.blink.debit.exception.BlinkPaymentTimeoutException,
+                   nz.co.blink.debit.exception.BlinkPaymentRejectedException {
+        long endTime = System.currentTimeMillis() + (maxWaitSeconds * 1000L);
+
+        while (System.currentTimeMillis() < endTime) {
+            nz.co.blink.debit.dto.v1.Payment payment = getPayment(paymentId);
+            nz.co.blink.debit.dto.v1.Payment.StatusEnum status = payment.getStatus();
+
+            log.debug("Polling payment {}: status = {}", paymentId, status);
+
+            if (status == nz.co.blink.debit.dto.v1.Payment.StatusEnum.ACCEPTED_SETTLEMENT_COMPLETED) {
+                return payment;
+            }
+
+            if (status == nz.co.blink.debit.dto.v1.Payment.StatusEnum.REJECTED) {
+                throw new nz.co.blink.debit.exception.BlinkPaymentRejectedException(
+                        "Payment " + paymentId + " was rejected");
+            }
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new nz.co.blink.debit.exception.BlinkServiceException("Polling interrupted", e);
+            }
+        }
+
+        throw new nz.co.blink.debit.exception.BlinkPaymentTimeoutException(
+                "Timed out waiting for payment " + paymentId + " after " + maxWaitSeconds + " seconds");
     }
 
     /**

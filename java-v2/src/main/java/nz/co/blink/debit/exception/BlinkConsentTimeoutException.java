@@ -22,19 +22,14 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The exception thrown when consent was not completed within the bank's request timeout window.
+ * Exception thrown when polling for a consent times out.
  */
-public class BlinkConsentTimeoutException extends BlinkConsentFailureException {
-
+public class BlinkConsentTimeoutException extends BlinkServiceException {
     public BlinkConsentTimeoutException() {
-        this("Consent timed out");
+        super("Consent polling timed out");
     }
 
     public BlinkConsentTimeoutException(String message) {
         super(message);
-    }
-
-    public BlinkConsentTimeoutException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

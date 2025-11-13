@@ -22,19 +22,14 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The exception thrown when payment was not completed within the bank's request timeout window.
+ * Exception thrown when polling for a payment times out.
  */
-public class BlinkPaymentTimeoutException extends BlinkPaymentFailureException {
-
+public class BlinkPaymentTimeoutException extends BlinkServiceException {
     public BlinkPaymentTimeoutException() {
-        this("Payment timed out");
+        super("Payment polling timed out");
     }
 
     public BlinkPaymentTimeoutException(String message) {
         super(message);
-    }
-
-    public BlinkPaymentTimeoutException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

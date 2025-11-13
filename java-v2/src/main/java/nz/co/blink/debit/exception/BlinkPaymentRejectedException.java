@@ -22,19 +22,10 @@
 package nz.co.blink.debit.exception;
 
 /**
- * The exception thrown when single/domestic or recurring/enduring payment is rejected by the bank.
+ * Exception thrown when a payment is rejected.
  */
-public class BlinkPaymentRejectedException extends BlinkPaymentFailureException {
-
-    public BlinkPaymentRejectedException() {
-        this("Payment was rejected by the bank");
-    }
-
+public class BlinkPaymentRejectedException extends BlinkServiceException {
     public BlinkPaymentRejectedException(String message) {
         super(message);
-    }
-
-    public BlinkPaymentRejectedException(String message, Throwable cause) {
-        super(message, cause);
     }
 }
