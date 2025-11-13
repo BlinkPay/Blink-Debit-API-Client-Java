@@ -42,13 +42,13 @@ class RefundsApiClientUnitTest {
         RefundDetail request = mock(RefundDetail.class);
         RefundResponse expectedResponse = mock(RefundResponse.class);
 
-        when(httpHelper.post(eq("/refunds"), eq(request), eq(RefundResponse.class), anyString()))
+        when(httpHelper.post(eq("/payments/v1/refunds"), eq(request), eq(RefundResponse.class), anyString()))
                 .thenReturn(expectedResponse);
 
         RefundResponse result = client.createRefund(request);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post(eq("/refunds"), eq(request), eq(RefundResponse.class), anyString());
+        verify(httpHelper).post(eq("/payments/v1/refunds"), eq(request), eq(RefundResponse.class), anyString());
     }
 
     @Test
@@ -57,13 +57,13 @@ class RefundsApiClientUnitTest {
         RefundResponse expectedResponse = mock(RefundResponse.class);
         String customRequestId = "custom-request-id-123";
 
-        when(httpHelper.post("/refunds", request, RefundResponse.class, customRequestId))
+        when(httpHelper.post("/payments/v1/refunds", request, RefundResponse.class, customRequestId))
                 .thenReturn(expectedResponse);
 
         RefundResponse result = client.createRefund(request, customRequestId);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post("/refunds", request, RefundResponse.class, customRequestId);
+        verify(httpHelper).post("/payments/v1/refunds", request, RefundResponse.class, customRequestId);
     }
 
     @Test
@@ -103,13 +103,13 @@ class RefundsApiClientUnitTest {
         UUID refundId = UUID.randomUUID();
         Refund expectedRefund = mock(Refund.class);
 
-        when(httpHelper.get(eq("/refunds/" + refundId.toString()), eq(Refund.class), anyString()))
+        when(httpHelper.get(eq("/payments/v1/refunds/" + refundId.toString()), eq(Refund.class), anyString()))
                 .thenReturn(expectedRefund);
 
         Refund result = client.getRefund(refundId);
 
         assertThat(result).isEqualTo(expectedRefund);
-        verify(httpHelper).get(eq("/refunds/" + refundId.toString()), eq(Refund.class), anyString());
+        verify(httpHelper).get(eq("/payments/v1/refunds/" + refundId.toString()), eq(Refund.class), anyString());
     }
 
     @Test
@@ -118,13 +118,13 @@ class RefundsApiClientUnitTest {
         Refund expectedRefund = mock(Refund.class);
         String customRequestId = "get-request-id";
 
-        when(httpHelper.get("/refunds/" + refundId.toString(), Refund.class, customRequestId))
+        when(httpHelper.get("/payments/v1/refunds/" + refundId.toString(), Refund.class, customRequestId))
                 .thenReturn(expectedRefund);
 
         Refund result = client.getRefund(refundId, customRequestId);
 
         assertThat(result).isEqualTo(expectedRefund);
-        verify(httpHelper).get("/refunds/" + refundId.toString(), Refund.class, customRequestId);
+        verify(httpHelper).get("/payments/v1/refunds/" + refundId.toString(), Refund.class, customRequestId);
     }
 
     @Test
@@ -158,7 +158,7 @@ class RefundsApiClientUnitTest {
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpHelper).get(pathCaptor.capture(), eq(Refund.class), anyString());
 
-        assertThat(pathCaptor.getValue()).isEqualTo("/refunds/123e4567-e89b-12d3-a456-426614174000");
+        assertThat(pathCaptor.getValue()).isEqualTo("/payments/v1/refunds/123e4567-e89b-12d3-a456-426614174000");
     }
 
     @Test

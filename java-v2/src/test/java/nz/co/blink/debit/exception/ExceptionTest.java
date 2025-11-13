@@ -174,10 +174,10 @@ class ExceptionTest {
     }
 
     @Test
-    void testBlinkConsentTimeoutExceptionExtendsBlinkConsentFailureException() {
+    void testBlinkConsentTimeoutExceptionExtendsBlinkServiceException() {
         BlinkConsentTimeoutException exception = new BlinkConsentTimeoutException("Test");
 
-        assertThat(exception).isInstanceOf(BlinkConsentFailureException.class);
+        assertThat(exception).isInstanceOf(BlinkServiceException.class);
     }
 
     // ===== BlinkPaymentRejectedException Tests =====
@@ -192,10 +192,10 @@ class ExceptionTest {
     }
 
     @Test
-    void testBlinkPaymentRejectedExceptionExtendsBlinkPaymentFailureException() {
+    void testBlinkPaymentRejectedExceptionExtendsBlinkServiceException() {
         BlinkPaymentRejectedException exception = new BlinkPaymentRejectedException("Test");
 
-        assertThat(exception).isInstanceOf(BlinkPaymentFailureException.class);
+        assertThat(exception).isInstanceOf(BlinkServiceException.class);
     }
 
     // ===== Exception Hierarchy Tests =====

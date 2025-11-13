@@ -42,13 +42,13 @@ class EnduringConsentsApiClientUnitTest {
         EnduringConsentRequest request = mock(EnduringConsentRequest.class);
         CreateConsentResponse expectedResponse = mock(CreateConsentResponse.class);
 
-        when(httpHelper.post(eq("/consents/enduring"), eq(request), eq(CreateConsentResponse.class), anyString()))
+        when(httpHelper.post(eq("/payments/v1/enduring-consents"), eq(request), eq(CreateConsentResponse.class), anyString()))
                 .thenReturn(expectedResponse);
 
         CreateConsentResponse result = client.createEnduringConsent(request);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post(eq("/consents/enduring"), eq(request), eq(CreateConsentResponse.class), anyString());
+        verify(httpHelper).post(eq("/payments/v1/enduring-consents"), eq(request), eq(CreateConsentResponse.class), anyString());
     }
 
     @Test
@@ -57,13 +57,13 @@ class EnduringConsentsApiClientUnitTest {
         CreateConsentResponse expectedResponse = mock(CreateConsentResponse.class);
         String customRequestId = "custom-request-id-123";
 
-        when(httpHelper.post("/consents/enduring", request, CreateConsentResponse.class, customRequestId))
+        when(httpHelper.post("/payments/v1/enduring-consents", request, CreateConsentResponse.class, customRequestId))
                 .thenReturn(expectedResponse);
 
         CreateConsentResponse result = client.createEnduringConsent(request, customRequestId);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post("/consents/enduring", request, CreateConsentResponse.class, customRequestId);
+        verify(httpHelper).post("/payments/v1/enduring-consents", request, CreateConsentResponse.class, customRequestId);
     }
 
     @Test
@@ -103,13 +103,13 @@ class EnduringConsentsApiClientUnitTest {
         UUID consentId = UUID.randomUUID();
         Consent expectedConsent = mock(Consent.class);
 
-        when(httpHelper.get(eq("/consents/" + consentId.toString()), eq(Consent.class), anyString()))
+        when(httpHelper.get(eq("/payments/v1/enduring-consents/" + consentId.toString()), eq(Consent.class), anyString()))
                 .thenReturn(expectedConsent);
 
         Consent result = client.getConsent(consentId);
 
         assertThat(result).isEqualTo(expectedConsent);
-        verify(httpHelper).get(eq("/consents/" + consentId.toString()), eq(Consent.class), anyString());
+        verify(httpHelper).get(eq("/payments/v1/enduring-consents/" + consentId.toString()), eq(Consent.class), anyString());
     }
 
     @Test
@@ -118,13 +118,13 @@ class EnduringConsentsApiClientUnitTest {
         Consent expectedConsent = mock(Consent.class);
         String customRequestId = "get-request-id";
 
-        when(httpHelper.get("/consents/" + consentId.toString(), Consent.class, customRequestId))
+        when(httpHelper.get("/payments/v1/enduring-consents/" + consentId.toString(), Consent.class, customRequestId))
                 .thenReturn(expectedConsent);
 
         Consent result = client.getConsent(consentId, customRequestId);
 
         assertThat(result).isEqualTo(expectedConsent);
-        verify(httpHelper).get("/consents/" + consentId.toString(), Consent.class, customRequestId);
+        verify(httpHelper).get("/payments/v1/enduring-consents/" + consentId.toString(), Consent.class, customRequestId);
     }
 
     @Test
@@ -158,7 +158,7 @@ class EnduringConsentsApiClientUnitTest {
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpHelper).get(pathCaptor.capture(), eq(Consent.class), anyString());
 
-        assertThat(pathCaptor.getValue()).isEqualTo("/consents/123e4567-e89b-12d3-a456-426614174000");
+        assertThat(pathCaptor.getValue()).isEqualTo("/payments/v1/enduring-consents/123e4567-e89b-12d3-a456-426614174000");
     }
 
     // ===== revokeConsent Tests =====
@@ -167,11 +167,11 @@ class EnduringConsentsApiClientUnitTest {
     void testRevokeConsentSuccess() throws BlinkServiceException {
         UUID consentId = UUID.randomUUID();
 
-        doNothing().when(httpHelper).delete(eq("/consents/" + consentId.toString()), anyString());
+        doNothing().when(httpHelper).delete(eq("/payments/v1/enduring-consents/" + consentId.toString()), anyString());
 
         client.revokeConsent(consentId);
 
-        verify(httpHelper).delete(eq("/consents/" + consentId.toString()), anyString());
+        verify(httpHelper).delete(eq("/payments/v1/enduring-consents/" + consentId.toString()), anyString());
     }
 
     @Test
@@ -179,11 +179,11 @@ class EnduringConsentsApiClientUnitTest {
         UUID consentId = UUID.randomUUID();
         String customRequestId = "revoke-request-id";
 
-        doNothing().when(httpHelper).delete("/consents/" + consentId.toString(), customRequestId);
+        doNothing().when(httpHelper).delete("/payments/v1/enduring-consents/" + consentId.toString(), customRequestId);
 
         client.revokeConsent(consentId, customRequestId);
 
-        verify(httpHelper).delete("/consents/" + consentId.toString(), customRequestId);
+        verify(httpHelper).delete("/payments/v1/enduring-consents/" + consentId.toString(), customRequestId);
     }
 
     @Test
@@ -215,7 +215,7 @@ class EnduringConsentsApiClientUnitTest {
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpHelper).delete(pathCaptor.capture(), anyString());
 
-        assertThat(pathCaptor.getValue()).isEqualTo("/consents/123e4567-e89b-12d3-a456-426614174000");
+        assertThat(pathCaptor.getValue()).isEqualTo("/payments/v1/enduring-consents/123e4567-e89b-12d3-a456-426614174000");
     }
 
     @Test

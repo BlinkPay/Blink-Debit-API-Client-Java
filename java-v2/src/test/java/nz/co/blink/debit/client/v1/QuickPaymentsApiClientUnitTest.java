@@ -42,13 +42,13 @@ class QuickPaymentsApiClientUnitTest {
         QuickPaymentRequest request = mock(QuickPaymentRequest.class);
         CreateQuickPaymentResponse expectedResponse = mock(CreateQuickPaymentResponse.class);
 
-        when(httpHelper.post(eq("/consents/quick-payments"), eq(request), eq(CreateQuickPaymentResponse.class), anyString()))
+        when(httpHelper.post(eq("/payments/v1/quick-payments"), eq(request), eq(CreateQuickPaymentResponse.class), anyString()))
                 .thenReturn(expectedResponse);
 
         CreateQuickPaymentResponse result = client.createQuickPayment(request);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post(eq("/consents/quick-payments"), eq(request), eq(CreateQuickPaymentResponse.class), anyString());
+        verify(httpHelper).post(eq("/payments/v1/quick-payments"), eq(request), eq(CreateQuickPaymentResponse.class), anyString());
     }
 
     @Test
@@ -57,13 +57,13 @@ class QuickPaymentsApiClientUnitTest {
         CreateQuickPaymentResponse expectedResponse = mock(CreateQuickPaymentResponse.class);
         String customRequestId = "custom-request-id-123";
 
-        when(httpHelper.post("/consents/quick-payments", request, CreateQuickPaymentResponse.class, customRequestId))
+        when(httpHelper.post("/payments/v1/quick-payments", request, CreateQuickPaymentResponse.class, customRequestId))
                 .thenReturn(expectedResponse);
 
         CreateQuickPaymentResponse result = client.createQuickPayment(request, customRequestId);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post("/consents/quick-payments", request, CreateQuickPaymentResponse.class, customRequestId);
+        verify(httpHelper).post("/payments/v1/quick-payments", request, CreateQuickPaymentResponse.class, customRequestId);
     }
 
     @Test
@@ -103,14 +103,14 @@ class QuickPaymentsApiClientUnitTest {
         UUID quickPaymentId = UUID.randomUUID();
         QuickPaymentResponse expectedResponse = mock(QuickPaymentResponse.class);
 
-        when(httpHelper.get(eq("/consents/quick-payments/" + quickPaymentId.toString()),
+        when(httpHelper.get(eq("/payments/v1/quick-payments/" + quickPaymentId.toString()),
                 eq(QuickPaymentResponse.class), anyString()))
                 .thenReturn(expectedResponse);
 
         QuickPaymentResponse result = client.getQuickPayment(quickPaymentId);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).get(eq("/consents/quick-payments/" + quickPaymentId.toString()),
+        verify(httpHelper).get(eq("/payments/v1/quick-payments/" + quickPaymentId.toString()),
                 eq(QuickPaymentResponse.class), anyString());
     }
 
@@ -120,14 +120,14 @@ class QuickPaymentsApiClientUnitTest {
         QuickPaymentResponse expectedResponse = mock(QuickPaymentResponse.class);
         String customRequestId = "get-request-id";
 
-        when(httpHelper.get("/consents/quick-payments/" + quickPaymentId.toString(),
+        when(httpHelper.get("/payments/v1/quick-payments/" + quickPaymentId.toString(),
                 QuickPaymentResponse.class, customRequestId))
                 .thenReturn(expectedResponse);
 
         QuickPaymentResponse result = client.getQuickPayment(quickPaymentId, customRequestId);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).get("/consents/quick-payments/" + quickPaymentId.toString(),
+        verify(httpHelper).get("/payments/v1/quick-payments/" + quickPaymentId.toString(),
                 QuickPaymentResponse.class, customRequestId);
     }
 
@@ -162,7 +162,7 @@ class QuickPaymentsApiClientUnitTest {
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpHelper).get(pathCaptor.capture(), eq(QuickPaymentResponse.class), anyString());
 
-        assertThat(pathCaptor.getValue()).isEqualTo("/consents/quick-payments/123e4567-e89b-12d3-a456-426614174000");
+        assertThat(pathCaptor.getValue()).isEqualTo("/payments/v1/quick-payments/123e4567-e89b-12d3-a456-426614174000");
     }
 
     // ===== revokeQuickPayment Tests =====
@@ -171,11 +171,11 @@ class QuickPaymentsApiClientUnitTest {
     void testRevokeQuickPaymentSuccess() throws BlinkServiceException {
         UUID quickPaymentId = UUID.randomUUID();
 
-        doNothing().when(httpHelper).delete(eq("/consents/quick-payments/" + quickPaymentId.toString()), anyString());
+        doNothing().when(httpHelper).delete(eq("/payments/v1/quick-payments/" + quickPaymentId.toString()), anyString());
 
         client.revokeQuickPayment(quickPaymentId);
 
-        verify(httpHelper).delete(eq("/consents/quick-payments/" + quickPaymentId.toString()), anyString());
+        verify(httpHelper).delete(eq("/payments/v1/quick-payments/" + quickPaymentId.toString()), anyString());
     }
 
     @Test
@@ -183,11 +183,11 @@ class QuickPaymentsApiClientUnitTest {
         UUID quickPaymentId = UUID.randomUUID();
         String customRequestId = "revoke-request-id";
 
-        doNothing().when(httpHelper).delete("/consents/quick-payments/" + quickPaymentId.toString(), customRequestId);
+        doNothing().when(httpHelper).delete("/payments/v1/quick-payments/" + quickPaymentId.toString(), customRequestId);
 
         client.revokeQuickPayment(quickPaymentId, customRequestId);
 
-        verify(httpHelper).delete("/consents/quick-payments/" + quickPaymentId.toString(), customRequestId);
+        verify(httpHelper).delete("/payments/v1/quick-payments/" + quickPaymentId.toString(), customRequestId);
     }
 
     @Test
@@ -219,7 +219,7 @@ class QuickPaymentsApiClientUnitTest {
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpHelper).delete(pathCaptor.capture(), anyString());
 
-        assertThat(pathCaptor.getValue()).isEqualTo("/consents/quick-payments/123e4567-e89b-12d3-a456-426614174000");
+        assertThat(pathCaptor.getValue()).isEqualTo("/payments/v1/quick-payments/123e4567-e89b-12d3-a456-426614174000");
     }
 
     @Test

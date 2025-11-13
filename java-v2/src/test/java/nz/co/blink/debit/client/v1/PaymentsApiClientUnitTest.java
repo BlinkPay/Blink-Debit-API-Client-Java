@@ -42,13 +42,13 @@ class PaymentsApiClientUnitTest {
         PaymentRequest request = mock(PaymentRequest.class);
         PaymentResponse expectedResponse = mock(PaymentResponse.class);
 
-        when(httpHelper.post(eq("/payments"), eq(request), eq(PaymentResponse.class), anyString()))
+        when(httpHelper.post(eq("/payments/v1/payments"), eq(request), eq(PaymentResponse.class), anyString()))
                 .thenReturn(expectedResponse);
 
         PaymentResponse result = client.createPayment(request);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post(eq("/payments"), eq(request), eq(PaymentResponse.class), anyString());
+        verify(httpHelper).post(eq("/payments/v1/payments"), eq(request), eq(PaymentResponse.class), anyString());
     }
 
     @Test
@@ -57,13 +57,13 @@ class PaymentsApiClientUnitTest {
         PaymentResponse expectedResponse = mock(PaymentResponse.class);
         String customRequestId = "custom-request-id-123";
 
-        when(httpHelper.post("/payments", request, PaymentResponse.class, customRequestId))
+        when(httpHelper.post("/payments/v1/payments", request, PaymentResponse.class, customRequestId))
                 .thenReturn(expectedResponse);
 
         PaymentResponse result = client.createPayment(request, customRequestId);
 
         assertThat(result).isEqualTo(expectedResponse);
-        verify(httpHelper).post("/payments", request, PaymentResponse.class, customRequestId);
+        verify(httpHelper).post("/payments/v1/payments", request, PaymentResponse.class, customRequestId);
     }
 
     @Test
@@ -103,13 +103,13 @@ class PaymentsApiClientUnitTest {
         UUID paymentId = UUID.randomUUID();
         Payment expectedPayment = mock(Payment.class);
 
-        when(httpHelper.get(eq("/payments/" + paymentId.toString()), eq(Payment.class), anyString()))
+        when(httpHelper.get(eq("/payments/v1/payments/" + paymentId.toString()), eq(Payment.class), anyString()))
                 .thenReturn(expectedPayment);
 
         Payment result = client.getPayment(paymentId);
 
         assertThat(result).isEqualTo(expectedPayment);
-        verify(httpHelper).get(eq("/payments/" + paymentId.toString()), eq(Payment.class), anyString());
+        verify(httpHelper).get(eq("/payments/v1/payments/" + paymentId.toString()), eq(Payment.class), anyString());
     }
 
     @Test
@@ -118,13 +118,13 @@ class PaymentsApiClientUnitTest {
         Payment expectedPayment = mock(Payment.class);
         String customRequestId = "get-request-id";
 
-        when(httpHelper.get("/payments/" + paymentId.toString(), Payment.class, customRequestId))
+        when(httpHelper.get("/payments/v1/payments/" + paymentId.toString(), Payment.class, customRequestId))
                 .thenReturn(expectedPayment);
 
         Payment result = client.getPayment(paymentId, customRequestId);
 
         assertThat(result).isEqualTo(expectedPayment);
-        verify(httpHelper).get("/payments/" + paymentId.toString(), Payment.class, customRequestId);
+        verify(httpHelper).get("/payments/v1/payments/" + paymentId.toString(), Payment.class, customRequestId);
     }
 
     @Test
@@ -158,7 +158,7 @@ class PaymentsApiClientUnitTest {
         ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
         verify(httpHelper).get(pathCaptor.capture(), eq(Payment.class), anyString());
 
-        assertThat(pathCaptor.getValue()).isEqualTo("/payments/123e4567-e89b-12d3-a456-426614174000");
+        assertThat(pathCaptor.getValue()).isEqualTo("/payments/v1/payments/123e4567-e89b-12d3-a456-426614174000");
     }
 
     @Test
