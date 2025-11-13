@@ -17,15 +17,17 @@
 
 # Table of Contents
 1. [Introduction](#introduction)
-2. [Contributing](#contributing)
-3. [Minimum Requirements](#minimum-requirements)
-4. [Dependency](#adding-the-dependency)
-5. [Quick Start](#quick-start)
-6. [Configuration](#configuration)
-7. [Client Creation](#client-creation)
-8. [Correlation ID](#correlation-id)
-9. [Full Examples](#full-examples)
-10. [Individual API Call Examples](#individual-api-call-examples)
+2. [Minimum Requirements](#minimum-requirements)
+3. [Adding the Dependency](#adding-the-dependency)
+4. [Quick Start](#quick-start)
+5. [Configuration](#configuration)
+6. [Client Creation](#client-creation)
+7. [Correlation ID / Request ID](#correlation-id--request-id)
+8. [Full Examples](#full-examples)
+9. [Individual API Call Examples](#individual-api-call-examples)
+10. [Handling Payment Settlement](#handling-payment-settlement)
+11. [Contributing](#contributing)
+12. [Running Tests](#running-tests)
 
 ## Introduction
 This SDK allows merchants with Java-based e-commerce sites to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
@@ -42,79 +44,6 @@ The Plain Java SDK uses the standard Java 11+ HttpClient for synchronous blockin
 We welcome contributions from the community. Your pull request will be reviewed by our team.
 
 This project is licensed under the MIT License.
-
-### Running Tests
-
-The project includes unit and integration tests for both SDK versions.
-
-#### Test Suite Overview
-
-Both SDK versions include comprehensive test suites covering all API operations and flow types.
-
-#### Running Spring SDK Tests
-
-To run tests, you need to set the required environment variables:
-
-```bash
-export BLINKPAY_CLIENT_ID="your-client-id"
-export BLINKPAY_CLIENT_SECRET="your-client-secret"
-```
-
-Then run the tests:
-
-```bash
-# Run unit tests only
-mvn -B -ntp -Dgroups=unit test
-
-# Run integration tests only
-mvn -B -ntp -Dgroups=integration test
-
-# Run all tests
-mvn -B -ntp test
-```
-
-Or combine the environment variables in a single command:
-
-```bash
-# Unit tests
-BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
-
-# All tests
-BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
-```
-
-For the Spring SDK module specifically, navigate to the `java-spring6` directory first:
-
-```bash
-cd java-spring6
-BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
-```
-
-#### Running Plain Java SDK Tests
-
-The Plain Java SDK integration tests require three environment variables:
-
-```bash
-export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
-export BLINKPAY_CLIENT_ID="your-client-id"
-export BLINKPAY_CLIENT_SECRET="your-client-secret"
-```
-
-Run the tests:
-
-```bash
-# From project root - run v2 integration tests
-cd java-v2
-mvn verify
-
-# Or combine with environment variables
-BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz" \
-BLINKPAY_CLIENT_ID="your-client-id" \
-BLINKPAY_CLIENT_SECRET="your-client-secret" \
-mvn verify
-```
-
-The Plain Java SDK integration tests cover all API operations including consents, payments, quick payments, refunds, and metadata retrieval across all supported flow types (Gateway, Redirect, Decoupled).
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7
@@ -151,23 +80,56 @@ implementation "nz.co.blinkpay:blink-debit-api-client-java-v2:$version"
 
 ### For Spring Boot 3.x / Spring Framework 6+ Applications
 Use `blink-debit-api-client-java-spring6` for:
-- **Spring Boot 3.x** applications
-- **Spring Framework 6+** applications
+- **Spring Boot 3.x+** applications
+- **Spring Framework 6.x+** applications
 - Applications that prefer **reactive programming** with Mono/Flux
+
+**Important:** This SDK uses `provided` scope for Spring dependencies - you must provide compatible Spring Framework dependencies in your application. The SDK is compatible with Spring Framework 6.x+ (Spring Boot 3.x+) and has been tested with Spring Framework 6.2.12 (Spring Boot 3.5.7). Future Spring versions should work as long as they maintain API compatibility.
 
 #### Maven
 ```xml
+<!-- Blink Debit API Client for Spring -->
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
     <artifactId>blink-debit-api-client-java-spring6</artifactId>
     <version>${version}</version>
 </dependency>
+
+<!-- Required: Your Spring Boot dependencies (3.0.0 or higher) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+    <version>3.5.7</version> <!-- Or any Spring Boot 3.x version -->
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-validation</artifactId>
+    <version>3.5.7</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
+    <version>3.3.0</version> <!-- Or compatible version -->
+</dependency>
 ```
 
 #### Gradle
 ```groovy
+// Blink Debit API Client for Spring
 implementation "nz.co.blinkpay:blink-debit-api-client-java-spring6:$version"
+
+// Required: Your Spring Boot dependencies (3.0.0 or higher)
+implementation "org.springframework.boot:spring-boot-starter-webflux:3.5.7"
+implementation "org.springframework.boot:spring-boot-starter-validation:3.5.7"
+implementation "org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j:3.3.0"
 ```
+
+**Spring Version Compatibility:**
+- **Tested with**: Spring Framework 6.2.12 (Spring Boot 3.5.7)
+- **Compatible with**: Spring Framework 6.x+ and future releases (Spring Boot 3.x+ and future releases)
+- **Minimum suggested**: Spring Framework 6.0.0+ (Spring Boot 3.0.0+ if using Boot)
+
+The SDK uses `provided` scope and standard Spring APIs, so it should work with any Spring Framework 6.x+ version (or Spring Boot 3.x+). You have flexibility to upgrade Spring independently of the SDK.
 
 ## Quick Start
 
@@ -874,4 +836,108 @@ RefundResponse refundResponse = client.createRefund(request);
 #### Retrieval
 ```java
 Refund refund = client.getRefund(refundId);
+```
+
+## Handling Payment Settlement
+
+### Important: Asynchronous Payment Settlement
+
+Payment settlement is asynchronous - payments transition from `AcceptedSettlementInProcess` to `AcceptedSettlementCompleted` as the bank processes them. Only `AcceptedSettlementCompleted` status confirms that funds have been successfully sent from the payer's bank to your account. In rare circumstances, payments may remain in `AcceptedSettlementInProcess` status for extended periods. The SDK's polling methods (`awaitSuccessfulPayment`) will timeout if you set a wait period shorter than the settlement time.
+
+**Your application is responsible for:**
+
+1. **Persisting payment state**: Save payment IDs and status to your database when timeouts occur
+2. **Re-polling incomplete payments**: Implement a background process to periodically check payments still in `AcceptedSettlementInProcess` status
+3. **User communication**: Display "Payment Pending" messages and update your order status accordingly
+4. **Reaching terminal state**: Continue polling until payment reaches `AcceptedSettlementCompleted` or `Rejected`
+
+**The SDK provides:**
+- `getPayment(paymentId)` - Retrieve current payment status
+- `getConsent(consentId)` - Quick payments return consent with embedded payment status
+- Payment IDs in all create responses for tracking
+
+**Example wash-up process:**
+```java
+// Periodically check pending payments in your database
+Payment payment = client.getPayment(pendingPaymentId);
+if (payment.getStatus() == Payment.StatusEnum.ACCEPTED_SETTLEMENT_COMPLETED) {
+    // Mark order as paid in your database
+}
+```
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute to this project.
+
+### Running Tests
+
+The project includes unit and integration tests for both SDK versions.
+
+#### Test Suite Overview
+
+Both SDK versions include comprehensive test suites covering all API operations and flow types.
+
+#### Running Spring SDK Tests
+
+The Spring SDK uses `provided` scope for Spring dependencies, so tests will use the Spring dependencies declared in `test` scope (`spring-boot-starter-test`). No additional configuration is needed.
+
+To run tests, you need to set the required environment variables:
+
+```bash
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+```
+
+Then run the tests:
+
+```bash
+# Run unit tests only
+mvn -B -ntp -Dgroups=unit test
+
+# Run integration tests only
+mvn -B -ntp -Dgroups=integration test
+
+# Run all tests
+mvn -B -ntp test
+```
+
+Or combine the environment variables in a single command:
+
+```bash
+# Unit tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+
+# All tests
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
+```
+
+For the Spring SDK module specifically, navigate to the `java-spring6` directory first:
+
+```bash
+cd java-spring6
+BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
+```
+
+#### Running Plain Java SDK Tests
+
+The Plain Java SDK integration tests require three environment variables:
+
+```bash
+export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
+export BLINKPAY_CLIENT_ID="your-client-id"
+export BLINKPAY_CLIENT_SECRET="your-client-secret"
+```
+
+Run the tests:
+
+```bash
+# From project root - run v2 integration tests
+cd java-v2
+mvn verify
+
+# Or combine with environment variables
+BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz" \
+BLINKPAY_CLIENT_ID="your-client-id" \
+BLINKPAY_CLIENT_SECRET="your-client-secret" \
+mvn verify
 ```
