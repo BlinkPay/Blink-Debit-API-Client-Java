@@ -148,7 +148,7 @@ mvn test -DexcludedGroups=""
 - **Spring SDK**: Heavier runtime dependencies (Spring, Netty, Reactor, Commons, Resilience4j, Hibernate Validator)
 - **Plain Java SDK**: Minimal runtime dependencies (Jackson, java-jwt, slf4j-api)
 
-See `dependency-tree.txt` (Spring) and `java-v2-dependency-tree.txt` (Plain Java) for full dependency trees.
+Use `mvn dependency:tree` in each module directory to view full dependency trees.
 
 ## Build and Package
 
