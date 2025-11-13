@@ -28,15 +28,15 @@
 10. [Individual API Call Examples](#individual-api-call-examples)
 
 ## Introduction
-This SDK allows merchants with Java-based e-commerce site to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
+This SDK allows merchants with Java-based e-commerce sites to integrate with **Blink PayNow** (for one-off payments) and **Blink AutoPay** (for recurring payments).
 
 ### SDK Versions
 This repository provides two SDK implementations:
 
-- **v1 SDK** (`java-spring6/` module): Reactive SDK using Spring WebClient with Mono/Flux async programming. Suitable for Spring Boot 3.x / Spring Framework 6+ applications.
-- **v2 SDK** (`java-v2/` module - **Recommended**): Lightweight synchronous SDK using Java 11+ HttpClient. **87% smaller** dependency footprint (~206KB vs ~1.6MB runtime dependencies), ideal for plain Java applications, serverless functions, and memory-constrained environments.
+- **Plain Java SDK** (`java-v2/` module - **Recommended**): Lightweight synchronous SDK using Java 11+ HttpClient. **87% smaller** dependency footprint (~206KB vs ~1.6MB runtime dependencies), ideal for plain Java applications, serverless functions, and memory-constrained environments.
+- **Spring SDK** (`java-spring6/` module): Reactive SDK using Spring WebClient with Mono/Flux async programming. Suitable for Spring Boot 3.x / Spring Framework 6+ applications.
 
-The v1 SDK internally uses WebClient, a reactive Web client introduced in Spring Framework 5, for making API calls. The v2 SDK uses the standard Java 11+ HttpClient for synchronous blocking calls with minimal dependencies.
+The Plain Java SDK uses the standard Java 11+ HttpClient for synchronous blocking calls with minimal dependencies. The Spring SDK internally uses WebClient for making reactive API calls.
 
 ## Contributing
 We welcome contributions from the community. Your pull request will be reviewed by our team.
@@ -51,7 +51,7 @@ The project includes unit and integration tests for both SDK versions.
 
 Both SDK versions include comprehensive test suites covering all API operations and flow types.
 
-#### Running v1 SDK (java-spring6) Tests
+#### Running Spring SDK Tests
 
 To run tests, you need to set the required environment variables:
 
@@ -83,16 +83,16 @@ BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" 
 BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp test
 ```
 
-For the Spring 6 module specifically, navigate to the `java-spring6` directory first:
+For the Spring SDK module specifically, navigate to the `java-spring6` directory first:
 
 ```bash
 cd java-spring6
 BLINKPAY_CLIENT_ID="your-client-id" BLINKPAY_CLIENT_SECRET="your-client-secret" mvn -B -ntp -Dgroups=unit test
 ```
 
-#### Running v2 SDK (java-v2) Tests
+#### Running Plain Java SDK Tests
 
-The v2 SDK integration tests require three environment variables:
+The Plain Java SDK integration tests require three environment variables:
 
 ```bash
 export BLINKPAY_DEBIT_URL="https://sandbox.debit.blinkpay.co.nz"
@@ -114,26 +114,26 @@ BLINKPAY_CLIENT_SECRET="your-client-secret" \
 mvn verify
 ```
 
-The v2 SDK integration tests cover all API operations including consents, payments, quick payments, refunds, and metadata retrieval across all supported flow types (Gateway, Redirect, Decoupled).
+The Plain Java SDK integration tests cover all API operations including consents, payments, quick payments, refunds, and metadata retrieval across all supported flow types (Gateway, Redirect, Decoupled).
 
 ## Minimum Requirements
 - Maven 3 or Gradle 7
-- Java 11 or higher (for `blink-debit-api-client-java` and `blink-debit-api-client-java-v2`)
-- Java 21 or higher (for `blink-debit-api-client-java-spring6`)
-- Lombok 1.18 (for v1 SDK development only - not required for v2 SDK)
+- Java 11 or higher (for Plain Java SDK - `blink-debit-api-client-java-v2`)
+- Java 21 or higher (for Spring SDK - `blink-debit-api-client-java-spring6`)
+- Lombok 1.18 (for Spring SDK development only)
 
 ## Adding the dependency
 
-This SDK is available in three versions to support different Java and Spring Framework configurations:
+This SDK is available in two versions to support different Java and Spring Framework configurations:
 
-### For Plain Java 11+ Applications (Recommended - v2 SDK)
+### For Plain Java 11+ Applications (Recommended)
 Use `blink-debit-api-client-java-v2` for:
 - **Plain Java 11+** applications (non-Spring)
 - **Serverless functions** (Lambda, Cloud Functions, etc.)
 - **Memory-constrained environments**
 - Applications that prefer **synchronous blocking API** calls
 
-This lightweight version has **87% fewer runtime dependencies** compared to v1 SDK.
+This lightweight version has **87% fewer runtime dependencies** (~206KB vs ~1.6MB).
 
 #### Maven
 ```xml
@@ -149,29 +149,11 @@ This lightweight version has **87% fewer runtime dependencies** compared to v1 S
 implementation "nz.co.blinkpay:blink-debit-api-client-java-v2:$version"
 ```
 
-### For Spring Boot 2.x Applications (v1 SDK)
-Use `blink-debit-api-client-java` for:
-- **Spring Boot 2.x** applications
-- **Spring Framework versions < 6**
+### For Spring Boot 3.x / Spring Framework 6+ Applications
+Use `blink-debit-api-client-java-spring6` for:
+- **Spring Boot 3.x** applications
+- **Spring Framework 6+** applications
 - Applications that prefer **reactive programming** with Mono/Flux
-
-#### Maven
-```xml
-<dependency>
-    <groupId>nz.co.blinkpay</groupId>
-    <artifactId>blink-debit-api-client-java</artifactId>
-    <version>${version}</version>
-</dependency>
-```
-
-#### Gradle
-```groovy
-implementation "nz.co.blinkpay:blink-debit-api-client-java:$version"
-```
-
-### For Spring Boot 3.x / Spring 6
-Use `blink-debit-api-client-java-spring6` **only if** you are using:
-- **Spring Framework 6+** (including Spring Boot 3.x)
 
 #### Maven
 ```xml
@@ -189,7 +171,7 @@ implementation "nz.co.blinkpay:blink-debit-api-client-java-spring6:$version"
 
 ## Quick Start
 
-### v2 SDK (Recommended for Plain Java)
+### Plain Java SDK (Recommended)
 ```java
 import nz.co.blink.debit.client.v1.BlinkDebitClient;
 import nz.co.blink.debit.config.BlinkDebitConfig;
@@ -205,7 +187,7 @@ BlinkDebitConfig config = BlinkDebitConfig.builder()
         .build();
 BlinkDebitClient client = new BlinkDebitClient(config);
 
-// Option 3: Using simple constructor (v1 compatibility)
+// Option 3: Using simple constructor
 BlinkDebitClient client = new BlinkDebitClient(
         "https://sandbox.debit.blinkpay.co.nz",
         "your-client-id",
@@ -224,10 +206,7 @@ QuickPaymentRequest request = new QuickPaymentRequest()
                 .code("code")
                 .reference("reference"));
 
-// Option A: Using API client getters (verbose)
-CreateQuickPaymentResponse response = client.getQuickPaymentsApi().createQuickPayment(request);
-
-// Option B: Using convenience methods (recommended - v1 compatible)
+// Create the quick payment
 CreateQuickPaymentResponse response = client.createQuickPayment(request);
 
 // Redirect the consumer to response.getRedirectUri()
@@ -237,7 +216,7 @@ UUID quickPaymentId = response.getQuickPaymentId();
 QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowException(quickPaymentId, 300);
 ```
 
-### v1 SDK (Spring Boot 2.x - Reactive WebClient)
+### Spring SDK (Reactive)
 ```java
 String blinkpayUrl = "https://sandbox.debit.blinkpay.co.nz";
 String clientId = "...";
@@ -266,16 +245,16 @@ QuickPaymentResponse qpResponse = client.awaitSuccessfulQuickPaymentOrThrowExcep
 ## Configuration
 Configuration differs between SDK versions:
 
-### v2 SDK Configuration
-The v2 SDK uses **simple configuration** via:
+### Plain Java SDK Configuration
+The Plain Java SDK uses **simple configuration** via:
 1. Environment variables (recommended): `BLINKPAY_DEBIT_URL`, `BLINKPAY_CLIENT_ID`, `BLINKPAY_CLIENT_SECRET`, `BLINKPAY_TIMEOUT` (optional, ISO-8601 duration like "PT30S")
 2. Configuration builder: `BlinkDebitConfig.builder()...build()`
 3. Simple constructor: `new BlinkDebitClient(url, clientId, clientSecret)`
 
 No properties files required. See [Quick Start](#quick-start) for examples.
 
-### v1 SDK Configuration (Spring Boot)
-The v1 SDK uses **Spring-based configuration** from:
+### Spring SDK Configuration
+The Spring SDK uses **Spring-based configuration** from:
 - `blinkdebit.yaml` or `blinkdebit.properties` files in classpath
 - Environment variables
 - System properties
@@ -287,8 +266,8 @@ See detailed configuration examples below.
 - The client credentials will be provided to you by BlinkPay as part of your on-boarding process.
 > **Warning** Take care not to check in your client ID and secret to your source control.
 
-### v1 SDK Property Precedence
-For v1 SDK, properties are loaded in this order:
+### Spring SDK Property Precedence
+For Spring SDK, properties are loaded in this order:
 1. As provided directly to client constructor
 2. Environment variables e.g. `export BLINKPAY_CLIENT_SECRET=...`
 3. System properties e.g. `-Dblinkpay.client.secret=...`
@@ -296,7 +275,7 @@ For v1 SDK, properties are loaded in this order:
 5. `blinkdebit.yaml`
 6. Default values
 
-### v1 SDK Property Configuration Examples
+### Spring SDK Property Configuration Examples
 
 #### Environment variables
 ```shell
@@ -379,8 +358,8 @@ blinkpay:
 
 ## Client Creation
 
-### v2 SDK Client Creation
-The v2 SDK provides multiple initialization options:
+### Plain Java SDK Client Creation
+The Plain Java SDK provides multiple initialization options:
 
 ```java
 // Option 1: Using environment variables (BLINKPAY_DEBIT_URL, BLINKPAY_CLIENT_ID, BLINKPAY_CLIENT_SECRET)
@@ -395,7 +374,7 @@ BlinkDebitConfig config = BlinkDebitConfig.builder()
         .build();
 BlinkDebitClient client = new BlinkDebitClient(config);
 
-// Option 3: Simple constructor (v1 compatibility)
+// Option 3: Simple constructor
 BlinkDebitClient client = new BlinkDebitClient(
         "https://sandbox.debit.blinkpay.co.nz",
         "your-client-id",
@@ -405,14 +384,14 @@ BlinkDebitClient client = new BlinkDebitClient(
 client.close();
 ```
 
-The v2 SDK client implements `AutoCloseable`, so you can use try-with-resources:
+The Plain Java SDK client implements `AutoCloseable`, so you can use try-with-resources:
 ```java
 try (BlinkDebitClient client = new BlinkDebitClient()) {
     // Use client...
 } // Automatically closed
 ```
 
-### v1 SDK Client Creation
+### Spring SDK Client Creation
 Plain Java client code:
 ```java
 // No-arg constructor uses property hierarchy
@@ -422,7 +401,7 @@ BlinkDebitClient client = new BlinkDebitClient();
 BlinkDebitClient client = new BlinkDebitClient(blinkpayUrl, clientId, clientSecret, "production");
 ```
 
-Spring-based code:
+Spring-based code (autowiring):
 ```java
 @Autowired
 BlinkDebitClient client;
@@ -435,7 +414,7 @@ An optional request ID can be added as the last argument to API calls. This serv
 
 It will be generated automatically (UUID) if not provided.
 
-### v2 SDK Example
+### Plain Java SDK Example
 ```java
 // Auto-generated request ID
 CreateQuickPaymentResponse response = client.createQuickPayment(request);
@@ -445,18 +424,16 @@ String requestId = "my-custom-id-123";
 CreateQuickPaymentResponse response = client.createQuickPayment(request, requestId);
 ```
 
-### v1 SDK Example
+### Spring SDK Example
 ```java
-CreateQuickPaymentResponse response = client.createQuickPayment(request, "my-custom-id-123");
+Mono<CreateQuickPaymentResponse> response = client.createQuickPayment(request, "my-custom-id-123");
 ```
 
 ## Full Examples
 
-> **Note:** The examples below use convenience methods that work with **both v2 and v1 SDKs**.
-> - **v2 SDK**: Returns `T` directly (synchronous blocking)
-> - **v1 SDK**: Returns `Mono<T>` (reactive, requires `.block()` or subscription)
->
-> For v2 SDK, you can also use API client getters: `client.getQuickPaymentsApi().createQuickPayment(request)`
+> **Note:** The examples below work with **both Plain Java SDK and Spring SDK**.
+> - **Plain Java SDK**: Returns `T` directly (synchronous blocking)
+> - **Spring SDK**: Returns `Mono<T>` (reactive, requires `.block()` or subscription)
 ### Quick payment (one-off payment), using Gateway flow
 A quick payment is a one-off payment that combines the API calls needed for both the consent and the payment.
 ```java
@@ -501,10 +478,9 @@ logger.info("Payment Status: {}", client.getPayment(paymentResponse.getPaymentId
 
 ## Individual API Call Examples
 
-> **Note:** All examples below are compatible with **both v2 and v1 SDKs** using convenience methods.
-> - **v2 SDK**: All methods return values directly (synchronous)
-> - **v1 SDK**: All methods return `Mono<T>` (reactive, call `.block()` to get value)
-> - **v2 SDK Alternative**: Use API client getters like `client.getMetaApi().getMeta()`
+> **Note:** All examples below work with **both Plain Java SDK and Spring SDK**.
+> - **Plain Java SDK**: All methods return values directly (synchronous)
+> - **Spring SDK**: All methods return `Mono<T>` (reactive, call `.block()` to get value)
 
 ### Bank Metadata
 Supplies the supported banks and supported flows on your account.
