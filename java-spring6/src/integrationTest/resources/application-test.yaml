@@ -1,6 +1,6 @@
 blinkpay:
   debit:
-    url: https://sandbox.debit.blinkpay.co.nz
+    url: ${BLINKPAY_DEBIT_URL:https://sandbox.debit.blinkpay.co.nz}
   max:
     connections: 50
     idle:
@@ -13,5 +13,5 @@ blinkpay:
   eviction:
     interval: PT60S
   client:
-    id: ${BLINKPAY_CLIENT_ID}
-    secret: ${BLINKPAY_CLIENT_SECRET}
+    id: ${BLINKPAY_CLIENT_ID:}
+    secret: ${BLINKPAY_CLIENT_SECRET:}
