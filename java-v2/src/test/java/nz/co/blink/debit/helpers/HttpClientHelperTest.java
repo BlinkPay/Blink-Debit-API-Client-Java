@@ -169,7 +169,7 @@ class HttpClientHelperTest {
 
         assertThatThrownBy(() -> httpHelper.post("/test-path", requestBody, TestResponse.class, REQUEST_ID))
                 .isInstanceOf(BlinkServiceException.class)
-                .hasMessageContaining("IO error during POST request");
+                .hasMessageContaining("Network error after 3 attempts");
     }
 
     @Test
@@ -247,7 +247,7 @@ class HttpClientHelperTest {
 
         assertThatThrownBy(() -> httpHelper.get("/test-path", TestResponse.class, REQUEST_ID))
                 .isInstanceOf(BlinkServiceException.class)
-                .hasMessageContaining("IO error during GET request");
+                .hasMessageContaining("Network error after 3 attempts");
     }
 
     // ===== DELETE Request Tests =====
