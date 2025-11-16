@@ -20,6 +20,14 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>BlinkPay</name>
+            <organization>BlinkPay</organization>
+            <organizationUrl>https://www.blinkpay.co.nz</organizationUrl>
+        </developer>
+    </developers>
+
     <scm>
         <url>https://github.com/BlinkPay/Blink-Debit-API-Client-Java</url>
     </scm>
