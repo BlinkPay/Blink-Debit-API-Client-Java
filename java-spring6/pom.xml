@@ -35,11 +35,34 @@
     </properties>
 
     <dependencies>
-        <!-- Internal dependencies -->
+        <!-- Lombok (provided scope - compile-time only) -->
         <dependency>
-            <groupId>nz.co.blinkpay</groupId>
-            <artifactId>blink-debit-api-client-java-core</artifactId>
-            <version>${core.version}</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.42</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Dependencies from former core module -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.19.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns</artifactId>
+            <version>4.2.7.Final</version>
         </dependency>
 
         <!-- Spring dependencies (provided scope - user must supply Spring Boot 3.x) -->
