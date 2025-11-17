@@ -53,3 +53,5 @@ Thumbs.db
 
 # Claude Code settings
 .claude/
+repomix.config.json
+repomix-output.txt

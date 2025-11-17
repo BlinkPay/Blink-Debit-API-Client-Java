@@ -2,7 +2,7 @@
 
 Lightweight Java SDK for integrating with **Blink PayNow** (one-off payments) and **Blink AutoPay** (recurring payments).
 
-[![Maven Central](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java-v2.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/nz.co.blinkpay/blink-debit-api-client-java-v2)
+[![Maven Central](https://img.shields.io/maven-central/v/nz.co.blinkpay/blink-debit-api-client-java.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/nz.co.blinkpay/blink-debit-api-client-java)
 
 ## Features
 
@@ -23,14 +23,14 @@ Lightweight Java SDK for integrating with **Blink PayNow** (one-off payments) an
 ```xml
 <dependency>
     <groupId>nz.co.blinkpay</groupId>
-    <artifactId>blink-debit-api-client-java-v2</artifactId>
+    <artifactId>blink-debit-api-client-java</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
 
 ### Gradle
 ```groovy
-implementation 'nz.co.blinkpay:blink-debit-api-client-java-v2:2.0.0'
+implementation 'nz.co.blinkpay:blink-debit-api-client-java:2.0.0'
 ```
 
 ## Quick Start
@@ -316,22 +316,24 @@ try {
 
 **Important**: Payment settlement is asynchronous. Payments transition through these states:
 
-- `AcceptedSettlementInProcess` - Payment accepted, settlement in progress
-- `AcceptedSettlementCompleted` - Funds successfully transferred to your account
+- `Pending` - Payment initiated, not yet settled
+- `AcceptedSettlementInProcess` - Settlement in progress
+- `AcceptedSettlementCompleted` - ✅ **ONLY THIS STATUS means money has been sent from the payer's bank**
+- `Rejected` - Payment failed
 
-**Only `AcceptedSettlementCompleted` confirms successful fund transfer.** In rare cases, payments may remain in `AcceptedSettlementInProcess` for extended periods.
+**Only `AcceptedSettlementCompleted` confirms funds have been sent from the payer's bank.** In rare cases, payments may remain in `AcceptedSettlementInProcess` for extended periods.
 
 ### Polling for Settlement
 
 The SDK provides helper methods to wait for payment completion:
 
 ```java
-// Wait up to 5 minutes for payment to complete
+// Wait up to 5 minutes for funds to be sent from payer's bank
 try {
     Payment payment = client.awaitSuccessfulPayment(paymentId, 300);
-    System.out.println("Payment completed: " + payment.getStatus());
+    System.out.println("Funds sent from payer's bank: " + payment.getStatus());
 } catch (BlinkPaymentTimeoutException e) {
-    // Payment didn't complete within timeout
+    // Settlement didn't complete within timeout
     System.err.println("Payment still processing after 5 minutes");
 }
 ```

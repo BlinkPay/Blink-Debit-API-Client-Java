@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>nz.co.blinkpay</groupId>
-    <artifactId>blink-debit-api-client-java-v2</artifactId>
+    <artifactId>blink-debit-api-client-java</artifactId>
     <version>${revision}</version>
     <packaging>jar</packaging>
 
-    <name>blink-debit-api-client-java-v2</name>
-    <description>Lightweight Blink Debit API Client for Java 11+ using HttpClient</description>
+    <name>blink-debit-api-client-java</name>
+    <description>Blink Debit API Client for Java 11+ using HttpClient</description>
     <url>https://www.blinkpay.co.nz</url>
 
     <licenses>
@@ -243,14 +243,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Disable default deploy plugin, use central-publishing from parent -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 </project>
