@@ -51,7 +51,7 @@ jobs:
           BLINKPAY_ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
       - name: Run Plain Java SDK (java-v2) integration tests
-        run: cd java-v2 && mvn -B -ntp verify
+        run: cd java-v2 && mvn -B -ntp verify -Dgpg.skip
         env:
           BLINKPAY_DEBIT_URL: https://sandbox.debit.blinkpay.co.nz
           BLINKPAY_CLIENT_ID: ${{ secrets.CLIENT_ID }}

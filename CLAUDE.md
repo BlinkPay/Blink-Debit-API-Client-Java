@@ -10,11 +10,7 @@ This repository contains Java SDK implementations for the Blink Debit API, enabl
 
 ### SDK Versions
 
-This repository contains three modules:
-
-#### core (Shared Module)
-- **Location**: `core/`
-- Shared exceptions, enums, and helper classes used by SDK implementations
+This repository contains two independent SDK modules:
 
 #### java-v2 (Plain Java SDK - **RECOMMENDED**)
 - **Location**: `java-v2/`
